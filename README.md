@@ -2,7 +2,7 @@
 ROS package with autonomy algorithms for the NATO AVT-341.
 
 ## Requirements
-Ubuntu 16.04 with ROS-Kinetic and a functioning catkin workspace are required to build and run this code. It **may** work with more recent releases of Ubuntu but has not been tested.
+Ubuntu 16.04 with [ROS-Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) and a functioning [catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) are required to build and run this code. It **may** work with more recent releases of Ubuntu but has not been tested.
 
 ## Installation
 Clone the repo into your catkin_ws/src directory with the following command.
