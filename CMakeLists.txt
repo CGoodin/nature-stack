@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  tf
 )
 
 find_package(PCL REQUIRED)
@@ -79,6 +80,12 @@ target_link_libraries(avt_341_sim_test_node
   ${PCL_LIBRARIES}
 )
 
+add_executable(avt_bot_state_publisher_node 
+  src/control/avt_bot_state_publisher.cpp 
+)
+target_link_libraries(avt_bot_state_publisher_node
+   ${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -90,6 +97,7 @@ avt_341_control_node
 avt_341_local_planner_node
 avt_341_global_path_node
 avt_341_sim_test_node
+avt_bot_state_publisher_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
