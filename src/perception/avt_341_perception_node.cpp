@@ -20,15 +20,25 @@ nav_msgs::Odometry current_pose;
 bool grid_created = false;
 bool odom_rcvd = false;
 float blanking_dist = 0.0f;
+std::vector<nav_msgs::Odometry> current_pose_list;
 
 void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 	sensor_msgs::PointCloud point_cloud;
-	double dt = current_pose.header.stamp.toSec() - rcv_cloud->header.stamp.toSec();
+	
   bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
-	if (converted && fabs(dt)<0.02 && odom_rcvd){
-		tf::Quaternion q(current_pose.pose.pose.orientation.x, current_pose.pose.pose.orientation.y, current_pose.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
+	double dt = 1.0;
+	nav_msgs::Odometry pose_to_use;
+	for (int i=0;i<current_pose_list.size();i++){
+		double dt_this = fabs(current_pose_list[i].header.stamp.toSec() - rcv_cloud->header.stamp.toSec());
+		if (dt_this<dt){
+			pose_to_use = current_pose_list[i];
+			dt = dt_this;
+		}
+	}
+	if (converted && fabs(dt)<0.01 && odom_rcvd){
+		tf::Quaternion q(pose_to_use.pose.pose.orientation.x, pose_to_use.pose.pose.orientation.y, pose_to_use.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
 		tf::Matrix3x3 R(q);
-		tf::Vector3 origin(current_pose.pose.pose.position.x, current_pose.pose.pose.position.y, current_pose.pose.pose.position.z);
+		tf::Vector3 origin(pose_to_use.pose.pose.position.x, pose_to_use.pose.pose.position.y, pose_to_use.pose.pose.position.z);
 		std::vector<geometry_msgs::Point32> points;
 		for (int p=0;p<point_cloud.points.size();p++){
 			tf::Vector3 v;
@@ -54,6 +64,8 @@ void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_odom){
 	current_pose = *rcv_odom;
 	odom_rcvd = true;
+	current_pose_list.push_back(current_pose);
+	if (current_pose_list.size()>50) current_pose_list.erase(current_pose_list.begin());
 }
 
 int main(int argc, char *argv[]) {
