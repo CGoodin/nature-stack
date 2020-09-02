@@ -24,6 +24,43 @@ struct vec2{
 	float y;
 };
 
+struct vec3{
+	vec3(){
+		x = 0.0f;
+		y = 0.0f;
+		z = 0.0f;
+	}
+	vec3(float x_, float y_, float z_){
+		x = x_; 
+		y = y_;
+		z = z_;
+	}
+	vec3 operator+(const vec3& b) { return vec3(this->x + b.x, this->y + b.y, this->z + b.z); }
+	vec3 operator-(const vec3& b) { return vec3(this->x - b.x, this->y - b.y, this->z - b.z); }
+	vec3 operator*(const float s) { return vec3(s*this->x, s*this->y, s*this->z); }
+	vec3 operator/(const float s) { return vec3(this->x/s, this->y/s, this->z/s); }
+	float x;
+	float y;
+	float z;
+};
+
+struct ivec2{
+	ivec2(){
+		x = 0;
+		y = 0;
+	}
+	ivec2(int x_, int y_){
+		x = x_; 
+		y = y_;
+	}
+	ivec2 operator+(const ivec2& b) { return ivec2(this->x + b.x, this->y + b.y); }
+	ivec2 operator-(const ivec2& b) { return ivec2(this->x - b.x, this->y - b.y); }
+	ivec2 operator*(const int s) { return ivec2(s*this->x, s*this->y); }
+	ivec2 operator/(const int s) { return ivec2(this->x/s, this->y/s); }
+	int x;
+	int y;
+};
+
 inline float length(vec2 p){
 	float r = (float)sqrt(p.x*p.x + p.y*p.y);
 	return r;

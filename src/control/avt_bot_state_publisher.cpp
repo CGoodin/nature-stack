@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
     ros::Subscriber odom_sub = n.subscribe("avt_341/odometry",100, OdometryCallback);
 
     tf::TransformBroadcaster broadcaster;
-    ros::Rate loop_rate(100);
+    
 
     // message declarations
     geometry_msgs::TransformStamped odom_trans;
@@ -30,6 +30,7 @@ int main(int argc, char** argv) {
     tf_map_to_odom.frame_id_ = std::string("map");
     tf_map_to_odom.child_frame_id_ = std::string("odom");
 
+    ros::Rate loop_rate(100.0);
     while (ros::ok()) {
         //update joint_state
         joint_state.header.stamp = ros::Time::now();
@@ -37,7 +38,7 @@ int main(int argc, char** argv) {
         joint_state.position.resize(3);
         joint_state.name[0] ="lidar_joint";
         joint_state.position[0] = 0.0;
-
+        
         odom_trans.header.stamp = ros::Time::now();
         odom_trans.transform.translation.x = pose.position.x;
         odom_trans.transform.translation.y = pose.position.y;

@@ -17,6 +17,7 @@
 #include <tf/transform_datatypes.h>
 // avt_341 includes
 #include "avt_341/planning/local/spline_planner.h"
+#include "avt_341/planning/local/spline_plotter.h"
 
 nav_msgs::Odometry odom;
 nav_msgs::OccupancyGrid grid;
@@ -31,6 +32,7 @@ void OdometryCallback(const nav_msgs::Odometry::ConstPtr &rcv_odom){
 
 void GridCallback(const nav_msgs::OccupancyGrid::ConstPtr &rcv_grid){
   grid = *rcv_grid;
+  std::cout<<"RECIEVED grid WITH ORIGIN : "<<grid.info.origin.position.x<<" "<<grid.info.origin.position.y<<std::endl;
   new_grid_rcvd = true;
 }
 
@@ -109,6 +111,13 @@ int main(int argc, char *argv[]){
     ros::param::get("~trim_path", trim_path);
   }
 
+  bool display = false;
+  if (ros::param::has("~display")){
+    ros::param::get("~display", display);
+  }
+
+  avt_341::planning::Plotter plotter;
+
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;
   float elapsed_time = 0.0f;
@@ -132,7 +141,7 @@ int main(int argc, char *argv[]){
 
       std::vector<avt_341::utils::vec2> culled_points = path.GetPoints();
       float s_max = path.GetTotalLength();
-
+      std::cout<<"LOcal planner pose: "<<odom.pose.pose.position.x <<" "<<odom.pose.pose.position.y<<std::endl;
       avt_341::utils::vec2 srho = path.ToSRho(odom.pose.pose.position.x, odom.pose.pose.position.y);
       float s = srho.x;
       float rho_start = srho.y;
@@ -144,6 +153,14 @@ int main(int argc, char *argv[]){
       if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor);
       // most of the calculation time spent on this function call
       bool path_found = planner.CalculateCandidateCosts(grid, odom);
+      if (display){
+        plotter.AddMap(grid);
+        plotter.SetPath(culled_points);
+        std::vector<avt_341::planning::Candidate> paths = planner.GetCandidates();
+        plotter.AddCurves(paths);
+        plotter.Display();
+      }
+
       if (path_found){
         float ds = output_path_step;
         nav_msgs::Path local_path;

@@ -60,9 +60,11 @@ add_executable(avt_341_local_planner_node
   src/planning/local/avt_341_local_planner_node.cpp 
   src/planning/local/spline_path.cpp
   src/planning/local/spline_planner.cpp
+  src/planning/local/spline_plotter.cpp
 )
 target_link_libraries(avt_341_local_planner_node
   ${catkin_LIBRARIES}
+  X11
 )
 
 add_executable(avt_341_global_path_node 

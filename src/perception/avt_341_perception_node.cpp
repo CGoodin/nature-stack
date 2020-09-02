@@ -17,12 +17,14 @@
 
 avt_341::perception::ElevationGrid grid;
 nav_msgs::Odometry current_pose;
-bool grid_created;
+bool grid_created = false;
+bool odom_rcvd = false;
 
 void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 	sensor_msgs::PointCloud point_cloud;
-    bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
-	if (converted){
+	double dt = current_pose.header.stamp.toSec() - rcv_cloud->header.stamp.toSec();
+  bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
+	if (converted && fabs(dt)<0.02 && odom_rcvd){
 		tf::Quaternion q(current_pose.pose.pose.orientation.x, current_pose.pose.pose.orientation.y, current_pose.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
 		tf::Matrix3x3 R(q);
 		tf::Vector3 origin(current_pose.pose.pose.position.x, current_pose.pose.pose.position.y, current_pose.pose.pose.position.z);
@@ -49,6 +51,7 @@ void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 
 void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_odom){
 	current_pose = *rcv_odom;
+	odom_rcvd = true;
 }
 
 int main(int argc, char *argv[]) {
