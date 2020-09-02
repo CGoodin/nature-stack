@@ -32,7 +32,6 @@ void OdometryCallback(const nav_msgs::Odometry::ConstPtr &rcv_odom){
 
 void GridCallback(const nav_msgs::OccupancyGrid::ConstPtr &rcv_grid){
   grid = *rcv_grid;
-  std::cout<<"RECIEVED grid WITH ORIGIN : "<<grid.info.origin.position.x<<" "<<grid.info.origin.position.y<<std::endl;
   new_grid_rcvd = true;
 }
 
@@ -138,16 +137,20 @@ int main(int argc, char *argv[]){
       else{
         path.Init(path_points);
       }
+      //path.FixBeginning(odom.pose.pose.position.x, odom.pose.pose.position.y);
 
       std::vector<avt_341::utils::vec2> culled_points = path.GetPoints();
       float s_max = path.GetTotalLength();
-      std::cout<<"LOcal planner pose: "<<odom.pose.pose.position.x <<" "<<odom.pose.pose.position.y<<std::endl;
+      
       avt_341::utils::vec2 srho = path.ToSRho(odom.pose.pose.position.x, odom.pose.pose.position.y);
       float s = srho.x;
       float rho_start = srho.y;
+      avt_341::utils::vec2 pconv = path.ToCartesian(s,rho_start);
+
       float s_lookahead = std::min(path_look_ahead, s_max - s);
       float theta = avt_341::utils::GetHeadingFromOrientation(odom.pose.pose.orientation);
       avt_341::planning::CurveInfo ci = path.GetCurvatureAndAngle(s);
+
       planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
       planner.SetCenterline(path);
       if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor);

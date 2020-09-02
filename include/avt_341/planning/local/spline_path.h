@@ -68,7 +68,7 @@ public:
 	 * Will cull out waypoints that are far away to make the calculation faster.
 	 * \param points List of waypoints in 2D ENU coordinates.
 	 * \param position Current position in 2D ENU coordinates.
-	 * * \param la The maximum distances ahead on the current position to keep.
+	 * \param la The maximum distances ahead on the current position to keep.
 	 */ 
 	void Init(std::vector<utils::vec2> points, utils::vec2 position, float la);
 
@@ -127,13 +127,15 @@ public:
 	 */
 	float GetTheta(float s);
 
+	void FixBeginning(float x, float y);
 
 private:
 	std::vector<utils::vec2> points_;
 	std::vector<float> curvature_;
 	std::vector<float> theta_;
 	std::vector<float> arc_length_;
-
+	std::vector<float> discrete_lengths_;
+	float max_lookahead_;
 	void CalcAnglesAndCurvature();
 
 	float MengerCurvature(utils::vec2 p0, utils::vec2 p1, utils::vec2 p2);

@@ -14,6 +14,8 @@
 #include "ros/ros.h"
 #include <nav_msgs/Path.h>
 #include "nav_msgs/Odometry.h"
+// local includes
+#include "avt_341/avt_341_utils.h"
 
 nav_msgs::Odometry odom;
 bool odom_rcvd = false;

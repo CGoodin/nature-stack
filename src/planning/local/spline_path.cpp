@@ -3,7 +3,9 @@
 namespace avt_341 {
 namespace planning{
 
-Path::Path() {}
+Path::Path() {
+	max_lookahead_ = std::numeric_limits<float>::max();
+}
 
 Path::Path(std::vector<utils::vec2> points) {
 	Init(points);
@@ -16,15 +18,11 @@ Path::Path(std::vector<utils::vec2> points, utils::vec2 position, float la) {
 void Path::Init(std::vector<utils::vec2> points, utils::vec2 position, float la){
 	// cull points
 	std::vector<utils::vec2> points_to_keep; 
-	/*for (int i=0;i<points.size();i++){
-		float ds = fabs(position.x-points[i].x);
-		if (ds>0.0 && ds<la) points_to_keep.push_back(points[i]);
-	}*/
 	for (int i=0;i<points.size();i++){
 		float ds = utils::length(position-points[i]);
 		if (ds>0.0 && ds<la) points_to_keep.push_back(points[i]);
 	}
-	
+	max_lookahead_ = la;
 	Init(points_to_keep);
 }
 
@@ -56,6 +54,7 @@ void Path::CalcAnglesAndCurvature() {
 	curvature_.resize(points_.size(), 0.0f);
 	theta_.resize(points_.size(), 0.0f);
 	arc_length_.resize(points_.size(),0.0f);
+	discrete_lengths_.resize(points_.size(),0.0f);
 	if (points_.size() > 2) {
 		for (int i = 1; i < points_.size() - 1; i++){
 		curvature_[i] = MengerCurvature(points_[i - 1], points_[i], points_[i + 1]);
@@ -63,7 +62,10 @@ void Path::CalcAnglesAndCurvature() {
 		curvature_[0] = curvature_[1];
 		curvature_[points_.size() - 1] = curvature_[points_.size() - 2];
 	}
-	
+	for (int i = 0; i < points_.size()-1; i++) {
+		utils::vec2 v1 = points_[i + 1] - points_[i];
+		discrete_lengths_[i] = utils::length(v1);
+	}
 	//angle and arc length
 	for (int i = 1; i < points_.size()-1; i++) {
 		utils::vec2 v0 = points_[i] - points_[i - 1];
@@ -122,7 +124,8 @@ PointSegDist Path::PointToSegmentDistance(utils::vec2 P, utils::vec2 Q, utils::v
 }
 
 SegmentInfo Path::FindSegment(float s) {
-	/*SegmentInfo segment;
+	SegmentInfo segment;
+	/*
 	float cum_dist = 0.0;
 	int wp = 0;
 	segment.id = 0; 
@@ -133,15 +136,13 @@ SegmentInfo Path::FindSegment(float s) {
 			float t = s - cum_dist;
 			utils::vec2 v = points_[wp + 1] - points_[wp];
 			v = v / utils::length(v);
-			segment.point = points_[wp] + t * v; 
+			segment.point = points_[wp] + v * t; 
 			break;
 		}
 		cum_dist = cum_dist + d;
 		wp = wp + 1;
 	}
-	*/
-
-	SegmentInfo segment;		
+	*/	
 	bool found = false;
 	for (int i=1;i<arc_length_.size();i++){
 		if (arc_length_[i]>s){
@@ -174,6 +175,22 @@ float Path::GetTotalLength() {
 	return cum_dist;
 }
 
+void Path::FixBeginning(float x, float y){
+	utils::vec2 sr = ToSRho(x,y);
+	float s = sr.x;
+	while (s<=0.0f){
+		utils::vec2 extend_direction = points_[0] - points_[1];
+		extend_direction = extend_direction/utils::length(extend_direction);
+		utils::vec2 new_point = points_[0] + extend_direction * 100.0f;
+		points_.insert(points_.begin(),new_point);
+		Init(points_);
+		utils::vec2 sr0 = ToSRho(x,y);
+		s = sr0.x;
+		std::cout<<"New point = "<<s<<" "<<new_point.x<<" "<<new_point.y<<std::endl;
+	}
+}
+
+
 utils::vec2 Path::ToSRho(float x, float y) {
 	// First find the closest segment
 	int closest_index = 0;
@@ -202,6 +219,7 @@ utils::vec2 Path::ToSRho(float x, float y) {
 	}
 
 	s += utils::length(closest_point - points_[closest_index]);
+
 	utils::vec2 sr;
 	sr.x = s;
 	sr.y = rho;
@@ -209,11 +227,22 @@ utils::vec2 Path::ToSRho(float x, float y) {
 }
 
 utils::vec2 Path::ToCartesian(float s, float rho) {
-	SegmentInfo seg = FindSegment(s);
-	utils::vec2 v = points_[seg.id + 1] - points_[seg.id];
+	float cumulative_distance = 0.0f;
+	int segment = 0;
+	while (cumulative_distance<s && segment<(points_.size()-1)){
+		float arc_length = discrete_lengths_[segment];
+		if (cumulative_distance+arc_length>s){
+			break;
+		}
+		else{
+			cumulative_distance+=arc_length;
+			segment++;
+		}
+	}
+	utils::vec2 v = points_[segment + 1] - points_[segment];
+	v = v / utils::length(v);
 	utils::vec2 n(-v.y, v.x);
-	n = n / utils::length(n);
-	utils::vec2 p = seg.point + n * rho; 
+	utils::vec2 p = points_[segment] + v*(s-cumulative_distance)+n*rho;
 	return p;
 }
 
