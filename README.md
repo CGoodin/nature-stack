@@ -30,7 +30,7 @@ To run an example simulation with MAVS, first [install and build MAVS](https://g
 
 Next, clone the example MAVS simulation package.
 ```bash
-$https://github.com/CGoodin/mavs_avt_example.git
+$git clone https://github.com/CGoodin/mavs_avt_example.git
 ```
 
 In order to build the repo, you will need to modify the CMakeLists.txt file in the mavs_avt_example to find your MAVS installation. In lines 8-9, change the following lines 
