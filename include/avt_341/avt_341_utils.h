@@ -1,3 +1,10 @@
+/**
+ * \file avt_341_utils.h
+ *
+ * Structs and inline functions used by all the algorithms.
+ *
+ * \date 9/3/2020
+ */
 #ifndef AVT_341_UTILS_H
 #define AVT_341_UTILS_H
 

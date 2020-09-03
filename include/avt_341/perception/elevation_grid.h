@@ -1,3 +1,15 @@
+/**
+ * \class ElevationGrid
+ *
+ * A slope-based obstacle detection algorithm. 
+ * The world is divided into 2D cells. 
+ * The highest and lowest point are used to calculate the slope in each cell.
+ * Cells that exceed a slope threshold are flagged as obstcles.
+ *
+ * \author Chris Goodin
+ *
+ * \date 9/3/2020
+ */
 #include <vector>
 #include <limits>
 #include <string>

@@ -10,7 +10,7 @@
  *
  * \author Chris Goodin
  *
- * \date 6/4/2020
+ * \date 9/3/2020
  */
 #ifndef SPLINE_PLANNER_H
 #define SPLINE_PLANNER_H

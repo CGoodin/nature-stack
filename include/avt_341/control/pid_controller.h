@@ -1,3 +1,13 @@
+/**
+* \class PidController
+*
+* A simple Proportional-Integral-Derivative (PID) controller.
+* Controller is generic, but used for speed control in this application.
+*
+* \author Chris Goodin
+*
+* \date 8/31/2020
+*/
 #ifndef PID_CONTROLLER_H
 #define PID_CONTROLLER_H
 

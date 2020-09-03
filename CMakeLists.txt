@@ -89,6 +89,25 @@ target_link_libraries(avt_bot_state_publisher_node
    ${catkin_LIBRARIES}
 )
 
+set(LIB_SOURCES
+src/control/pid_controller.cpp 
+src/control/pure_pursuit_controller.cpp 
+src/perception/elevation_grid.cpp
+src/planning/local/spline_path.cpp
+src/planning/local/spline_planner.cpp
+src/planning/local/spline_plotter.cpp
+)
+
+add_library(avt_341 ${LIB_SOURCES})
+target_link_libraries(avt_341
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  X11
+)
+
+catkin_package(INCLUDE_DIRS include
+               LIBRARIES avt_341)
+
 #############
 ## Install ##
 #############
@@ -103,3 +122,14 @@ avt_bot_state_publisher_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
+
+install(TARGETS avt_341
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+ )
