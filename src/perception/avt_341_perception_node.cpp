@@ -19,10 +19,34 @@ avt_341::perception::ElevationGrid grid;
 nav_msgs::Odometry current_pose;
 bool grid_created = false;
 bool odom_rcvd = false;
-float blanking_dist = 0.0f;
 std::vector<nav_msgs::Odometry> current_pose_list;
+bool use_registered = true;
 
-void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
+void PointCloudCallbackRegistered(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
+	// assumes point cloud is already registered to odom frame
+	sensor_msgs::PointCloud point_cloud;
+	
+  bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
+	if (converted && odom_rcvd){
+		std::vector<geometry_msgs::Point32> points;
+		for (int p=0;p<point_cloud.points.size();p++){
+			geometry_msgs::Point32 tp;
+			tp.x = point_cloud.points[p].x;
+			tp.y = point_cloud.points[p].y;
+			tp.z = point_cloud.points[p].z;
+			if ( !(tp.x==0.0 && tp.y==0.0) && !std::isnan(tp.x)){
+				points.push_back(tp);
+				
+			}
+		}
+		point_cloud.points.clear();
+		point_cloud.points = points;
+		grid.AddPoints(point_cloud);
+		grid_created = true;
+	}
+}
+
+void PointCloudCallbackUnregistered(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 	sensor_msgs::PointCloud point_cloud;
 	
   bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
@@ -44,7 +68,7 @@ void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 			tf::Vector3 v;
 			v = tf::Vector3(point_cloud.points[p].x, point_cloud.points[p].y,point_cloud.points[p].z);
 			double r = sqrt( pow(v.x()-origin.x(), 2)+pow(v.y()-origin.y(), 2)+pow(v.z()-origin.z(), 2));
-			if (r>blanking_dist && v.x()!=0.0 && v.y()!=0.0 &&!std::isnan(v.x())){
+			if (v.x()!=0.0 && v.y()!=0.0 &&!std::isnan(v.x())){
 				tf::Vector3 vp = (R*v) + origin;
 				geometry_msgs::Point32 tp;
 				tp.x = vp.x();
@@ -58,6 +82,14 @@ void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
 		point_cloud.points = points;
 		grid.AddPoints(point_cloud);
 		grid_created = true;
+	}
+}
+void PointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& rcv_cloud){
+	if (use_registered){
+		PointCloudCallbackRegistered(rcv_cloud);
+	}
+	else{
+		PointCloudCallbackUnregistered(rcv_cloud);
 	}
 }
 
@@ -75,7 +107,6 @@ int main(int argc, char *argv[]) {
 	ros::init(argc, argv, "avt_341_perception_node");
 	
 	ros::NodeHandle n;
-	//ros::Subscriber pc_sub = n.subscribe("avt_341/points",2,PointCloudCallbackGeneric);
 	ros::Subscriber pc_sub = n.subscribe("avt_341/points",2,PointCloudCallback);
 	ros::Subscriber odom_sub = n.subscribe("avt_341/odometry",10, OdometryCallback);
 	ros::Publisher grid_pub = n.advertise<nav_msgs::OccupancyGrid>("avt_341/occupancy_grid", 1);
@@ -100,8 +131,8 @@ int main(int argc, char *argv[]) {
 	if (ros::param::has("~use_elevation")){
 		ros::param::get("~use_elevation",use_elevation);
 	}
-	if (ros::param::has("~blanking_dist")){
-		ros::param::get("~blanking_dist",blanking_dist);
+	if (ros::param::has("~use_registered")){
+		ros::param::get("~use_registered",use_registered);
 	}
 
 	grid.SetSlopeThreshold(thresh);
@@ -113,7 +144,6 @@ int main(int argc, char *argv[]) {
 	while (ros::ok()){
 		double elapsed_time = (ros::Time::now().toSec()-start_time); 
 		if (grid_created && elapsed_time > warmup_time) {
-			//if (display)grid.Display();
 			nav_msgs::OccupancyGrid grd;
 			if (use_elevation){
 				grd = grid.GetGrid("elevation");
