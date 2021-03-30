@@ -44,8 +44,14 @@ class ElevationGrid{
     std::vector<geometry_msgs::Point32> AddPoints(sensor_msgs::PointCloud &point_cloud);
 
     void SetSize(float s){
-        size_ = s;
-        cmin_ = -0.5f*s;
+        width_ = s;
+        height_ = s;
+        ResizeGrid();
+    }
+
+    void SetSize(float width,float height){
+        width_ = width;
+        height_ = height;
         ResizeGrid();
     }
 
@@ -66,18 +72,24 @@ class ElevationGrid{
 
     nav_msgs::OccupancyGrid GetGrid(std::string grid_type);
 
+    void SetCorner(float llx, float lly){
+        llx_ = llx;
+        lly_ = lly;
+    }
+
   private:
     void ResizeGrid();
     void FillImage();
     std::vector< std::vector<Cell> > cells_;
-    float size_;
+    float width_;
+    float height_;
     float res_;
     float thresh_;
-    float cmin_;
-    int n_;
-    int n_2_;
+    int nx_,ny_;
     bool first_display_;
     bool dilate_;
+    float llx_;
+    float lly_;
 };
 
 } // namespace perception

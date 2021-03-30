@@ -111,18 +111,37 @@ int main(int argc, char *argv[]) {
 	ros::Subscriber odom_sub = n.subscribe("avt_341/odometry",10, OdometryCallback);
 	ros::Publisher grid_pub = n.advertise<nav_msgs::OccupancyGrid>("avt_341/occupancy_grid", 1);
 
-	float grid_size = 500.0f;
-	if (ros::param::has("~grid_size")){
-    ros::param::get("~grid_size",grid_size);
-  }	
+	if (ros::param::has("~grid_width") && ros::param::has("~grid_height")){
+		float grid_width, grid_height;
+		ros::param::get("~grid_width",grid_width);
+		ros::param::get("~grid_height",grid_height);
+		grid.SetSize(grid_width,grid_height);
+	}
+	else{
+		float grid_size = 500.0f;
+		if (ros::param::has("~grid_size")){
+    		ros::param::get("~grid_size",grid_size);
+  		}	
+		grid.SetSize(grid_size);
+	}
+
+
 	float grid_res = 1.0f;
 	if (ros::param::has("~grid_res")){
-    ros::param::get("~grid_res",grid_res);
-  }	
+    	ros::param::get("~grid_res",grid_res);
+  	}	
+  	float grid_llx=-250.0f; 
+  	if (ros::param::has("~grid_llx")){
+    	ros::param::get("~grid_llx",grid_llx);
+  	}	
+  	float grid_lly=-250.0f; 
+  	if (ros::param::has("~grid_lly")){
+    	ros::param::get("~grid_lly",grid_lly);
+ 	 }	
 	float warmup_time = 1.0f;
 	if (ros::param::has("~warmup_time")){
-    ros::param::get("~warmup_time",warmup_time);
-  }	
+    	ros::param::get("~warmup_time",warmup_time);
+  	}	
 	float thresh = 1.0f;
 	if (ros::param::has("~threshold")){
 		ros::param::get("~threshold",thresh);
@@ -136,8 +155,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	grid.SetSlopeThreshold(thresh);
-	grid.SetSize(grid_size);
 	grid.SetRes(grid_res);
+	grid.SetCorner(grid_llx,grid_lly);
 	
 	double start_time = ros::Time::now().toSec();
 	ros::Rate rate(100.0);
