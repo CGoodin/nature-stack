@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(avt_341)
 
+# uncomment the following lines if using Noetic
+#set(CMAKE_CXX_STANDARD 14)
+#set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_CXX_EXTENSIONS OFF)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
@@ -8,6 +13,8 @@ set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
+# uncomment the following line if using noetic
+  #pcl_ros
   std_msgs
   tf
 )
