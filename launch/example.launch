@@ -11,7 +11,7 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
   </group>
   <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
   </group>
   <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
@@ -65,18 +65,18 @@
     <param name="display" value="true" />
   </node>
 
-  <!-- Use this node to test the build if no simulator is being used. 
+  <!-- Use this node to test the build if no simulator is being used. -->
   <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
-  -->
+  
   <!-- Uncomment this section to use the MAVS simlator.
        Must have MAVS built and installed and the 
        mavs_avt_example catkin package built. -->
-  <!---->
+  <!--
   <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
     <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
     <arg name="point_cloud_topic_arg" default="avt_341/points" />
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
   </include>
-  
+  -->
 
 </launch>

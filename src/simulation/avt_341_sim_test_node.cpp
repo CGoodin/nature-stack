@@ -77,6 +77,7 @@ int main(int argc, char **argv){
 
 		// publish the odometry message
 		odom_msg.header.stamp = ros::Time::now();
+		odom_msg.pose.pose.position.x += twist.linear.x*5.0f*dt;
 		odom_pub.publish(odom_msg);
 		odom_msg.header.seq++;
 
@@ -88,12 +89,12 @@ int main(int argc, char **argv){
 			pc2.header.seq++;
 		}
 			
-		// update and publishe time if necessar
+		// update and publish time if necessary
 		if (use_sim_time ){
 			ros::Time now(elapsed_time);
 			rosgraph_msgs::Clock clock_msg;
 			clock_msg.clock = now; 
-      clock_pub.publish(clock_msg);
+      		clock_pub.publish(clock_msg);
 			elapsed_time += dt;
 		}
 		else {
