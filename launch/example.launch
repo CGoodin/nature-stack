@@ -5,7 +5,21 @@
   <rosparam file="$(find avt_341)/config/waypoints.yaml" />
 
   <param name="robot_description" command="cat $(find avt_341)/config/avt_bot.urdf" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+
+
+  <group if="$(eval env('ROS_DISTRO') =='noetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='kinetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
   <node pkg="tf"  name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
   <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
 
@@ -13,7 +27,10 @@
   <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
     <param name="use_elevation" value="false" />
     <param name="slope_threshold" value="0.5" />
-    <param name="grid_size" value="200.0" />
+    <param name="grid_height" value="200.0" />
+    <param name="grid_width" value="200.0" />
+    <param name="grid_llx" value="-100.0" />
+    <param name="grid_lly" value="-100.0" />
     <param name="grid_res" value="1.0" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="true" />
