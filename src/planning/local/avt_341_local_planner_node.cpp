@@ -153,7 +153,43 @@ int main(int argc, char *argv[]){
 
       planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
       planner.SetCenterline(path);
-      if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor);
+      //double start_dilate_secs = ros::WallTime::now().toSec();
+
+      // calculate bounds around the vehicle to limit grid dilation to space 10m behind and path_look_ahead distance in front of the vehicle
+      //std::cerr << "Pose: " << odom.pose.pose.position.x << ", " << odom.pose.pose.position.y << " Heading: " << theta <<std::endl;
+      float veh_heading_x = cos(theta);
+      float veh_heading_y = sin(theta);
+      float veh_left_offset_x = odom.pose.pose.position.x + (-veh_heading_y * (path_look_ahead/2));
+      float veh_left_offset_y = odom.pose.pose.position.y + (veh_heading_x * (path_look_ahead/2));
+      float veh_right_offset_x = odom.pose.pose.position.x + (-veh_heading_y * -(path_look_ahead/2));
+      float veh_right_offset_y = odom.pose.pose.position.y + (veh_heading_x * -(path_look_ahead/2));
+      float lf_bounds_x = veh_left_offset_x + (veh_heading_x * path_look_ahead);
+      float lf_bounds_y = veh_left_offset_y + (veh_heading_y * path_look_ahead);
+      float rf_bounds_x = veh_right_offset_x + (veh_heading_x * path_look_ahead);
+      float rf_bounds_y = veh_right_offset_y + (veh_heading_y * path_look_ahead);
+      float lr_bounds_x = veh_left_offset_x + (veh_heading_x * -10);
+      float lr_bounds_y = veh_left_offset_y + (veh_heading_y * -10);
+      float rr_bounds_x = veh_right_offset_x + (veh_heading_x * -10);
+      float rr_bounds_y = veh_right_offset_y + (veh_heading_y * -10);
+      float llx = std::min({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x});
+      float lly = std::min({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
+      float urx = std::max({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x});
+      float ury = std::max({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
+
+//      std::cerr << "Heading Vector: " << veh_heading_x << ", " << veh_heading_y << std::endl;
+//      std::cerr << "Left Offset: " << veh_left_offset_x << ", " << veh_left_offset_y << std::endl;
+//      std::cerr << "Right Offset: " << veh_right_offset_x << ", " << veh_right_offset_y << std::endl;
+//      std::cerr << "LF Bounds: " << lf_bounds_x << ", " << lf_bounds_y << std::endl;
+//      std::cerr << "RF Bounds: " << rf_bounds_x << ", " << rf_bounds_y << std::endl;
+//      std::cerr << "LR Bounds: " << lr_bounds_x << ", " << lr_bounds_y << std::endl;
+//      std::cerr << "RR Bounds: " << rr_bounds_x << ", " << rr_bounds_y << std::endl;
+//      std::cerr << "LL: " << llx << ", " << lly << std::endl;
+//      std::cerr << "UR: " << urx << ", " << ury << std::endl;
+ 
+      if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor, llx, lly, urx, ury);
+      // Note: if grid size gets large, DilateGrid can take a significant amount of time
+
+//      double end_dilate_secs = ros::WallTime::now().toSec();
       // most of the calculation time spent on this function call
       bool path_found = planner.CalculateCandidateCosts(grid, odom);
       if (display){
@@ -163,6 +199,8 @@ int main(int argc, char *argv[]){
         plotter.AddCurves(paths);
         plotter.Display();
       }
+      //double end_cand_costs_secs = ros::WallTime::now().toSec();
+      //std::cerr << "Dilate Time: " << end_dilate_secs - start_dilate_secs << " Candidate Time: " << end_cand_costs_secs - end_dilate_secs << std::endl;
 
       if (path_found){
         float ds = output_path_step;

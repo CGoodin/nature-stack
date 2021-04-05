@@ -69,7 +69,7 @@ public:
 	 * \param grid The occupancy grid to dilate.
 	 * \param x The dilation mask size is (x+1)*(x+1).
 	 */
-	void DilateGrid(nav_msgs::OccupancyGrid &grid, int x);
+	void DilateGrid(nav_msgs::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury);
 
 	/**
 	 * Get a point along the optimal path at an arc length s_step from the current position. 

@@ -109,10 +109,24 @@ void Planner::CalculateDynamicSafety(nav_msgs::Odometry odom) {
 	}
 }
 
-void Planner::DilateGrid(nav_msgs::OccupancyGrid &grid, int x){
+void Planner::DilateGrid(nav_msgs::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury){
+	//std::cerr << "Grid Size: " << grid.info.width << ", " << grid.info.height << std::endl;
+	//std::cerr << "Grid Origin: " << grid.info.origin.position.x << ", " << grid.info.origin.position.y << std::endl;
+	//std::cerr << "Grid Resolution: " << grid.info.resolution << std::endl;
 	std::vector<int8_t> new_data = grid.data;
-	for (int i=x;i<grid.info.width-x;i++){
-		for (int j=x;j<grid.info.height-x;j++){
+
+	int ix = (int)floor((llx - grid.info.origin.position.x) / grid.info.resolution);
+	if(ix < 0) {ix = 0;}
+	int iy = (int)floor((lly - grid.info.origin.position.y) / grid.info.resolution);
+	if(iy < 0) {iy = 0;}
+	int imax_x = (int)ceil((urx - grid.info.origin.position.x) / grid.info.resolution);
+	if(imax_x > grid.info.width) {imax_x = grid.info.width;}
+	int imax_y = (int)ceil((ury - grid.info.origin.position.y) / grid.info.resolution);
+	if(imax_y > grid.info.height) {imax_x = grid.info.height;}
+	//std::cerr << "Dilate Grid: (" << ix << ", " << iy << ") to (" << imax_x << ", " << imax_y << ")" << std::endl;
+
+	for (int i=ix+x;i<imax_x-x;i++){
+		for (int j=iy+x;j<imax_y-x;j++){
 			int n = i*grid.info.height+j;
 			for (int ii=-x;ii<=x;ii++){
 				for (int jj=-x;jj<=x;jj++){
