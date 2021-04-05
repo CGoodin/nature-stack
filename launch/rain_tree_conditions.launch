@@ -4,7 +4,7 @@
 
   <arg name="trial" default="10-1-F1_trial.yaml" />
 
-  <rosparam command="load" file="$(find avt_341)/config/$(arg trial)" />
+  <rosparam command="load" file="$(find avt_341)/config/trials/$(arg trial).yaml" />
 
   <param name="robot_description" command="cat $(find avt_341)/config/avt_bot.urdf" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
@@ -57,7 +57,10 @@
     <arg name="point_cloud_topic_arg" default="avt_341/points" />
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
     <arg name="scene_file_arg" default="/cavs/projects/ARC/Project1.31/users/dwc2/2021casestudy/data/scenes/saran_flat_square_1km_trees.json" />
-    <arg name="rain_rate_arg" default="28.0" />
+    <arg name="rain_rate_arg" default="0.0" />
+    <arg name="soil_strength_arg" value="250" />
+    <arg name="surface_type_arg" value="dry"/>  
+    <arg name="trial_name_arg" value="$(arg trial)" />
   </include>
   
  

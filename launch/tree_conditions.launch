@@ -4,7 +4,7 @@
 
   <arg name="trial" default="10-1-F1_trial" />
 
-  <rosparam command="load" file="$(find avt_341)/config/$(arg trial).yaml" />
+  <rosparam command="load" file="$(find avt_341)/config/trials/$(arg trial).yaml" />
 
   <param name="robot_description" command="cat $(find avt_341)/config/avt_bot.urdf" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
