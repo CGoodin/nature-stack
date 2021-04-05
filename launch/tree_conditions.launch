@@ -48,7 +48,7 @@
     <param name="w_d" value="0.0" />
     <param name="w_r" value="0.2" /> 
     <param name="rate" value="10.0" />
-    <param name="trim_path" value="false" />
+    <param name="trim_path" value="true" />
     <param name="display" value="true" />
   </node>
   
