@@ -27,19 +27,19 @@
   <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
     <param name="use_elevation" value="false" />
     <param name="slope_threshold" value="0.5" />
-    <param name="grid_height" value="200.0" />
-    <param name="grid_width" value="200.0" />
-    <param name="grid_llx" value="-100.0" />
-    <param name="grid_lly" value="-100.0" />
+    <param name="grid_height" value="600.0" />
+    <param name="grid_width" value="600.0" />
+    <param name="grid_llx" value="-300.0" />
+    <param name="grid_lly" value="-300.0" />
     <param name="grid_res" value="1.0" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="true" />
   </node>
 
   <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
-    <param name="vehicle_wheelbase" value="2.0" />
+    <param name="vehicle_wheelbase" value="2.72" />
     <param name="vehicle_max_steer_angle_degrees" value="30.0" />
-    <param name="steering_coefficient" value="2.5" />
+    <param name="steering_coefficient" value="4.5" />
     <param name="vehicle_speed" value="5.0" />
   </node>
 
@@ -61,7 +61,7 @@
     <param name="w_d" value="0.0" />
     <param name="w_r" value="0.2" /> 
     <param name="rate" value="10.0" />
-    <param name="trim_path" value="false" />
+    <param name="trim_path" value="true" />
     <param name="display" value="true" />
   </node>
 

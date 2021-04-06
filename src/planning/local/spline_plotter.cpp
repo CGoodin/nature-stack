@@ -104,17 +104,20 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 			avt_341::utils::vec2 pc1 = wp_path.ToCartesian(s1, rho1);
 			avt_341::utils::ivec2 p0 = CartesianToPixel(pc0.x, pc0.y);
 			avt_341::utils::ivec2 p1 = CartesianToPixel(pc1.x, pc1.y);
-			if (curves_[i].GetRank() == 1) {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&green);
-			}
-			else if (curves_[i].HitsObstacle()) {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&red);
-			}
-			else if (curves_[i].IsOutOfBounds()) {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&yellow);
-			}
-			else {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&blue);			
+			if (!(std::isnan(pc0.x) || std::isnan(pc0.y) ||
+			 std::isnan(pc1.x) || std::isnan(pc1.y)  )){
+				if (curves_[i].GetRank() == 1) {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&green);
+				}
+				else if (curves_[i].HitsObstacle()) {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&red);
+				}
+				else if (curves_[i].IsOutOfBounds()) {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&yellow);
+				}
+				else {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&blue);			
+				}
 			}
 			s0 += pixdim_;
 		}
