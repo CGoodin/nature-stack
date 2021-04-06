@@ -84,9 +84,11 @@ target_link_libraries(avt_341_local_planner_node
 
 add_executable(avt_341_global_path_node 
   src/planning/global/avt_341_global_path_node.cpp 
+  src/planning/global/astar.cpp
 )
 target_link_libraries(avt_341_global_path_node
   ${catkin_LIBRARIES}
+  X11
 )
 
 add_executable(avt_341_sim_test_node 

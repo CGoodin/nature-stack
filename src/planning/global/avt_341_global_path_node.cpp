@@ -16,13 +16,21 @@
 #include "nav_msgs/Odometry.h"
 // local includes
 #include "avt_341/avt_341_utils.h"
+#include "avt_341/planning/global/astar.h"
 
 nav_msgs::Odometry odom;
 bool odom_rcvd = false;
+nav_msgs::OccupancyGrid current_grid;
+
 void OdometryCallback(const nav_msgs::Odometry::ConstPtr &rcv_odom){
   odom = *rcv_odom;
   odom_rcvd = true;
 }
+
+void MapCallback(const nav_msgs::OccupancyGrid::ConstPtr& rcv_grid){
+  current_grid = *rcv_grid;
+}
+
 
 int main(int argc, char *argv[]){
   ros::init(argc, argv, "avt_341_global_path_node");
@@ -30,6 +38,7 @@ int main(int argc, char *argv[]){
 
   ros::Publisher path_pub = n.advertise<nav_msgs::Path>("avt_341/global_path", 10);
   ros::Subscriber odometry_sub = n.subscribe("avt_341/odometry", 10, OdometryCallback);
+  ros::Subscriber map_sub = n.subscribe("avt_341/occupancy_grid", 10, MapCallback);
 
   float goal_dist = 3.0f;
   if (ros::param::has("~goal_dist")){
@@ -52,12 +61,15 @@ int main(int argc, char *argv[]){
     return 2;
   }
   
+  int current_waypoint = 0;
+  avt_341::planning::Astar astar_planner;
+
   int num_waypoints = std::min(waypoints_x_list.size(),waypoints_y_list.size());
-  nav_msgs::Path ros_path;
+  
+  /*nav_msgs::Path ros_path;
   ros_path.header.frame_id = "odom"; 
   ros_path.poses.clear();
-  float last_x = 0.0f;
-  float last_y = 0.0f;
+  
   for (int32_t i=0;i<num_waypoints;i++){
     geometry_msgs::PoseStamped pose;
     pose.pose.position.x = static_cast<float>(waypoints_x_list[i]);
@@ -68,19 +80,74 @@ int main(int argc, char *argv[]){
     pose.pose.orientation.y = 0.0f;
     pose.pose.orientation.z = 0.0f;
     ros_path.poses.push_back(pose);
-    if (i==num_waypoints-1){
-      last_x = pose.pose.position.x;
-      last_y = pose.pose.position.y;
-    }
-  }
+  }*/
+  std::vector<float> goal;
+  goal.resize(2,0.0f);
+  goal[0] = waypoints_x_list[0];
+  goal[1] = waypoints_y_list[0];
 
   ros::Rate r(50.0f); // Hz
   bool goal_reached = false;
   int nl = 0;
+  bool first_solve = true;
   while (ros::ok() && !goal_reached){
 
+  if (odom_rcvd){
+    std::vector<float> pos;
+    pos.push_back(odom.pose.pose.position.x);
+    pos.push_back(odom.pose.pose.position.y);
+
+    if (first_solve){
+      // set the initial waypoint to the closest one ahead of me: Don't go backwards
+      int saved_waypoint = -1;
+      double dist = 1.0E6;
+      for (int i=0;i<num_waypoints;i++){
+        float ltx = waypoints_x_list[i]-pos[0];
+        float lty = waypoints_y_list[i]-pos[1];
+
+        double this_dist = sqrt(ltx*ltx + lty*lty);
+        ltx = ltx/this_dist;
+        lty = lty/this_dist;
+        double vtheta = avt_341::utils::GetHeadingFromOrientation(odom.pose.pose.orientation);
+        double lvx = cos(vtheta);
+        double lvy = sin(vtheta);
+        double dot = ltx*lvx + lty*lvy;
+        if (this_dist<dist && dot>0.0){
+          saved_waypoint = i;
+        }
+      }
+      if (saved_waypoint==-1){
+        current_waypoint = 0;
+      }
+      else{
+        current_waypoint = saved_waypoint;
+      }
+      goal[0] = waypoints_x_list[current_waypoint];
+      goal[1] = waypoints_y_list[current_waypoint];
+      first_solve = false;
+    }
+
+    
+
+    std::vector<std::vector<float> > path = astar_planner.PlanPath(&current_grid,goal,pos);
+
+    nav_msgs::Path ros_path;
+    ros_path.header.frame_id = "odom"; 
+    ros_path.poses.clear();
+    for (int32_t i=0;i<path.size();i++){
+      geometry_msgs::PoseStamped pose;
+      pose.pose.position.x = static_cast<float>(path[i][0]);
+      pose.pose.position.y = static_cast<float>(path[i][1]);
+      pose.pose.position.z = 0.0f;
+      pose.pose.orientation.w = 1.0f;
+      pose.pose.orientation.x = 0.0f;
+      pose.pose.orientation.y = 0.0f;
+      pose.pose.orientation.z = 0.0f;
+      ros_path.poses.push_back(pose);
+    }
+
     ros_path.header.stamp = ros::Time::now();
-    ros_path.header.seq += 1; 
+    ros_path.header.seq = nl; 
 
     for (int i=0;i<ros_path.poses.size();i++){
       ros_path.poses[i].header = ros_path.header; 
@@ -88,16 +155,22 @@ int main(int argc, char *argv[]){
 
     path_pub.publish(ros_path);
 
-    if (odom_rcvd){
-      float dx = last_x - odom.pose.pose.position.x;
-      float dy = last_y - odom.pose.pose.position.y;
+    
+      float dx = goal[0] - odom.pose.pose.position.x;
+      float dy = goal[1] - odom.pose.pose.position.y;
       double d = sqrt(dx*dx + dy*dy);
       if (nl%100==0){ //update every 2 seconds
         std::cout<<"Distance to goal = "<<d<<std::endl;
-        nl = 0;
       }
       if (d<goal_dist){
-        goal_reached = true;
+        if (current_waypoint==waypoints_x_list.size()-1){
+          goal_reached = true;
+        }
+        else{
+          current_waypoint++;
+          goal[0] = waypoints_x_list[current_waypoint];
+          goal[1] = waypoints_y_list[current_waypoint];
+        }
       }
     }
 
