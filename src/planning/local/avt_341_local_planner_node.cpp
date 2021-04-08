@@ -22,6 +22,7 @@
 nav_msgs::Odometry odom;
 nav_msgs::OccupancyGrid grid;
 nav_msgs::Path global_path;
+nav_msgs::Path waypoints;
 bool odom_rcvd = false;
 bool new_grid_rcvd = false;
 
@@ -39,6 +40,10 @@ void PathCallback(const nav_msgs::Path::ConstPtr &rcv_path){
   global_path = *rcv_path;
 }
 
+void WaypointCallback(const nav_msgs::Path::ConstPtr &wp_path){
+  waypoints = *wp_path;
+}
+
 int main(int argc, char *argv[]){
   ros::init(argc, argv, "avt_341_planner_node");
   ros::NodeHandle n;
@@ -48,6 +53,7 @@ int main(int argc, char *argv[]){
   ros::Subscriber odometry_sub = n.subscribe("avt_341/odometry", 10, OdometryCallback);
   ros::Subscriber grid_sub = n.subscribe("avt_341/occupancy_grid", 10, GridCallback);
   ros::Subscriber path_sub = n.subscribe("avt_341/global_path", 10, PathCallback);
+  ros::Subscriber wp_sub = n.subscribe("avt_341/waypoints", 10, WaypointCallback);
   ros::Publisher clock_pub;
 
   avt_341::planning::Planner planner;
@@ -183,6 +189,7 @@ int main(int argc, char *argv[]){
       if (display){
         plotter.AddMap(grid);
         plotter.SetPath(culled_points);
+        plotter.AddWaypoints(waypoints);
         std::vector<avt_341::planning::Candidate> paths = planner.GetCandidates();
         plotter.AddCurves(paths);
         plotter.Display();

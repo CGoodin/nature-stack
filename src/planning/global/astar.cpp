@@ -56,14 +56,112 @@ void Astar::SetMapValue(int i, int j, int val){
 	map_[i][j] = (float)val;
 }
 
+bool Astar::LineOfSight(std::vector<int> p0, std::vector<int> p1){
+  if (p0.size()!=2 || p1.size()!=2) return false;
+  // see: https://news.movel.ai/theta-star/
+  int x0 = p0[0];
+  int y0 = p0[1];
+  int x1 = p1[0];
+  int y1 = p1[1];
+
+  int dy = y1-y0;
+  int dx = x1-x0;
+
+  int f = 0;
+
+  int sx = p0[0];
+  int sy = p0[1];
+  if (dy < 0){
+    dy = -dy;
+    sy = -1;
+  }
+  else{
+    sy = 1;
+  }
+      
+  if (dx < 0) {
+    dx = -dx;
+    sx = -1;
+  }
+  else{
+    sx = 1;
+  }
+
+  if (dx >= dy){
+    while (x0 != x1){
+      f = f + dy;
+      if (f >= dx ){
+        if (map_[x0+((sx-1)/2)][y0 + ((sy-1)/2)]>0 ){
+          return false;
+        }
+        y0 = y0 + sy;
+        f = f - dx;
+      }
+      if (f != 0 && map_[x0+((sx-1)/2)][y0 + ((sy-1.0f)/2.0f)]>0) {
+        return false;
+      }
+      if (dy== 0 && map_[x0 + ((sx-1)/2)][y0]>0 && map_[x0 + ((sx-1)/2)][ y0-1]>0){
+        return false;
+      }
+      x0 = x0 + sx;
+    }
+  }  
+  else{
+    while (y0 != y1){
+      f = f + dx;
+      if (f >= dy){
+          if ( map_[x0 + ((sx - 1)/2)][ y0 + ((sy-1)/2)]>0 ){
+              return false;
+          }
+          x0 = x0 + sx;
+          f = f - dy;
+      }
+      if (f!=0 && map_[x0+((sx-1)/2)][ y0 + ((sy-1)/2)]>0 ){
+        return false;
+      }
+      if (dx==0 && map_[x0][y0+((sy-1)/2)]>0 && map_[x0-1 ][ y0 + ((sy-1)/2)]>0 ){
+        return false;
+      }
+      y0 = y0 + sy;
+    }
+  }
+  
+  return true; 
+}
+
+// For path of length n
+void Astar::PostSmoothing(){
+  if (path_.size()>2){
+    int k = 0;
+    std::vector<std::vector<int> > t; 
+    t.push_back(path_[0]);
+    for (int i =1;i<path_.size()-1;i++){
+      if (!LineOfSight(t[k], path_[i+1])){
+          k++;
+          t.push_back(path_[i]);
+      }
+    }
+    t.push_back(path_.back());
+    path_ = t;
+  }
+}
+
 // manhattan distance: requires each move to cost >= 1
 float Astar::Heuristic(int i0, int j0, int i1, int j1) {
-  //manhattan distance
-  //return std::abs(i0 - i1) + std::abs(j0 - j1);
   //straight line distance
   int x = i1-i0;
   int y = j1-j0;
   return (float)sqrt(x*x+y*y);
+
+  //return std::max(std::abs(x),std::abs(y));
+  //manhattan distance
+  //return std::abs(i0 - i1) + std::abs(j0 - j1);
+  // diagonal heuristic
+  //float D2 = 1.0f;
+  //float D = 1.414214f; //1.0f;
+  //float dx = abs(i1-i0);
+  //float dy = abs(j1-j0);
+  //return D * (dx + dy) + (D2 - 2.0f * D) * std::min(dx, dy);
 }
 
 bool Astar::Solve() {
@@ -136,12 +234,46 @@ void Astar::ExtractPath(){
   while (path_idx!=start_){
     std::vector<int> c = FoldIndex(path_idx);
     path_.push_back(c);
-		point = IndexToPoint(c);
-		path_world_.push_back(point);
     path_idx = paths_[path_idx];
   }
-	std::reverse(path_.begin(), path_.end());
+	
+  //smooth path out
+  PostSmoothing();
+
+  // put the smoothed path in world coordinates
+  std::vector<std::vector<float> > smoothed_path;
+  for (int i=0;i<path_.size();i++){
+		point = IndexToPoint(path_[i]);
+		smoothed_path.push_back(point);
+  }
+  
+  // the smoothed path may have much fewer points. Fill in the missing parts
+  std::vector<std::vector<float> > filled_in_path_world;
+  for (int i=0;i<smoothed_path.size()-1;i++){
+    float px = smoothed_path[i][0];
+    float py = smoothed_path[i][1];
+    float dx = smoothed_path[i+1][0]-px;
+    float dy = smoothed_path[i+1][1]-py;
+    double d = sqrt(dx*dx + dy*dy);
+    double ltx = map_res_*dx/d;
+    double lty = map_res_*dy/d;
+    while (d>2.0*map_res_){
+      std::vector<float> point;
+      point.push_back(px);
+      point.push_back(py);
+      filled_in_path_world.push_back(point);
+      px += ltx;
+      py += lty;
+      dx = smoothed_path[i+1][0]-px;
+      dy = smoothed_path[i+1][1]-py;
+      d = sqrt(dx*dx + dy*dy);
+    }
+  }
+  path_world_ = filled_in_path_world;
+
+  std::reverse(path_.begin(), path_.end());
 	std::reverse(path_world_.begin(), path_world_.end());
+
 }
 
 void Astar::SaveMap(std::string imname){
@@ -240,6 +372,8 @@ std::vector<std::vector<float> > Astar::PlanPath(nav_msgs::OccupancyGrid *grid, 
 	if (!solved) {
 		std::cerr << "WARNING: A* failed to solve map " << std::endl;
 	}
+
+
 
   return path_world_;
 }

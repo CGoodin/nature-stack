@@ -44,20 +44,21 @@
   </node>
 
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
-    <param name="goal_dist" value="4.0" /> 
+    <param name="goal_dist" value="5.0" /> 
+    <param name="global_lookahead" value="75.0" /> 
   </node>
 
 
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" >
-    <param name="path_look_ahead" value="40.0" /> 
+    <param name="path_look_ahead" value="30.0" /> 
     <param name="vehicle_width" value="3.0" />
     <param name="num_paths" value="21" />
     <param name="max_steer_angle" value="0.5" />
     <param name="output_path_step" value="0.5" />
     <param name="path_integration_step" value="0.35" />
-    <param name="dilation_factor" value="2" />
-    <param name="w_c" value="0.3" />
-    <param name="w_s" value="0.5" />
+    <param name="dilation_factor" value="1" />
+    <param name="w_c" value="0.0" />
+    <param name="w_s" value="0.4" />
     <param name="w_d" value="0.0" />
     <param name="w_r" value="0.2" /> 
     <param name="rate" value="10.0" />

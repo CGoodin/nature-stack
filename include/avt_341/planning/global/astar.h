@@ -57,7 +57,6 @@ class Astar {
 	/// Inherited from planner base class.
 	std::vector<std::vector<float> > PlanPath(nav_msgs::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position);
 
-
   /**
    * Allocate memory for the map and initialize
    * \param height Height of the map, in cells
@@ -206,6 +205,8 @@ class Astar {
 	std::vector<std::vector<float> > path_world_;
 
   void ExtractPath();
+  void PostSmoothing();
+  bool LineOfSight(std::vector<int> p0, std::vector<int> p1);
 
   float llx_,lly_;
   float map_res_;
