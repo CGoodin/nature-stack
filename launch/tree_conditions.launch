@@ -7,7 +7,19 @@
   <rosparam command="load" file="$(find avt_341)/config/trials/$(arg trial).yaml" />
 
   <param name="robot_description" command="cat $(find avt_341)/config/avt_bot.urdf" />
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  
+  <group if="$(eval env('ROS_DISTRO') =='noetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='kinetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
   <node pkg="tf"  name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
   <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
 
@@ -24,10 +36,10 @@
   </node>
 
   <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
-    <param name="vehicle_wheelbase" value="2.0" />
+    <param name="vehicle_wheelbase" value="2.72" />
     <param name="vehicle_max_steer_angle_degrees" value="30.0" />
-    <param name="steering_coefficient" value="2.5" />
-    <param name="vehicle_speed" value="5.0" />
+    <param name="steering_coefficient" value="4.5" />
+    <param name="vehicle_speed" value="10.0" />
   </node>
 
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
@@ -48,7 +60,7 @@
     <param name="w_d" value="0.0" />
     <param name="w_r" value="0.2" /> 
     <param name="rate" value="10.0" />
-    <param name="trim_path" value="true" />
+    <param name="trim_path" value="false" />
     <param name="display" value="true" />
   </node>
   
@@ -56,11 +68,12 @@
     <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
     <arg name="point_cloud_topic_arg" default="avt_341/points" />
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
-    <arg name="scene_file_arg" default="/cavs/projects/ARC/Project1.31/users/dwc2/2021casestudy/data/scenes/saran_flat_square_1km_trees.json" />
+    <arg name="scene_file_arg" default="/cavs/projects/ARC/Project1.31/users/dwc2/2021casestudy/data/scenes/test_scene_8_scene.json" />
     <arg name="rain_rate_arg" default="0.0" />
     <arg name="soil_strength_arg" value="250" />
     <arg name="surface_type_arg" value="dry"/>  
     <arg name="trial_name_arg" value="$(arg trial)" />
+    <arg name="condition_arg" value="trees-10" />
   </include>
   
  
