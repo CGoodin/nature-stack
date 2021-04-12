@@ -32,6 +32,7 @@
     <param name="grid_llx" value="-300.0" />
     <param name="grid_lly" value="-300.0" />
     <param name="grid_res" value="1.0" />
+    <param name="overhead_clearance" value="7.0" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="true" />
   </node>
