@@ -97,6 +97,13 @@ int main(int argc, char *argv[]){
     ros::param::get("~w_d", w_d);
     planner.SetDynamicSafetyWeight(w_d);
   }
+  std::string condition;
+	if (ros::param::has("~condition")){
+		ros::param::get("~condition", condition);
+	}
+	else{
+		std::cerr << "ERROR: No condition name listed " << std::endl;
+	}
   if (ros::param::has("~w_s")){
     float w_s;
     ros::param::get("~w_s", w_s);
@@ -126,6 +133,7 @@ int main(int argc, char *argv[]){
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;
   float elapsed_time = 0.0f;
+  std::ostringstream oss;
   ros::Rate rosrate(rate);
   while (ros::ok()){
     double start_secs = ros::WallTime::now().toSec();
@@ -192,7 +200,15 @@ int main(int argc, char *argv[]){
         plotter.AddWaypoints(waypoints);
         std::vector<avt_341::planning::Candidate> paths = planner.GetCandidates();
         plotter.AddCurves(paths);
-        plotter.Display();
+        /*
+        oss.str("");
+        oss.str("");
+        oss << condition << "-path-plot-";
+        oss << std::setw(4) << std::setfill('0') << loop_count << ".bmp";
+        std::cout << oss.str() << std::endl;
+        plotter.Display(true, "/scratch/dwc2/casestudy2021/" + oss.str());
+        */
+       plotter.Display();
       }
 
       if (path_found){

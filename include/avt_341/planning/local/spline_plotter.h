@@ -57,6 +57,12 @@ public:
 	 */
 	void Display();
 
+	/**
+	 * Display the graph. 
+	 * \param save True to save, False if not
+	 * \param ofname The output file name with extension
+	 */
+	void Display(bool save, std::string ofname);
 
 	/**
 	 * Display and save the graph. 

@@ -64,6 +64,10 @@ void Plotter::Display(){
 	Display(false,"",nx_,ny_);
 }
 
+void Plotter::Display(bool save, std::string ofname) {
+	Display(save, ofname, nx_, ny_);
+}
+
 void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 	if (!map_set_)return;
 	cimg_library::CImg<float> image;

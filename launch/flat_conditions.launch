@@ -41,7 +41,7 @@
     <param name="vehicle_wheelbase" value="2.72" />
     <param name="vehicle_max_steer_angle_degrees" value="30.0" />
     <param name="steering_coefficient" value="4.5" />
-    <param name="vehicle_speed" value="10.0" />
+    <param name="vehicle_speed" value="5.0" />
   </node>
 
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
@@ -72,10 +72,10 @@
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
     <arg name="scene_file_arg" default="/cavs/projects/ARC/Project1.31/users/dwc2/2021casestudy/data/scenes/saran_flat_square_1km.json" />
     <arg name="rain_rate_arg" default="0.0" />
-    <arg name="soil_strength_arg" value="250" />
-    <arg name="surface_type_arg" value="dry"/>  
+    <arg name="soil_strength_arg" value="50" />
+    <arg name="surface_type_arg" value="clay"/>  
     <arg name="trial_name_arg" value="$(arg trial)" />
-    <arg name="condition_arg" value="flat-10" />
+    <arg name="condition_arg" value="flat-05-clay" />
   </include>
   
  

@@ -70,10 +70,10 @@
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
     <arg name="scene_file_arg" default="/cavs/projects/ARC/Project1.31/users/dwc2/2021casestudy/data/scenes/test_scene_8_scene.json" />
     <arg name="rain_rate_arg" default="8.0" />
-    <arg name="soil_strength_arg" value="250" />
-    <arg name="surface_type_arg" value="dry"/>  
+    <arg name="soil_strength_arg" value="50" />
+    <arg name="surface_type_arg" value="clay"/>  
     <arg name="trial_name_arg" value="$(arg trial)" />
-    <arg name="condition_arg" value="light-rain-10" />
+    <arg name="condition_arg" value="light-rain-05-clay" />
   </include>
   
  
