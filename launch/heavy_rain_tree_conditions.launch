@@ -33,6 +33,7 @@
     <param name="grid_lly" value="0.0" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="true" />
+    <param name="overhead_clearance" value="6.0" />
   </node>
 
   <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
