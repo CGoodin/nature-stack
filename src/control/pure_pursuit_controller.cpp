@@ -9,7 +9,7 @@ PurePursuitController::PurePursuitController() {
 	// set to MRZR values
 	wheelbase_ = 2.731; // meters
 	max_steering_angle_ = 0.69; //39.5 degrees
-	max_stable_speed_ = 8.0; //5.0;
+	max_stable_speed_ = 35.0; //5.0;
 
 	// tunable parameters
 	min_lookahead_ = 2.0;

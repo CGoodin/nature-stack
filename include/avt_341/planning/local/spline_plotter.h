@@ -16,6 +16,7 @@
 #include "avt_341/planning/local/candidate.h"
 // ros includes
 #include "nav_msgs/OccupancyGrid.h"
+#include "nav_msgs/Path.h"
 
 namespace avt_341 {
 namespace planning{
@@ -46,6 +47,12 @@ public:
 	void AddMap(nav_msgs::OccupancyGrid grid); 
 
 	/**
+	 * Add a list of global waypoints to be plotted
+	 *  \param waypoints The waypoints to be plotted 
+	 */
+	void AddWaypoints(nav_msgs::Path waypoints);
+
+	/**
 	 * Display the graph. 
 	 */
 	void Display();
@@ -67,6 +74,7 @@ public:
 
 private:
 	std::vector<utils::vec2> path_;
+	std::vector<utils::vec2> waypoints_;
 	std::vector<Candidate> curves_;
 	cimg_library::CImgDisplay disp_;
 	nav_msgs::OccupancyGrid grid_;

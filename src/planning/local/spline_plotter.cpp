@@ -37,6 +37,16 @@ void Plotter::SetPath(std::vector<avt_341::utils::vec2> path) {
 	path_ = path;
 }
 
+void Plotter::AddWaypoints(nav_msgs::Path waypoints){
+	waypoints_.clear();
+	for (int i=0;i<waypoints.poses.size();i++){
+		avt_341::utils::vec2 p;
+		p.x = waypoints.poses[i].pose.position.x;
+		p.y = waypoints.poses[i].pose.position.y;
+		waypoints_.push_back(p);
+	}
+}
+
 void Plotter::AddCurves(std::vector<Candidate> curves) {
 	curves_ = curves;
 }
@@ -63,6 +73,7 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 	avt_341::utils::vec3 red(255.0f, 0.0f, 0.0f);
 	avt_341::utils::vec3 green(0.0f, 255.0f, 0.0f);
 	avt_341::utils::vec3 yellow(255.0f, 255.0f, 0.0f);
+	avt_341::utils::vec3 orange(255.0f, 165.0f, 0.0f);
 	avt_341::utils::vec3 blue(0.0f, 0.0f, 255.0f);
 	avt_341::utils::vec3 purple(255.0f, 0.0f, 255.0f);
 
@@ -82,12 +93,22 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 		}
 	}
 
+	// plot waypoints
+	for (int i = 0; i < waypoints_.size(); i++) {
+		avt_341::utils::ivec2 pix = CartesianToPixel(waypoints_[i].x, waypoints_[i].y);
+		image.draw_circle(pix.x, pix.y, 2, (float *)&white);
+		if (i < waypoints_.size() - 1) {
+			avt_341::utils::ivec2 pix1 = CartesianToPixel(waypoints_[i+1].x, waypoints_[i+1].y);
+			image.draw_line(pix.x, pix.y, pix1.x, pix1.y, (float *)&white);
+		}
+	}
+
+	// plot global path
 	for (int i = 0; i < path_.size(); i++) {
 		avt_341::utils::ivec2 pix = CartesianToPixel(path_[i].x, path_[i].y);
-		image.draw_circle(pix.x, pix.y, 1, (float *)&white);
 		if (i < path_.size() - 1) {
 			avt_341::utils::ivec2 pix1 = CartesianToPixel(path_[i+1].x, path_[i+1].y);
-			image.draw_line(pix.x, pix.y, pix1.x, pix1.y, (float *)&white);
+			image.draw_line(pix.x, pix.y, pix1.x, pix1.y, (float *)&orange);
 		}
 	}
 
@@ -104,17 +125,20 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 			avt_341::utils::vec2 pc1 = wp_path.ToCartesian(s1, rho1);
 			avt_341::utils::ivec2 p0 = CartesianToPixel(pc0.x, pc0.y);
 			avt_341::utils::ivec2 p1 = CartesianToPixel(pc1.x, pc1.y);
-			if (curves_[i].GetRank() == 1) {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&green);
-			}
-			else if (curves_[i].HitsObstacle()) {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&red);
-			}
-			else if (curves_[i].IsOutOfBounds()) {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&yellow);
-			}
-			else {
-				image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&blue);			
+			if (!(std::isnan(pc0.x) || std::isnan(pc0.y) ||
+			 std::isnan(pc1.x) || std::isnan(pc1.y)  )){
+				if (curves_[i].GetRank() == 1) {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&green);
+				}
+				else if (curves_[i].HitsObstacle()) {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&red);
+				}
+				else if (curves_[i].IsOutOfBounds()) {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&yellow);
+				}
+				else {
+					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&blue);			
+				}
 			}
 			s0 += pixdim_;
 		}

@@ -22,6 +22,7 @@
 nav_msgs::Odometry odom;
 nav_msgs::OccupancyGrid grid;
 nav_msgs::Path global_path;
+nav_msgs::Path waypoints;
 bool odom_rcvd = false;
 bool new_grid_rcvd = false;
 
@@ -39,6 +40,10 @@ void PathCallback(const nav_msgs::Path::ConstPtr &rcv_path){
   global_path = *rcv_path;
 }
 
+void WaypointCallback(const nav_msgs::Path::ConstPtr &wp_path){
+  waypoints = *wp_path;
+}
+
 int main(int argc, char *argv[]){
   ros::init(argc, argv, "avt_341_planner_node");
   ros::NodeHandle n;
@@ -48,6 +53,7 @@ int main(int argc, char *argv[]){
   ros::Subscriber odometry_sub = n.subscribe("avt_341/odometry", 10, OdometryCallback);
   ros::Subscriber grid_sub = n.subscribe("avt_341/occupancy_grid", 10, GridCallback);
   ros::Subscriber path_sub = n.subscribe("avt_341/global_path", 10, PathCallback);
+  ros::Subscriber wp_sub = n.subscribe("avt_341/waypoints", 10, WaypointCallback);
   ros::Publisher clock_pub;
 
   avt_341::planning::Planner planner;
@@ -153,10 +159,8 @@ int main(int argc, char *argv[]){
 
       planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
       planner.SetCenterline(path);
-      //double start_dilate_secs = ros::WallTime::now().toSec();
 
       // calculate bounds around the vehicle to limit grid dilation to space 10m behind and path_look_ahead distance in front of the vehicle
-      //std::cerr << "Pose: " << odom.pose.pose.position.x << ", " << odom.pose.pose.position.y << " Heading: " << theta <<std::endl;
       float veh_heading_x = cos(theta);
       float veh_heading_y = sin(theta);
       float veh_left_offset_x = odom.pose.pose.position.x + (-veh_heading_y * (path_look_ahead/2));
@@ -176,31 +180,20 @@ int main(int argc, char *argv[]){
       float urx = std::max({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x});
       float ury = std::max({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
 
-//      std::cerr << "Heading Vector: " << veh_heading_x << ", " << veh_heading_y << std::endl;
-//      std::cerr << "Left Offset: " << veh_left_offset_x << ", " << veh_left_offset_y << std::endl;
-//      std::cerr << "Right Offset: " << veh_right_offset_x << ", " << veh_right_offset_y << std::endl;
-//      std::cerr << "LF Bounds: " << lf_bounds_x << ", " << lf_bounds_y << std::endl;
-//      std::cerr << "RF Bounds: " << rf_bounds_x << ", " << rf_bounds_y << std::endl;
-//      std::cerr << "LR Bounds: " << lr_bounds_x << ", " << lr_bounds_y << std::endl;
-//      std::cerr << "RR Bounds: " << rr_bounds_x << ", " << rr_bounds_y << std::endl;
-//      std::cerr << "LL: " << llx << ", " << lly << std::endl;
-//      std::cerr << "UR: " << urx << ", " << ury << std::endl;
  
       if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor, llx, lly, urx, ury);
       // Note: if grid size gets large, DilateGrid can take a significant amount of time
 
-//      double end_dilate_secs = ros::WallTime::now().toSec();
       // most of the calculation time spent on this function call
       bool path_found = planner.CalculateCandidateCosts(grid, odom);
       if (display){
         plotter.AddMap(grid);
         plotter.SetPath(culled_points);
+        plotter.AddWaypoints(waypoints);
         std::vector<avt_341::planning::Candidate> paths = planner.GetCandidates();
         plotter.AddCurves(paths);
         plotter.Display();
       }
-      //double end_cand_costs_secs = ros::WallTime::now().toSec();
-      //std::cerr << "Dilate Time: " << end_dilate_secs - start_dilate_secs << " Candidate Time: " << end_cand_costs_secs - end_dilate_secs << std::endl;
 
       if (path_found){
         float ds = output_path_step;
@@ -222,8 +215,7 @@ int main(int argc, char *argv[]){
         local_path.header.seq = loop_count;
         path_pub.publish(local_path);
       }
-      else
-      {
+      else {
         nav_msgs::Path local_path;
         geometry_msgs::PoseStamped pose;
         pose.pose = odom.pose.pose;
@@ -233,9 +225,9 @@ int main(int argc, char *argv[]){
         local_path.header.seq = loop_count;
         path_pub.publish(local_path);
       }
+      odom_rcvd = false;
     }
-    else
-    {
+    else {
       if (global_path.poses.size() <= 0){
         std::cout << "Local planner did not run because global path not recieved " << std::endl;
       }
