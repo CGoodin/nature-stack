@@ -27,10 +27,10 @@
   <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
     <param name="use_elevation" value="false" />
     <param name="slope_threshold" value="0.5" />
-    <param name="grid_height" value="200.0" />
-    <param name="grid_width" value="200.0" />
-    <param name="grid_llx" value="-100.0" />
-    <param name="grid_lly" value="-100.0" />
+    <param name="grid_height" value="120.0" />
+    <param name="grid_width" value="120.0" />
+    <param name="grid_llx" value="-60.0" />
+    <param name="grid_lly" value="-60.0" />
     <param name="grid_res" value="0.5" />
     <param name="overhead_clearance" value="7.0" />
     <param name="warmup_time" value="5.0" />
@@ -53,12 +53,13 @@
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" >
     <param name="path_look_ahead" value="30.0" /> 
     <param name="vehicle_width" value="3.0" />
+    <param name="use_global_path" value="false" />
     <param name="num_paths" value="21" />
-    <param name="max_steer_angle" value="0.5" />
+    <param name="max_steer_angle" value="0.4" />
     <param name="output_path_step" value="0.5" />
-    <param name="path_integration_step" value="0.35" />
+    <param name="path_integration_step" value="0.25" />
     <param name="dilation_factor" value="1" />
-    <param name="w_c" value="0.0" />
+    <param name="w_c" value="0.2" />
     <param name="w_s" value="0.4" />
     <param name="w_d" value="0.0" />
     <param name="w_r" value="0.2" /> 
@@ -67,18 +68,10 @@
     <param name="display" value="true" />
   </node>
 
-  <!-- Use this node to test the build if no simulator is being used. -->
-  <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
-  
-  <!-- Uncomment this section to use the MAVS simlator.
-       Must have MAVS built and installed and the 
-       mavs_avt_example catkin package built. -->
-  <!--
   <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
     <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
     <arg name="point_cloud_topic_arg" default="avt_341/points" />
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
   </include>
-  -->
 
 </launch>
