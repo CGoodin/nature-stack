@@ -1,0 +1,77 @@
+<launch>
+
+  <param name="/use_sim_time" value="false"/> 
+
+  <rosparam file="$(find avt_341)/config/waypoints.yaml" />
+
+  <param name="robot_description" command="cat $(find avt_341)/config/avt_bot.urdf" />
+
+
+  <group if="$(eval env('ROS_DISTRO') =='noetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='kinetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
+  <node pkg="tf"  name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
+  <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
+
+  <!-- Lidar perception algorithms  -->
+  <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
+    <param name="use_elevation" value="false" />
+    <param name="slope_threshold" value="0.5" />
+    <param name="grid_height" value="120.0" />
+    <param name="grid_width" value="120.0" />
+    <param name="grid_llx" value="-60.0" />
+    <param name="grid_lly" value="-60.0" />
+    <param name="grid_res" value="0.5" />
+    <param name="overhead_clearance" value="7.0" />
+    <param name="warmup_time" value="5.0" />
+    <param name="use_registered" value="true" />
+  </node>
+
+  <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
+    <param name="vehicle_wheelbase" value="2.72" />
+    <param name="vehicle_max_steer_angle_degrees" value="30.0" />
+    <param name="steering_coefficient" value="4.5" />
+    <param name="vehicle_speed" value="5.0" />
+  </node>
+
+  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
+    <param name="goal_dist" value="5.0" /> 
+    <param name="global_lookahead" value="75.0" /> 
+  </node>
+
+
+  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" >
+    <param name="path_look_ahead" value="30.0" /> 
+    <param name="vehicle_width" value="3.0" />
+    <param name="use_global_path" value="false" />
+    <param name="num_paths" value="21" />
+    <param name="max_steer_angle" value="0.4" />
+    <param name="output_path_step" value="0.5" />
+    <param name="path_integration_step" value="0.25" />
+    <param name="dilation_factor" value="1" />
+    <param name="w_c" value="0.2" />
+    <param name="w_s" value="0.4" />
+    <param name="w_d" value="0.0" />
+    <param name="w_r" value="0.2" /> 
+    <param name="rate" value="50.0" />
+    <param name="trim_path" value="true" />
+    <param name="display" value="true" />
+  </node>
+
+  <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
+    <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
+    <arg name="point_cloud_topic_arg" default="avt_341/points" />
+    <arg name="odometry_topic_arg" default="avt_341/odometry" />
+  </include>
+
+</launch>
