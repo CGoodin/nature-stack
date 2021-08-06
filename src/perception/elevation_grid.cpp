@@ -39,7 +39,7 @@ void ElevationGrid::ClearGrid(){
  }
 }
 
-std::vector<geometry_msgs::Point32> ElevationGrid::AddPoints(sensor_msgs::PointCloud &point_cloud){
+std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointCloud &point_cloud){
   // fill the cells with highest and lowest points
   for (int i=0;i<point_cloud.points.size();i++){
     if (!(point_cloud.points[i].x==0.0 && point_cloud.points[i].y==0.0)){
@@ -130,8 +130,8 @@ std::vector<geometry_msgs::Point32> ElevationGrid::AddPoints(sensor_msgs::PointC
     cells_ = dilated_cells;
   }
   //loop back through the points and remove ground points
-  std::vector<geometry_msgs::Point32> points;
-  std::vector<geometry_msgs::Point32> surface_points;
+  std::vector<avt_341::msg::Point32> points;
+  std::vector<avt_341::msg::Point32> surface_points;
   float hscale = 0.2f;
   for (int i=0;i<point_cloud.points.size();i++){
     if (!(point_cloud.points[i].x==0.0 && point_cloud.points[i].y==0.0)){
@@ -157,8 +157,8 @@ std::vector<geometry_msgs::Point32> ElevationGrid::AddPoints(sensor_msgs::PointC
   return surface_points;
 } // method AddPoints
 
-nav_msgs::OccupancyGrid ElevationGrid::GetGrid(std::string grid_type){
-  nav_msgs::OccupancyGrid grid;
+avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(std::string grid_type){
+  avt_341::msg::OccupancyGrid grid;
   grid.info.resolution = res_;
   grid.info.width = nx_;
   grid.info.height = ny_;

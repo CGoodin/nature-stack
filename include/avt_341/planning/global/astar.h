@@ -2,7 +2,7 @@
 #define ASTAR_H
 
 #include <vector>
-#include "nav_msgs/OccupancyGrid.h"
+#include "avt_341/node/ros_types.h"
 #include "avt_341/CImg.h"
 
 namespace avt_341 {
@@ -55,7 +55,7 @@ class Astar {
 	int GetGridHeight() { return height_; }
 
 	/// Inherited from planner base class.
-	std::vector<std::vector<float> > PlanPath(nav_msgs::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position);
+	std::vector<std::vector<float> > PlanPath(avt_341::msg::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position);
 
   /**
    * Allocate memory for the map and initialize

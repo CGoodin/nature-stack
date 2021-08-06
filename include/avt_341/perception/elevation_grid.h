@@ -13,8 +13,7 @@
 #include <vector>
 #include <limits>
 #include <string>
-#include "sensor_msgs/PointCloud.h"
-#include "nav_msgs/OccupancyGrid.h"
+#include "avt_341/node/ros_types.h"
 
 namespace avt_341{
 namespace perception{
@@ -41,7 +40,7 @@ class ElevationGrid{
      * Returns surface points
      * \param point_cloud PointCloud message
      */
-    std::vector<geometry_msgs::Point32> AddPoints(sensor_msgs::PointCloud &point_cloud);
+    std::vector<avt_341::msg::Point32> AddPoints(avt_341::msg::PointCloud &point_cloud);
 
     void SetSize(float s){
         width_ = s;
@@ -70,7 +69,7 @@ class ElevationGrid{
         dilate_ = use_dil;
     }
 
-    nav_msgs::OccupancyGrid GetGrid(std::string grid_type);
+    avt_341::msg::OccupancyGrid GetGrid(std::string grid_type);
 
     void SetCorner(float llx, float lly){
         llx_ = llx;

@@ -315,7 +315,7 @@ void Astar::Display(){
   disp_ = img;
 }
 
-std::vector<std::vector<float> > Astar::PlanPath(nav_msgs::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position) {
+std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position) {
 	if (grid->info.height<=0 || grid->info.width<=0) return path_world_;
 
   SetCornerCoords(grid->info.origin.position.x, grid->info.origin.position.y);

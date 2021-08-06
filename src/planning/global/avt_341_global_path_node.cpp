@@ -11,55 +11,43 @@
  */
 
 // ros includes
-#include "ros/ros.h"
-#include <nav_msgs/Path.h>
-#include "nav_msgs/Odometry.h"
+#include "avt_341/node/ros_types.h"
+#include "avt_341/node/node_proxy.h"
 // local includes
 #include "avt_341/avt_341_utils.h"
 #include "avt_341/planning/global/astar.h"
 
-nav_msgs::Odometry odom;
+avt_341::msg::Odometry odom;
 bool odom_rcvd = false;
-nav_msgs::OccupancyGrid current_grid;
+avt_341::msg::OccupancyGrid current_grid;
 
-void OdometryCallback(const nav_msgs::Odometry::ConstPtr &rcv_odom)
+void OdometryCallback(avt_341::msg::OdometryPtr &rcv_odom)
 {
   odom = *rcv_odom;
   odom_rcvd = true;
 }
 
-void MapCallback(const nav_msgs::OccupancyGrid::ConstPtr &rcv_grid)
+void MapCallback(avt_341::msg::OccupancyGridPtr &rcv_grid)
 {
   current_grid = *rcv_grid;
 }
 
 int main(int argc, char *argv[])
 {
-  ros::init(argc, argv, "avt_341_global_path_node");
-  ros::NodeHandle n;
+  auto n = avt_341::node::init_node(argc, argv, "avt_341_global_path_node");
 
-  ros::Publisher path_pub = n.advertise<nav_msgs::Path>("avt_341/global_path", 10);
-  ros::Publisher waypoint_pub = n.advertise<nav_msgs::Path>("avt_341/waypoints", 10);
-  ros::Subscriber odometry_sub = n.subscribe("avt_341/odometry", 10, OdometryCallback);
-  ros::Subscriber map_sub = n.subscribe("avt_341/occupancy_grid", 10, MapCallback);
+  auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/global_path", 10);
+  auto waypoint_pub = n->create_publisher<avt_341::msg::Path>("avt_341/waypoints", 10);
+  auto odometry_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry", 10, OdometryCallback);
+  auto map_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid", 10, MapCallback);
 
-  float goal_dist = 3.0f;
-  if (ros::param::has("~goal_dist")){
-    ros::param::get("~goal_dist", goal_dist);
-  }
-  float global_lookahead = 50.0f;
-  if (ros::param::has("~global_lookahead")){
-    ros::param::get("~global_lookahead", global_lookahead);
-  }
+    float goal_dist, global_lookahead;
+    std::vector<double> waypoints_x_list, waypoints_y_list;
 
-  std::vector<double> waypoints_x_list, waypoints_y_list;
-  if (!(n.hasParam("/waypoints_x") && "/waypoints_y"))
-  {
-    std::cerr << "ERROR: NO WAYPOINTS WERE PROVIDED, EXITING." << std::endl;
-    return 1;
-  }
-  n.getParam("/waypoints_x", waypoints_x_list);
-  n.getParam("/waypoints_y", waypoints_y_list);
+    n->get_parameter("~goal_dist", goal_dist, 3.0f);
+    n->get_parameter("~global_lookahead", global_lookahead, 50.0f);
+    n->get_parameter("/waypoints_x", waypoints_x_list, std::vector<double>(0));
+    n->get_parameter("/waypoints_y", waypoints_y_list, std::vector<double>(0));
 
   if (waypoints_x_list.size() != waypoints_y_list.size())
   {
@@ -75,11 +63,11 @@ int main(int argc, char *argv[])
 
   int num_waypoints = std::min(waypoints_x_list.size(), waypoints_y_list.size());
 
-  nav_msgs::Path loaded_waypoints;
+  avt_341::msg::Path loaded_waypoints;
   loaded_waypoints.header.frame_id = "odom"; 
   loaded_waypoints.poses.clear();
   for (int32_t i=0;i<num_waypoints;i++){
-    geometry_msgs::PoseStamped pose;
+    avt_341::msg::PoseStamped pose;
     pose.pose.position.x = static_cast<float>(waypoints_x_list[i]);
     pose.pose.position.y = static_cast<float>(waypoints_y_list[i]);
     pose.pose.position.z = 0.0f;
@@ -96,11 +84,11 @@ int main(int argc, char *argv[])
   goal[1] = waypoints_y_list[0];  
 
 
-  ros::Rate r(10.0f); // Hz
+  avt_341::node::Rate r(10.0f); // Hz
   bool goal_reached = false;
   int nl = 0;
   int current_waypoint = 0;
-  while (ros::ok() && !goal_reached){
+  while (avt_341::node::ok() && !goal_reached){
 
     if (odom_rcvd){
       std::vector<float> pos;
@@ -109,11 +97,11 @@ int main(int argc, char *argv[])
 
       std::vector<std::vector<float>> path = astar_planner.PlanPath(&current_grid, goal, pos);
 
-      nav_msgs::Path ros_path;
+      avt_341::msg::Path ros_path;
       ros_path.header.frame_id = "odom";
       ros_path.poses.clear();
       for (int32_t i = 0; i < path.size(); i++){
-        geometry_msgs::PoseStamped pose;
+        avt_341::msg::PoseStamped pose;
         pose.pose.position.x = static_cast<float>(path[i][0]);
         pose.pose.position.y = static_cast<float>(path[i][1]);
         pose.pose.position.z = 0.0f;
@@ -124,15 +112,15 @@ int main(int argc, char *argv[])
         ros_path.poses.push_back(pose);
       }
 
-      ros_path.header.stamp = ros::Time::now();
+      ros_path.header.stamp = n->get_stamp();
       ros_path.header.seq = nl;
 
       for (int i = 0; i < ros_path.poses.size(); i++){
         ros_path.poses[i].header = ros_path.header;
       }
 
-      path_pub.publish(ros_path);
-      waypoint_pub.publish(loaded_waypoints);
+      path_pub->publish(ros_path);
+      waypoint_pub->publish(loaded_waypoints);
 
       float dx = goal[0] - odom.pose.pose.position.x;
       float dy = goal[1] - odom.pose.pose.position.y;
@@ -155,7 +143,7 @@ int main(int argc, char *argv[])
       }
     }
 
-    ros::spinOnce();
+    n->spin_some();
     r.sleep();
     nl++;
   }

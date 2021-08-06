@@ -20,9 +20,7 @@
 #define PURE_PURSUIT_CONTROLLER_H
 
 #include "avt_341/control/pid_controller.h"
-#include "geometry_msgs/Twist.h"
-#include "nav_msgs/Path.h"
-#include "nav_msgs/Odometry.h"
+#include "avt_341/node/ros_types.h"
 
 namespace avt_341 {
 namespace control{
@@ -38,7 +36,7 @@ public:
 	* vehicle state.
 	* \param traj The desired trajectory
 	*/
-	geometry_msgs::Twist GetDcFromTraj(nav_msgs::Path traj);
+	avt_341::msg::Twist GetDcFromTraj(avt_341::msg::Path traj);
 
 	/**
 	* Set the wheelbase of the vehicle in meters
@@ -128,7 +126,7 @@ public:
 	 *  Set the vehicle position, orientation and speed
 	 * \param state The vehicle state
 	 */
-	void SetVehicleState(nav_msgs::Odometry state);
+	void SetVehicleState(avt_341::msg::Odometry state);
 
 private:
 	float wheelbase_; //meters

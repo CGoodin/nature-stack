@@ -11,58 +11,41 @@
  * \date 7/13/2018
  */
 
-#include "ros/ros.h"
-#include "geometry_msgs/Pose.h"
-#include "geometry_msgs/Twist.h"
-#include "nav_msgs/Odometry.h"
-#include "nav_msgs/Path.h"
+#include "avt_341/node/ros_types.h"
+#include "avt_341/node/node_proxy.h"
 //avt_341 includes
 #include "avt_341/control/pure_pursuit_controller.h"
 
-nav_msgs::Path control_msg;
-nav_msgs::Odometry state;
+avt_341::msg::Path control_msg;
+avt_341::msg::Odometry state;
 
-void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_state) {
+void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
 }
 
-void PathCallback(const nav_msgs::Path::ConstPtr& rcv_control){
+void PathCallback(avt_341::msg::PathPtr rcv_control){
   control_msg.poses = rcv_control->poses;
   control_msg.header = rcv_control->header;
 }
 
 int main(int argc, char *argv[]){
-  ros::init(argc,argv,"avt_341_control_node");
-  ros::NodeHandle n;
+  auto n = avt_341::node::init_node(argc,argv,"avt_341_control_node");
 
-  ros::Publisher dc_pub =
-    n.advertise<geometry_msgs::Twist>("avt_341/cmd_vel",1);
+  auto dc_pub = n->create_publisher<avt_341::msg::Twist>("avt_341/cmd_vel",1);
 
-  ros::Subscriber path_sub =
-    n.subscribe("avt_341/local_path",1, PathCallback);
+  auto path_sub = n->create_subscription<avt_341::msg::Path>("avt_341/local_path",1, PathCallback);
 
-  ros::Subscriber state_sub =
-    n.subscribe("avt_341/odometry",1, OdometryCallback);
+  auto state_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry",1, OdometryCallback);
 
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
-	float wheelbase = 2.6f;
-	if (ros::param::has("~vehicle_wheelbase")) {
-		ros::param::get("~vehicle_wheelbase", wheelbase);
-	}
-	float steer_angle = 25.0f;
-	if (ros::param::has("~vehicle_max_steer_angle_degrees")) {
-		ros::param::get("~vehicle_max_steer_angle_degrees", steer_angle);
-	}
-	float vehicle_speed = 5.0f;
-	if (ros::param::has("~vehicle_speed")) {
-		ros::param::get("~vehicle_speed", vehicle_speed);
-	}
-  if (ros::param::has("~steering_coefficient")) {
-    float steering_coeff;
-		ros::param::get("~steering_coefficient", steering_coeff);
+	float wheelbase, steer_angle, vehicle_speed, steering_coeff;
+	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
+    n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
+    n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
+    n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
     controller.SetSteeringParam(steering_coeff);
-	}
+
   
 	controller.SetWheelbase(wheelbase);
 	controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
@@ -70,17 +53,17 @@ int main(int argc, char *argv[]){
 
   float rate = 50.0f;
   float dt = 1.0f/rate;
-  ros::Rate r(rate);
+  avt_341::node::Rate r(rate);
 
-  while (ros::ok()){
-    geometry_msgs::Twist dc;
+  while (avt_341::node::ok()){
+    avt_341::msg::Twist dc;
 
     controller.SetVehicleState(state);
     dc = controller.GetDcFromTraj(control_msg);
 
     
-    dc_pub.publish(dc);
-    ros::spinOnce();
+    dc_pub->publish(dc);
+    n->spin_some();
 
     r.sleep();
   }

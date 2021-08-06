@@ -98,7 +98,7 @@ void Planner::CalculateComfortability() {
 	}
 }
 
-void Planner::CalculateDynamicSafety(nav_msgs::Odometry odom) {
+void Planner::CalculateDynamicSafety(avt_341::msg::Odometry odom) {
 	for (int i = 0; i < candidates_.size(); i++) {
 		float km = candidates_[i].GetMaxCurvature();
 		float vk = (float)sqrt(alpha_max_ / km);
@@ -109,7 +109,7 @@ void Planner::CalculateDynamicSafety(nav_msgs::Odometry odom) {
 	}
 }
 
-void Planner::DilateGrid(nav_msgs::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury){
+void Planner::DilateGrid(avt_341::msg::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury){
 	//std::cerr << "Grid Size: " << grid.info.width << ", " << grid.info.height << std::endl;
 	//std::cerr << "Grid Origin: " << grid.info.origin.position.x << ", " << grid.info.origin.position.y << std::endl;
 	//std::cerr << "Grid Resolution: " << grid.info.resolution << std::endl;
@@ -141,7 +141,7 @@ void Planner::DilateGrid(nav_msgs::OccupancyGrid &grid, int x, float llx, float 
 	grid.data = new_data;
 }
 
-void Planner::CalculateStaticSafety(nav_msgs::OccupancyGrid grid) {
+void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
 	for (int i = 0; i < candidates_.size(); i++) {
 		float s = 0.0f;
 		float stat_safe = 0.0f;
@@ -199,7 +199,7 @@ float Planner::GetTotalCostOfCandidate(int i) {
 	return cost;
 }
 
-bool Planner::CalculateCandidateCosts(nav_msgs::OccupancyGrid grid, nav_msgs::Odometry odom) {
+bool Planner::CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::Odometry odom) {
 
 	CalculateStaticSafety(grid);
 	CalculateComfortability();
