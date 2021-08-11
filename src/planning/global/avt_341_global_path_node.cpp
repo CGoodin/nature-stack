@@ -21,6 +21,8 @@
 nav_msgs::Odometry odom;
 bool odom_rcvd = false;
 nav_msgs::OccupancyGrid current_grid;
+nav_msgs::Path current_waypoints;
+bool waypoints_rcvd = false;
 
 void OdometryCallback(const nav_msgs::Odometry::ConstPtr &rcv_odom)
 {
@@ -33,6 +35,15 @@ void MapCallback(const nav_msgs::OccupancyGrid::ConstPtr &rcv_grid)
   current_grid = *rcv_grid;
 }
 
+void WaypointCallback(const nav_msgs::Path::ConstPtr &rcv_waypoints)
+{
+  std::cout << "Waypoints received!" << std::endl;
+  // Brute force - overwrite the current global waypoints
+  current_waypoints = *rcv_waypoints;
+  waypoints_rcvd = true;
+
+}
+
 int main(int argc, char *argv[])
 {
   ros::init(argc, argv, "avt_341_global_path_node");
@@ -42,11 +53,13 @@ int main(int argc, char *argv[])
   ros::Publisher waypoint_pub = n.advertise<nav_msgs::Path>("avt_341/waypoints", 10);
   ros::Subscriber odometry_sub = n.subscribe("avt_341/odometry", 10, OdometryCallback);
   ros::Subscriber map_sub = n.subscribe("avt_341/occupancy_grid", 10, MapCallback);
+  ros::Subscriber waypoint_sub = n.subscribe("avt_341/new_waypoints", 10, WaypointCallback);
 
   float goal_dist = 3.0f;
   if (ros::param::has("~goal_dist")){
     ros::param::get("~goal_dist", goal_dist);
   }
+
   float global_lookahead = 50.0f;
   if (ros::param::has("~global_lookahead")){
     ros::param::get("~global_lookahead", global_lookahead);
@@ -55,6 +68,7 @@ int main(int argc, char *argv[])
   std::vector<double> waypoints_x_list, waypoints_y_list;
   if (!(n.hasParam("/waypoints_x") && "/waypoints_y"))
   {
+    // TODO: Handle no waypoints
     std::cerr << "ERROR: NO WAYPOINTS WERE PROVIDED, EXITING." << std::endl;
     return 1;
   }
@@ -75,21 +89,26 @@ int main(int argc, char *argv[])
 
   int num_waypoints = std::min(waypoints_x_list.size(), waypoints_y_list.size());
 
-  nav_msgs::Path loaded_waypoints;
-  loaded_waypoints.header.frame_id = "odom"; 
-  loaded_waypoints.poses.clear();
-  for (int32_t i=0;i<num_waypoints;i++){
-    geometry_msgs::PoseStamped pose;
-    pose.pose.position.x = static_cast<float>(waypoints_x_list[i]);
-    pose.pose.position.y = static_cast<float>(waypoints_y_list[i]);
-    pose.pose.position.z = 0.0f;
-    pose.pose.orientation.w = 1.0f;
-    pose.pose.orientation.x = 0.0f;
-    pose.pose.orientation.y = 0.0f;
-    pose.pose.orientation.z = 0.0f;
-    loaded_waypoints.poses.push_back(pose);
+  // Initialize current waypoints with the data from the waypoint yaml params
+  if (num_waypoints > 0) 
+  {
+    //nav_msgs::Path loaded_waypoints;
+    current_waypoints.poses.clear();
+    current_waypoints.header.frame_id = "odom";
+    for (int32_t i=0;i<num_waypoints;i++){
+      geometry_msgs::PoseStamped pose;
+      pose.pose.position.x = static_cast<float>(waypoints_x_list[i]);
+      pose.pose.position.y = static_cast<float>(waypoints_y_list[i]);
+      pose.pose.position.z = 0.0f;
+      pose.pose.orientation.w = 1.0f;
+      pose.pose.orientation.x = 0.0f;
+      pose.pose.orientation.y = 0.0f;
+      pose.pose.orientation.z = 0.0f;
+      current_waypoints.poses.push_back(pose);
+    }
   }
 
+  // Initialize goal to first waypoint
   std::vector<float> goal;
   goal.resize(2, 0.0f);
   goal[0] = waypoints_x_list[0];
@@ -101,6 +120,16 @@ int main(int argc, char *argv[])
   int nl = 0;
   int current_waypoint = 0;
   while (ros::ok() && !goal_reached){
+
+    if (waypoints_rcvd) {
+      // process a new set of waypoints
+      // TODO: find closest point along path -  we probably don't want to reverse back to start point if we're past it. 
+      current_waypoint = 0;
+      goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
+      goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
+      std::cout << "New waypoints! Updated goal " << goal[0] << ", " << goal[1] << std::endl;
+      waypoints_rcvd = false;
+    }
 
     if (odom_rcvd){
       std::vector<float> pos;
@@ -132,25 +161,27 @@ int main(int argc, char *argv[])
       }
 
       path_pub.publish(ros_path);
-      waypoint_pub.publish(loaded_waypoints);
+      waypoint_pub.publish(current_waypoints);  // switching from sharing the original set of waypoints to the current set of waypoints 
 
       float dx = goal[0] - odom.pose.pose.position.x;
       float dy = goal[1] - odom.pose.pose.position.y;
       double d = sqrt(dx * dx + dy * dy);
       if (nl % 100 == 0){ //update every 2 seconds
-        std::cout << "Distance to goal = " << d << std::endl;
+        std::cout << "Distance to goal " << goal[0] << ", " << goal[1] << " = " << d << std::endl;
       }
       //if (d < goal_dist){
       if (d < global_lookahead){
-        if (current_waypoint == waypoints_x_list.size() - 1){
+        //if (current_waypoint == waypoints_x_list.size() - 1){
+        if (current_waypoint == current_waypoints.poses.size() - 1) {
           if ( d<goal_dist){
             goal_reached = true;
           }
         }
         else{
           current_waypoint++;
-          goal[0] = waypoints_x_list[current_waypoint];
-          goal[1] = waypoints_y_list[current_waypoint];
+          goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
+          goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
+          std::cout << "Updated goal " << goal[0] << ", " << goal[1] << std::endl;
         }
       }
     }

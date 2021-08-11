@@ -53,6 +53,13 @@ link_directories(
   ${PCL_LIBRARY_DIRS} 
 )
 
+add_executable(path_manager_node
+src/planning/global/path_manager_node.cpp
+)
+target_link_libraries(path_manager_node
+  ${catkin_LIBRARIES}
+)
+
 add_executable(avt_341_perception_node 
 src/perception/avt_341_perception_node.cpp 
 src/perception/elevation_grid.cpp

@@ -23,7 +23,7 @@
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
   <author email="cgoodin@cavs.msstate.edu">Chris Goodin</author> 
-
+  <author email="dwc2@cavs.msstate.edu">Daniel Carruth</author>
 
   <!-- The *depend tags are used to specify dependencies -->
   <!-- Dependencies can be catkin packages or system dependencies -->

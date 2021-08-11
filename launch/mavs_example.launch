@@ -44,6 +44,10 @@
     <param name="vehicle_speed" value="5.0" />
   </node>
 
+  <node name="path_manager_node" pkg="avt_341" type="path_manager_node" required="true" output="screen">
+    <param name="wait_period" value="30.0" />
+  </node>
+
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
     <param name="goal_dist" value="5.0" /> 
     <param name="global_lookahead" value="75.0" /> 
