@@ -229,10 +229,10 @@ int main(int argc, char *argv[]){
     }
     else {
       if (global_path.poses.size() <= 0){
-        std::cout << "Local planner did not run because global path not recieved " << std::endl;
+        //std::cout << "Local planner did not run because global path not recieved " << std::endl;
       }
       else if (!odom_rcvd){
-        std::cout << "Local planner did not run because vehicle odometry not recieved." << std::endl;
+        //std::cout << "Local planner did not run because vehicle odometry not recieved." << std::endl;
       }
       else if (grid.data.size() <= 0){
         std::cout << "Local planner did not run because occupancy grid not recieved." << std::endl;
