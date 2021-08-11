@@ -54,7 +54,8 @@ link_directories(
 )
 
 add_executable(path_manager_node
-src/planning/global/path_manager_node.cpp
+  src/planning/global/path_manager_node.cpp
+  src/node/node_proxy.cpp
 )
 target_link_libraries(path_manager_node
   ${catkin_LIBRARIES}
@@ -105,6 +106,7 @@ target_link_libraries(avt_341_global_path_node
 add_executable(avt_341_sim_test_node 
   src/simulation/avt_341_sim_test_node.cpp
   src/node/node_proxy.cpp
+  src/node/clock_publisher.cpp
 )
 target_link_libraries(avt_341_sim_test_node
   ${catkin_LIBRARIES}

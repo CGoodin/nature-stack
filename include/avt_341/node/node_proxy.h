@@ -10,6 +10,19 @@
 
 namespace avt_341 {
     namespace node {
+
+        using Duration = ros::Duration;
+
+        inline Duration make_duration(float period){
+            float sec;
+            float fraction = std::modf(period, & sec);
+            return Duration(static_cast<int32_t>(sec), static_cast<int32_t>(fraction * 1e9));
+        }
+
+        inline Duration make_duration(int32_t sec, int32_t nsec){
+            return ros::Duration(sec, nsec);
+        }
+
         template<typename MessageT>
         class Publisher {
         public:

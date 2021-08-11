@@ -11,43 +11,40 @@
  */
 
 // ros includes
-#include "ros/ros.h"
-#include <nav_msgs/Path.h>
+#include "avt_341/node/ros_types.h"
+#include "avt_341/node/node_proxy.h"
 // local includes
 #include "avt_341/avt_341_utils.h"
 
-nav_msgs::Path new_path;
+avt_341::msg::Path new_path;
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "path_manager");
-    ros::NodeHandle n;
+    auto n = avt_341::node::init_node(argc,argv,"path_manager");
 
-    ros::Publisher path_pub = n.advertise<nav_msgs::Path>("avt_341/new_waypoints", 10);
+    auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/new_waypoints", 10);
     
-    ros::Rate loop_rate(10);
+    avt_341::node::Rate loop_rate(10);
 
-    float wait_period = 30.0f;
-    if (ros::param::has("~wait_period")){
-        ros::param::get("~wait_period", wait_period);
-    }
+    float wait_period;
+    n->get_parameter("~wait_period", wait_period, 30.0f);
 
-    ros::Time start_time = ros::Time::now();
-    ros::Duration wait_duration = ros::Duration(wait_period);
+    auto start_time = n->get_stamp();
+    avt_341::node::Duration wait_duration = avt_341::node::make_duration(wait_period);
 
     int count = 0;
     int msg_sent = 0;
-    while(ros::ok())
+    while(avt_341::node::ok())
     {
-        if(!msg_sent && ros::Time::now() > start_time + wait_duration)
+        if(!msg_sent && n->get_stamp() > start_time + wait_duration)
         {
             std::vector<std::vector<float>> path = {{0, 10}, {10, 20}, {10, 50}};
 
-            nav_msgs::Path ros_path;
+            avt_341::msg::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
             for (int32_t i = 0; i < path.size(); i++){
-                geometry_msgs::PoseStamped pose;
+                avt_341::msg::PoseStamped pose;
                 pose.pose.position.x = static_cast<float>(path[i][0]);
                 pose.pose.position.y = static_cast<float>(path[i][1]);
                 pose.pose.position.z = 0.0f;
@@ -58,18 +55,18 @@ int main(int argc, char **argv)
                 ros_path.poses.push_back(pose);
             } 
 
-            ros_path.header.stamp = ros::Time::now();
+            ros_path.header.stamp = n->get_stamp();
             ros_path.header.seq = count;
 
             for (int i = 0; i < ros_path.poses.size(); i++){
                 ros_path.poses[i].header = ros_path.header;
             }
 
-            path_pub.publish(ros_path);
+            path_pub->publish(ros_path);
             count++;
             msg_sent = 1;
         }
-        ros::spinOnce();
+        n->spin_some();
         loop_rate.sleep();
     }
 }

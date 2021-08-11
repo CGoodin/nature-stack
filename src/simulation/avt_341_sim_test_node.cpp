@@ -1,7 +1,7 @@
 //ros includes
 #include "avt_341/node/ros_types.h"
 #include "avt_341/node/node_proxy.h"
-#include "rosgraph_msgs/Clock.h"
+#include "avt_341/node/clock_publisher.h"
 // pcl includes
 #include <pcl_ros/point_cloud.h>
 #include <pcl/point_types.h>
@@ -27,9 +27,9 @@ int main(int argc, char **argv){
 	// determine if sim time will be used
 	bool use_sim_time;
 	n->get_parameter("use_sim_time", use_sim_time, false);
-	std::shared_ptr<avt_341::node::Publisher<rosgraph_msgs::Clock>> clock_pub;
+	std::shared_ptr<avt_341::node::ClockPublisher> clock_pub;
 	if (use_sim_time){
-		clock_pub = n->create_publisher<rosgraph_msgs::Clock>("clock", 1);
+    clock_pub = avt_341::node::ClockPublisher::make_shared("clock", 1, n);
 	}
 
 	// create and populate the odometry message that will be published
@@ -86,9 +86,7 @@ int main(int argc, char **argv){
 			
 		// update and publish time if necessary
 		if (use_sim_time ){
-			rosgraph_msgs::Clock clock_msg;
-			clock_msg.clock = avt_341::node::time_from_seconds(elapsed_time);
-      		clock_pub->publish(clock_msg);
+      clock_pub->publish(elapsed_time);
 			elapsed_time += dt;
 		}
 		else {
