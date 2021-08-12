@@ -19,9 +19,7 @@
 #include "avt_341/planning/local/spline_path.h"
 #include "avt_341/planning/local/candidate.h"
 // ROS INCLUDES
-#include "nav_msgs/Path.h"
-#include "nav_msgs/Odometry.h"
-#include "nav_msgs/OccupancyGrid.h"
+#include "avt_341/node/ros_types.h"
 
 namespace avt_341 {
 namespace planning{
@@ -62,14 +60,14 @@ public:
 	 * \param grid ROS occupancy grid.
 	 * \param odom ROS odometry of the current vehicle.
 	 */ 
-	bool CalculateCandidateCosts(nav_msgs::OccupancyGrid grid, nav_msgs::Odometry odom);
+	bool CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::Odometry odom);
 
 	/**
 	 * Dilate the map with a mask of given size.
 	 * \param grid The occupancy grid to dilate.
 	 * \param x The dilation mask size is (x+1)*(x+1).
 	 */
-	void DilateGrid(nav_msgs::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury);
+	void DilateGrid(avt_341::msg::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury);
 
 	/**
 	 * Get a point along the optimal path at an arc length s_step from the current position. 
@@ -160,9 +158,9 @@ private:
 	// private methods
 	std::vector<float> CalcCoeffs(float rho_start, float theta_start, float s_end, float rho_end);
 	void CalculateComfortability();
-	void CalculateStaticSafety(nav_msgs::OccupancyGrid grid);
+	void CalculateStaticSafety(avt_341::msg::OccupancyGrid grid);
 	void CalculateRhoCost();
-	void CalculateDynamicSafety(nav_msgs::Odometry odom);
+	void CalculateDynamicSafety(avt_341::msg::Odometry odom);
 	float GetTotalCostOfCandidate(int pathnum);
 	CurveInfo InfoOfCurve(Candidate candidate, float s, CurveInfo base_ca);
 

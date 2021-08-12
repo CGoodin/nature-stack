@@ -54,7 +54,8 @@ link_directories(
 )
 
 add_executable(path_manager_node
-src/planning/global/path_manager_node.cpp
+  src/planning/global/path_manager_node.cpp
+  src/node/node_proxy.cpp
 )
 target_link_libraries(path_manager_node
   ${catkin_LIBRARIES}
@@ -63,6 +64,7 @@ target_link_libraries(path_manager_node
 add_executable(avt_341_perception_node 
 src/perception/avt_341_perception_node.cpp 
 src/perception/elevation_grid.cpp
+src/node/node_proxy.cpp
 )
 target_link_libraries(avt_341_perception_node
   ${catkin_LIBRARIES}
@@ -72,6 +74,7 @@ add_executable(avt_341_control_node
   src/control/avt_341_control_node.cpp 
   src/control/pure_pursuit_controller.cpp
   src/control/pid_controller.cpp
+  src/node/node_proxy.cpp
 )
 
 target_link_libraries(avt_341_control_node
@@ -83,6 +86,7 @@ add_executable(avt_341_local_planner_node
   src/planning/local/spline_path.cpp
   src/planning/local/spline_planner.cpp
   src/planning/local/spline_plotter.cpp
+  src/node/node_proxy.cpp
 )
 target_link_libraries(avt_341_local_planner_node
   ${catkin_LIBRARIES}
@@ -92,6 +96,7 @@ target_link_libraries(avt_341_local_planner_node
 add_executable(avt_341_global_path_node 
   src/planning/global/avt_341_global_path_node.cpp 
   src/planning/global/astar.cpp
+  src/node/node_proxy.cpp
 )
 target_link_libraries(avt_341_global_path_node
   ${catkin_LIBRARIES}
@@ -99,7 +104,10 @@ target_link_libraries(avt_341_global_path_node
 )
 
 add_executable(avt_341_sim_test_node 
-  src/simulation/avt_341_sim_test_node.cpp 
+  src/simulation/avt_341_sim_test_node.cpp
+  src/node/node_proxy.cpp
+  src/node/clock_publisher.cpp
+  src/perception/point_cloud_generator.cpp
 )
 target_link_libraries(avt_341_sim_test_node
   ${catkin_LIBRARIES}

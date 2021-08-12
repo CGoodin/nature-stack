@@ -22,7 +22,7 @@ PurePursuitController::PurePursuitController() {
 	veh_speed_ = 0.0;
 }
 
-void PurePursuitController::SetVehicleState(nav_msgs::Odometry state){
+void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
 // Set the current state of the vehicle, which should be the first pose in the path
 	veh_x_ = state.pose.pose.position.x;
 	veh_y_ = state.pose.pose.position.y;
@@ -32,9 +32,9 @@ void PurePursuitController::SetVehicleState(nav_msgs::Odometry state){
 	veh_heading_ = utils::GetHeadingFromOrientation(state.pose.pose.orientation);
 }
 
-geometry_msgs::Twist PurePursuitController::GetDcFromTraj(nav_msgs::Path traj) {
+avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj) {
 	//initialize the driving command
-	geometry_msgs::Twist dc;
+    avt_341::msg::Twist dc;
 	dc.linear.x = 0.0;
 	dc.angular.z = 0.0;
 	dc.linear.y = 0.0;

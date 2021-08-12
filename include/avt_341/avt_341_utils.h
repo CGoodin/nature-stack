@@ -8,8 +8,7 @@
 #ifndef AVT_341_UTILS_H
 #define AVT_341_UTILS_H
 
-#include "geometry_msgs/Quaternion.h"
-#include <tf/transform_datatypes.h>
+#include "avt_341/node/ros_types.h"
 
 namespace avt_341 {
 namespace utils {
@@ -111,13 +110,13 @@ inline float PointToSegmentDistance(vec2 ep1, vec2 ep2, vec2 p) {
 	return d0;
 }
 
-inline float GetHeadingFromOrientation(geometry_msgs::Quaternion orientation){
-    tf::Quaternion q(
+inline float GetHeadingFromOrientation(avt_341::msg::Quaternion orientation){
+    avt_341::msg_tf::Quaternion q(
         orientation.x,
         orientation.y,
         orientation.z,
         orientation.w);
-	tf::Matrix3x3 m(q);
+    avt_341::msg_tf::Matrix3x3 m(q);
 	double roll, pitch, yaw;
 	m.getRPY(roll, pitch, yaw);
     return (float)yaw;

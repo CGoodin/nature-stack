@@ -18,7 +18,7 @@ Plotter::Plotter() {
 	map_set_ = false;
 }
 
-void Plotter::AddMap(nav_msgs::OccupancyGrid grid){
+void Plotter::AddMap(avt_341::msg::OccupancyGrid grid){
 	grid_ = grid;
 	x_lo_ = grid.info.origin.position.x;
 	y_lo_ = grid.info.origin.position.y;
@@ -37,7 +37,7 @@ void Plotter::SetPath(std::vector<avt_341::utils::vec2> path) {
 	path_ = path;
 }
 
-void Plotter::AddWaypoints(nav_msgs::Path waypoints){
+void Plotter::AddWaypoints(avt_341::msg::Path waypoints){
 	waypoints_.clear();
 	for (int i=0;i<waypoints.poses.size();i++){
 		avt_341::utils::vec2 p;
