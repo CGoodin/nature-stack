@@ -2,10 +2,8 @@
 #include "avt_341/node/ros_types.h"
 #include "avt_341/node/node_proxy.h"
 #include "avt_341/node/clock_publisher.h"
-// pcl includes
-#include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl_conversions/pcl_conversions.h>
+// point cloud includes
+#include "avt_341/perception/point_cloud_generator.h"
 
 avt_341::msg::Twist twist;
 void TwistCallback(avt_341::msg::TwistPtr rcv_msg){
@@ -16,7 +14,7 @@ void TwistCallback(avt_341::msg::TwistPtr rcv_msg){
 
 int main(int argc, char **argv){
 
-    auto n = avt_341::node::init_node(argc,argv,"avt_341_simulation_test_node");
+  auto n = avt_341::node::init_node(argc,argv,"avt_341_simulation_test_node");
 
 	auto twist_sub = n->create_subscription<avt_341::msg::Twist>("avt_341/cmd_vel",1, TwistCallback);
 
@@ -51,13 +49,13 @@ int main(int argc, char **argv){
 	odom_msg.twist.twist.angular.z = 0.0;
 
 	// create and populate the point cloud message that will be published
-    avt_341::msg::PointCloud2 pc2;
-	pc2.header.frame_id = "odom";
-	pc2.header.seq = 0;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr msg (new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::PointCloud<pcl::PointXYZ> point_cloud;
-	point_cloud.push_back(pcl::PointXYZ(50.0, 0.0, 0.0));
-	pcl::toROSMsg(point_cloud, pc2);
+  avt_341::msg::PointCloud2 pc2;
+	std::vector<avt_341::utils::vec3> points {
+	  avt_341::utils::vec3(50.0, 0.0, 0.0)
+	};
+  avt_341::perception::PointCloudGenerator::toROSMsg(points, pc2);
+  pc2.header.frame_id = "odom";
+  pc2.header.seq = 0;
 
 	//odometry published at 100 Hz, point clout at 10 Hz
 	double dt = 0.01;

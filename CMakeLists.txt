@@ -107,6 +107,7 @@ add_executable(avt_341_sim_test_node
   src/simulation/avt_341_sim_test_node.cpp
   src/node/node_proxy.cpp
   src/node/clock_publisher.cpp
+  src/perception/point_cloud_generator.cpp
 )
 target_link_libraries(avt_341_sim_test_node
   ${catkin_LIBRARIES}
