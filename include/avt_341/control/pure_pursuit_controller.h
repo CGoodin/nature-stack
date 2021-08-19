@@ -143,6 +143,8 @@ private:
 	float veh_y_;
 	float veh_heading_;
 	float veh_speed_;
+	float vx_;
+	float vy_;
 };
 
 } // namespace control

@@ -53,6 +53,14 @@ int main(int argc, char *argv[])
   auto map_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid", 10, MapCallback);
   auto waypoint_sub = n->create_subscription<avt_341::msg::Path>("avt_341/new_waypoints", 10, WaypointCallback);
 
+  // ctg, 8-19-2021
+  // the state values can be
+  // 0 - active 
+  // 1 - bring to a smooth stop but do not shut down
+  // 2 - bring to a smooth stop and shut down
+  // 3 - bring to an immediate stop (hard braking) and shut down
+  auto state_pub = n->create_publisher<avt_341::msg::Int32>("avt_341/state", 10);
+
   float goal_dist, global_lookahead;
   std::vector<double> waypoints_x_list, waypoints_y_list;
 
@@ -60,6 +68,10 @@ int main(int argc, char *argv[])
   n->get_parameter("~global_lookahead", global_lookahead, 50.0f);
   n->get_parameter("/waypoints_x", waypoints_x_list, std::vector<double>(0));
   n->get_parameter("/waypoints_y", waypoints_y_list, std::vector<double>(0));
+
+  int shutdown_behavior = 1;
+  n->get_parameter("~shutdown_behavior", shutdown_behavior, 1);
+  if (shutdown_behavior>3 || shutdown_behavior<1)shutdown_behavior = 1;
 
   if (waypoints_x_list.size() != waypoints_y_list.size())
   {
@@ -102,10 +114,11 @@ int main(int argc, char *argv[])
 
 
   avt_341::node::Rate r(10.0f); // Hz
-  bool goal_reached = false;
+  //bool goal_reached = false;
   int nl = 0;
   int current_waypoint = 0;
-  while (avt_341::node::ok() && !goal_reached){
+  //while (avt_341::node::ok() && !goal_reached){
+  while (avt_341::node::ok()){
 
     if (waypoints_rcvd) {
       // process a new set of waypoints
@@ -138,6 +151,24 @@ int main(int argc, char *argv[])
         pose.pose.orientation.z = 0.0f;
         ros_path.poses.push_back(pose);
       }
+      // ctg 8/19/21
+      // if not on the last waypoint, add a straight path to the next waypoint to the global path
+      // this helps the local planner make smooth transitions between waypoints
+      if (ros_path.poses.size()>1) {
+        int cp =current_waypoint;
+        while (cp<current_waypoints.poses.size()-1){
+          avt_341::msg::PoseStamped pose;
+          pose.pose.position.x = static_cast<float>(current_waypoints.poses[cp+1].pose.position.x);
+          pose.pose.position.y = static_cast<float>(current_waypoints.poses[cp+1].pose.position.y);
+          pose.pose.position.z = 0.0f;
+          pose.pose.orientation.w = 1.0f;
+          pose.pose.orientation.x = 0.0f;
+          pose.pose.orientation.y = 0.0f;
+          pose.pose.orientation.z = 0.0f;
+          ros_path.poses.push_back(pose);
+          cp++;
+        }
+      }
 
       ros_path.header.stamp = n->get_stamp();
       ros_path.header.seq = nl;
@@ -149,6 +180,8 @@ int main(int argc, char *argv[])
       path_pub->publish(ros_path);
       waypoint_pub->publish(current_waypoints);
 
+
+      // check the progression along the path
       float dx = goal[0] - odom.pose.pose.position.x;
       float dy = goal[1] - odom.pose.pose.position.y;
       double d = sqrt(dx * dx + dy * dy);
@@ -156,20 +189,39 @@ int main(int argc, char *argv[])
         std::cout << "Distance to goal " << goal[0] << ", " << goal[1] << " = " << d << std::endl;
       }
       //if (d < goal_dist){
-      if (d < global_lookahead){
+      //if (d < global_lookahead){
         //if (current_waypoint == waypoints_x_list.size() - 1){
         if (current_waypoint == current_waypoints.poses.size() - 1) {
           if ( d<goal_dist){
-            goal_reached = true;
+            //goal_reached = true;
+            avt_341::msg::Int32 state;
+            state.data = shutdown_behavior; // smooth stop but do not shut down
+            state_pub->publish(state);
           }
         }
         else{
-          current_waypoint++;
-          goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
-          goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
-          std::cout << "Updated goal " << goal[0] << ", " << goal[1] << std::endl;
+          if (d<goal_dist){
+            current_waypoint++;
+            goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
+            goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
+            //std::cout << "Updated goal " << goal[0] << ", " << goal[1] << std::endl;
+          }
+          avt_341::msg::Int32 state;
+          state.data = 0;
+          state_pub->publish(state);
         }
-      }
+      //}
+      //else{
+      //  avt_341::msg::Int32 state;
+      //  state.data = 0;
+      //  state_pub->publish(state);
+      //}
+
+    } // if odom_recvd
+    else{
+      avt_341::msg::Int32 state;
+      state.data = 1;
+      state_pub->publish(state);
     }
 
     n->spin_some();

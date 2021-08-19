@@ -18,6 +18,7 @@
 
 avt_341::msg::Path control_msg;
 avt_341::msg::Odometry state;
+int current_run_state = 0;
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
@@ -28,6 +29,10 @@ void PathCallback(avt_341::msg::PathPtr rcv_control){
   control_msg.header = rcv_control->header;
 }
 
+void StateCallback(avt_341::msg::Int32Ptr rcv_state){
+  current_run_state = rcv_state->data;
+}
+
 int main(int argc, char *argv[]){
   auto n = avt_341::node::init_node(argc,argv,"avt_341_control_node");
 
@@ -36,6 +41,8 @@ int main(int argc, char *argv[]){
   auto path_sub = n->create_subscription<avt_341::msg::Path>("avt_341/local_path",1, PathCallback);
 
   auto state_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry",1, OdometryCallback);
+
+  auto control_sub = n->create_subscription<avt_341::msg::Int32>("avt_341/state",1,StateCallback);
 
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
@@ -59,10 +66,48 @@ int main(int argc, char *argv[]){
     avt_341::msg::Twist dc;
 
     controller.SetVehicleState(state);
-    dc = controller.GetDcFromTraj(control_msg);
-
+    if (current_run_state==0){
+      controller.SetDesiredSpeed(vehicle_speed);
+      //controller.SetVehicleState(state);
+      dc = controller.GetDcFromTraj(control_msg);
+      dc_pub->publish(dc);
+    }
+    else if (current_run_state==1){
+      // bring to a smooth stop and wait
+      controller.SetDesiredSpeed(0.0f);
+      //controller.SetVehicleState(state);
+      dc = controller.GetDcFromTraj(control_msg);
+      dc_pub->publish(dc);
+    }
+    else if (current_run_state==2){
+      // bring to a smooth stop and shut down
+      controller.SetDesiredSpeed(0.0f);
+      float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
+      if (vel<0.5f){
+        // bring to a stop and shut down
+        dc.linear.x = 0.0f;
+        dc.linear.y = 1.0f;
+        dc.angular.z = 0.0f;
+        dc_pub->publish(dc);
+        break;   
+      }
+      else{
+       // controller.SetVehicleState(state);
+        dc = controller.GetDcFromTraj(control_msg);
+        dc.linear.x = 0.0f;
+        dc.angular.z = 0.0f;
+        dc_pub->publish(dc);
+      }
+    }
+    else if (current_run_state==3){
+      // bring to a hard stop and shut down
+      dc.linear.x = 0.0f;
+      dc.linear.y = 1.0f;
+      dc.angular.z = 0.0f;
+      dc_pub->publish(dc);
+      break;
+    }
     
-    dc_pub->publish(dc);
     n->spin_some();
 
     r.sleep();
