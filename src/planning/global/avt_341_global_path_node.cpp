@@ -16,7 +16,7 @@
 // local includes
 #include "avt_341/avt_341_utils.h"
 #include "avt_341/planning/global/astar.h"
-
+#include "avt_341/visualization/visualization_factory.h"
 avt_341::msg::Odometry odom;
 bool odom_rcvd = false;
 avt_341::msg::OccupancyGrid current_grid;
@@ -55,8 +55,10 @@ int main(int argc, char *argv[])
 
   float goal_dist, global_lookahead;
   std::vector<double> waypoints_x_list, waypoints_y_list;
+  std::string display_type;
 
   n->get_parameter("~goal_dist", goal_dist, 3.0f);
+  n->get_parameter("~display", display_type, avt_341::visualization::default_display);
   n->get_parameter("~global_lookahead", global_lookahead, 50.0f);
   n->get_parameter("/waypoints_x", waypoints_x_list, std::vector<double>(0));
   n->get_parameter("/waypoints_y", waypoints_y_list, std::vector<double>(0));
@@ -71,7 +73,8 @@ int main(int argc, char *argv[])
     return 2;
   }
 
-  avt_341::planning::Astar astar_planner;
+  auto visualizer = avt_341::visualization::create_visualizer(display_type);
+  avt_341::planning::Astar astar_planner(visualizer);
 
   int num_waypoints = std::min(waypoints_x_list.size(), waypoints_y_list.size());
 

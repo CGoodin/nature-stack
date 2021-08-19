@@ -14,6 +14,7 @@
 // avt_341 includes
 #include "avt_341/planning/local/spline_planner.h"
 #include "avt_341/planning/local/spline_plotter.h"
+#include "avt_341/visualization/visualization_factory.h"
 
 avt_341::msg::Odometry odom;
 avt_341::msg::OccupancyGrid grid;
@@ -56,8 +57,8 @@ int main(int argc, char *argv[]){
   float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
   int dilation_factor, num_paths;
   float w_c, w_d, w_s, w_r;
-  bool trim_path, display;
-  std::string display_type;
+  bool trim_path;
+  std::string display;
 
   n->get_parameter("~path_look_ahead", path_look_ahead, 15.0f);
   n->get_parameter("~vehicle_width", vehicle_width, 3.0f);
@@ -72,9 +73,9 @@ int main(int argc, char *argv[]){
   n->get_parameter("~w_r", w_r, 0.4f);
   n->get_parameter("~rate", rate, 50.0f);
   n->get_parameter("~trim_path", trim_path, false);
-  n->get_parameter("~display", display, false);
+  n->get_parameter("~display", display, avt_341::visualization::default_display);
 
-  avt_341::planning::Plotter plotter;
+  std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, n);
 
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;
@@ -139,13 +140,13 @@ int main(int argc, char *argv[]){
 
       // most of the calculation time spent on this function call
       bool path_found = planner.CalculateCandidateCosts(grid, odom);
-      if (display){
-        plotter.AddMap(grid);
-        plotter.SetPath(culled_points);
-        plotter.AddWaypoints(waypoints);
+      if (display != "none"){
+        plotter->AddMap(grid);
+        plotter->SetPath(culled_points);
+        plotter->AddWaypoints(waypoints);
         std::vector<avt_341::planning::Candidate> paths = planner.GetCandidates();
-        plotter.AddCurves(paths);
-        plotter.Display();
+        plotter->AddCurves(paths);
+        plotter->Display();
       }
 
       if (path_found){

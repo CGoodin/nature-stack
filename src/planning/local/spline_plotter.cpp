@@ -7,7 +7,7 @@
 namespace avt_341 {
 namespace planning{
 
-Plotter::Plotter() {
+Plotter::Plotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer) {
 	nx_ = 256;
 	ny_ = 256;
 	pixdim_ = 1.0f;
@@ -16,6 +16,7 @@ Plotter::Plotter() {
 	y_lo_ = -128.0f;
 	y_hi_ = 128.0f;
 	map_set_ = false;
+  visualizer_ = visualizer;
 }
 
 void Plotter::AddMap(avt_341::msg::OccupancyGrid grid){
@@ -25,7 +26,6 @@ void Plotter::AddMap(avt_341::msg::OccupancyGrid grid){
 	if (grid.info.width!=nx_ || grid.info.height!=ny_){
 		nx_ = grid.info.width;
 		ny_ = grid.info.height;
-		disp_.resize(nx_,ny_);
 	}
 	pixdim_ = grid.info.resolution;
 	x_hi_ = x_lo_ + nx_*pixdim_;
@@ -64,10 +64,12 @@ void Plotter::Display(){
 	Display(false,"",nx_,ny_);
 }
 
-void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
+void Plotter::Display(bool save, const std::string & ofname, int nx, int ny) {
 	if (!map_set_)return;
-	cimg_library::CImg<float> image;
-	image.assign(nx_, ny_, 1, 3, 0.0f);
+
+  if(!visualizer_->initialize_display(nx_, ny_)){
+    return;
+  }
 
 	avt_341::utils::vec3 white(255.0f, 255.0f, 255.0f);
 	avt_341::utils::vec3 red(255.0f, 0.0f, 0.0f);
@@ -87,7 +89,7 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 			if (idx >= 0 && idx < (int)grid_.info.width && idy >= 0 && idy <= (int)grid_.info.height) {
 				int n = idx * grid_.info.height + idy;
 				if (grid_.data[n] > 0) {
-					image.draw_point(i,j, (float *)&red);
+          visualizer_->draw_point(i,j,red);
 				}
 			}
 		}
@@ -96,10 +98,10 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 	// plot waypoints
 	for (int i = 0; i < waypoints_.size(); i++) {
 		avt_341::utils::ivec2 pix = CartesianToPixel(waypoints_[i].x, waypoints_[i].y);
-		image.draw_circle(pix.x, pix.y, 2, (float *)&white);
+    visualizer_->draw_circle(pix.x, pix.y, 2, white);
 		if (i < waypoints_.size() - 1) {
 			avt_341::utils::ivec2 pix1 = CartesianToPixel(waypoints_[i+1].x, waypoints_[i+1].y);
-			image.draw_line(pix.x, pix.y, pix1.x, pix1.y, (float *)&white);
+      visualizer_->draw_line(pix.x, pix.y, pix1.x, pix1.y, white);
 		}
 	}
 
@@ -108,7 +110,7 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 		avt_341::utils::ivec2 pix = CartesianToPixel(path_[i].x, path_[i].y);
 		if (i < path_.size() - 1) {
 			avt_341::utils::ivec2 pix1 = CartesianToPixel(path_[i+1].x, path_[i+1].y);
-			image.draw_line(pix.x, pix.y, pix1.x, pix1.y, (float *)&orange);
+      visualizer_->draw_line(pix.x, pix.y, pix1.x, pix1.y, orange);
 		}
 	}
 
@@ -128,30 +130,27 @@ void Plotter::Display(bool save, std::string ofname, int nx, int ny) {
 			if (!(std::isnan(pc0.x) || std::isnan(pc0.y) ||
 			 std::isnan(pc1.x) || std::isnan(pc1.y)  )){
 				if (curves_[i].GetRank() == 1) {
-					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&green);
-				}
+          visualizer_->draw_line(p0.x, p0.y, p1.x, p1.y, green);
+        }
 				else if (curves_[i].HitsObstacle()) {
-					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&red);
+          visualizer_->draw_line(p0.x, p0.y, p1.x, p1.y, red);
 				}
 				else if (curves_[i].IsOutOfBounds()) {
-					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&yellow);
+          visualizer_->draw_line(p0.x, p0.y, p1.x, p1.y, yellow);
 				}
 				else {
-					image.draw_line(p0.x, p0.y, p1.x, p1.y, (float *)&blue);			
+          visualizer_->draw_line(p0.x, p0.y, p1.x, p1.y, blue);
 				}
 			}
 			s0 += pixdim_;
 		}
 	}
 
-	image.mirror('y');
-
-	if (save){
-		image.resize(nx,ny);
-		image.save(ofname.c_str());
+  visualizer_->display();
+	if(save){
+    visualizer_->save(ofname, nx, ny);
 	}
 
-	disp_ = image;
 };
 
 } // namespace planning
