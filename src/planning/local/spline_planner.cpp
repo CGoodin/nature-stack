@@ -40,10 +40,7 @@ std::vector<float> Planner::CalcCoeffs(float rho_start, float theta_start, float
 }
 
 void Planner::GeneratePaths(int npaths, float s_start, float rho_start, float theta_start, float s_end, float max_steer_angle, float vehicle_width) {
-	if (s_end==0){
-		std::cerr<<"ERROR in spline planner, s_end=0"<<std::endl;
-		return;
-	}
+	if (s_end==0) return;
 	float lane_width = s_end*tan(max_steer_angle);
 	candidates_.clear();
 	rho_max_ = lane_width;

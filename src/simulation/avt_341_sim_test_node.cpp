@@ -34,7 +34,7 @@ int main(int argc, char **argv){
 	avt_341::msg::Odometry odom_msg;
 	odom_msg.header.frame_id = "odom";
 	odom_msg.header.seq = 0;
-	odom_msg.pose.pose.position.x = 0.0;
+	odom_msg.pose.pose.position.x = -55.0;
 	odom_msg.pose.pose.position.y = 0.0;
 	odom_msg.pose.pose.position.z = 1.0;
 	odom_msg.pose.pose.orientation.w = 1.0;
