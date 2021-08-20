@@ -7,7 +7,6 @@
 // ros includes
 #include "avt_341/node/ros_types.h"
 #include "avt_341/node/node_proxy.h"
-#include "sensor_msgs/point_cloud_conversion.h"
 // avt_341 includes
 #include "avt_341/perception/elevation_grid.h"
 
@@ -50,23 +49,23 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 	double dt = 1.0;
 	avt_341::msg::Odometry pose_to_use;
 	for (int i=0;i<current_pose_list.size();i++){
-		double dt_this = fabs(current_pose_list[i].header.stamp.toSec() - rcv_cloud->header.stamp.toSec());
+    double dt_this = fabs(avt_341::node::seconds_from_header(current_pose_list[i].header) - avt_341::node::seconds_from_header(rcv_cloud->header));
 		if (dt_this<dt){
 			pose_to_use = current_pose_list[i];
 			dt = dt_this;
 		}
 	}
 	if (converted && fabs(dt)<0.01 && odom_rcvd){
-		tf::Quaternion q(pose_to_use.pose.pose.orientation.x, pose_to_use.pose.pose.orientation.y, pose_to_use.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
-		tf::Matrix3x3 R(q);
-		tf::Vector3 origin(pose_to_use.pose.pose.position.x, pose_to_use.pose.pose.position.y, pose_to_use.pose.pose.position.z);
+    avt_341::msg_tf::Quaternion q(pose_to_use.pose.pose.orientation.x, pose_to_use.pose.pose.orientation.y, pose_to_use.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
+    avt_341::msg_tf::Matrix3x3 R(q);
+    avt_341::msg_tf::Vector3 origin(pose_to_use.pose.pose.position.x, pose_to_use.pose.pose.position.y, pose_to_use.pose.pose.position.z);
 		std::vector<avt_341::msg::Point32> points;
 		for (int p=0;p<point_cloud.points.size();p++){
-			tf::Vector3 v;
-			v = tf::Vector3(point_cloud.points[p].x, point_cloud.points[p].y,point_cloud.points[p].z);
+      avt_341::msg_tf::Vector3 v;
+			v = avt_341::msg_tf::Vector3(point_cloud.points[p].x, point_cloud.points[p].y,point_cloud.points[p].z);
 			double r = sqrt( pow(v.x()-origin.x(), 2)+pow(v.y()-origin.y(), 2)+pow(v.z()-origin.z(), 2));
 			if (v.x()!=0.0 && v.y()!=0.0 &&!std::isnan(v.x())){
-				tf::Vector3 vp = (R*v) + origin;
+        avt_341::msg_tf::Vector3 vp = (R*v) + origin;
 				avt_341::msg::Point32 tp;
 				tp.x = vp.x();
 				tp.y = vp.y();
@@ -143,6 +142,7 @@ int main(int argc, char *argv[]) {
 			else {
 				grd = grid.GetGrid("slope");
 			}
+      grd.header.stamp = n->get_stamp();
 			grid_pub->publish(grd);
 		}
 		n->spin_some();

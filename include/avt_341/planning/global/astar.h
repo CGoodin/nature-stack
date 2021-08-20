@@ -4,7 +4,6 @@
 #include <vector>
 #include <avt_341/visualization/base_visualizer.h>
 #include "avt_341/node/ros_types.h"
-#include "avt_341/CImg.h"
 
 namespace avt_341 {
 namespace planning{

@@ -60,6 +60,14 @@ namespace avt_341 {
             return ros::Time(sec);
         }
 
+        inline void inc_set_seq(const std_msgs::msg::Header & header){
+          // Seq removed from ROS2
+        }
+
+        inline void set_seq(const std_msgs::msg::Header & header, int seq){
+          // Seq removed from ROS2
+        }
+
         inline bool ok() {
             return ros::ok();
         }

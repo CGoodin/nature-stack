@@ -47,10 +47,10 @@ int main(int argc, char *argv[]){
 
   // Create publishers and subscribers
   auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/local_path", 10);
-  auto odometry_sub = n->create_subscription("avt_341/odometry", 10, OdometryCallback);
-  auto grid_sub = n->create_subscription("avt_341/occupancy_grid", 10, GridCallback);
-  auto path_sub = n->create_subscription("avt_341/global_path", 10, PathCallback);
-  auto wp_sub = n->create_subscription("avt_341/waypoints", 10, WaypointCallback);
+  auto odometry_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry", 10, OdometryCallback);
+  auto grid_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid", 10, GridCallback);
+  auto path_sub = n->create_subscription<avt_341::msg::Path>("avt_341/global_path", 10, PathCallback);
+  auto wp_sub = n->create_subscription<avt_341::msg::Path>("avt_341/waypoints", 10, WaypointCallback);
 
   avt_341::planning::Planner planner;
   // planner params
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]){
         }
         local_path.header.frame_id = "odom";
         local_path.header.stamp = n->get_stamp();
-        local_path.header.seq = loop_count;
+        avt_341::node::set_seq(local_path.header, loop_count);
         path_pub->publish(local_path);
       }
       else {
@@ -176,7 +176,7 @@ int main(int argc, char *argv[]){
         local_path.poses.push_back(pose);
         local_path.header.frame_id = "odom";
         local_path.header.stamp = n->get_stamp();
-        local_path.header.seq = loop_count;
+        avt_341::node::set_seq(local_path.header, loop_count);
         path_pub->publish(local_path);
       }
       odom_rcvd = false;

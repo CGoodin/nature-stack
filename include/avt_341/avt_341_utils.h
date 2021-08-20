@@ -9,6 +9,8 @@
 #define AVT_341_UTILS_H
 
 #include "avt_341/node/ros_types.h"
+#include <iomanip>
+#include <sstream>
 
 namespace avt_341 {
 namespace utils {
@@ -45,6 +47,9 @@ struct vec3{
 	vec3 operator-(const vec3& b) { return vec3(this->x - b.x, this->y - b.y, this->z - b.z); }
 	vec3 operator*(const float s) { return vec3(s*this->x, s*this->y, s*this->z); }
 	vec3 operator/(const float s) { return vec3(this->x/s, this->y/s, this->z/s); }
+  float operator[](const int idx) const {
+    return idx == 0 ? x : (idx == 1 ? y : z);
+  };
 	float x;
 	float y;
 	float z;

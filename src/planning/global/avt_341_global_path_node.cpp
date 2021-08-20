@@ -178,7 +178,7 @@ int main(int argc, char *argv[])
       }
 
       ros_path.header.stamp = n->get_stamp();
-      ros_path.header.seq = nl;
+      avt_341::node::set_seq(ros_path.header, nl);
 
       for (int i = 0; i < ros_path.poses.size(); i++){
         ros_path.poses[i].header = ros_path.header;

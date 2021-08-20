@@ -159,6 +159,7 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
 
 avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(std::string grid_type){
   avt_341::msg::OccupancyGrid grid;
+  grid.header.frame_id = "map";
   grid.info.resolution = res_;
   grid.info.width = nx_;
   grid.info.height = ny_;

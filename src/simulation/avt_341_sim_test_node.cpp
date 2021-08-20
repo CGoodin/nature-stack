@@ -33,7 +33,7 @@ int main(int argc, char **argv){
 	// create and populate the odometry message that will be published
 	avt_341::msg::Odometry odom_msg;
 	odom_msg.header.frame_id = "odom";
-	odom_msg.header.seq = 0;
+  avt_341::node::set_seq(odom_msg.header, 0);
 	odom_msg.pose.pose.position.x = -55.0;
 	odom_msg.pose.pose.position.y = 0.0;
 	odom_msg.pose.pose.position.z = 1.0;
@@ -55,7 +55,7 @@ int main(int argc, char **argv){
 	};
   avt_341::perception::PointCloudGenerator::toROSMsg(points, pc2);
   pc2.header.frame_id = "odom";
-  pc2.header.seq = 0;
+  avt_341::node::set_seq(pc2.header, 0);
 
 	//odometry published at 100 Hz, point clout at 10 Hz
 	double dt = 0.01;
@@ -73,14 +73,14 @@ int main(int argc, char **argv){
 		odom_msg.pose.pose.position.x += twist.linear.x*desired_speed*dt;
 		odom_msg.twist.twist.linear.x = desired_speed*twist.linear.x;
 		odom_pub->publish(odom_msg);
-		odom_msg.header.seq++;
+    avt_341::node::inc_set_seq(odom_msg.header);
 
 		
 		if (nloops%10==0){
 			// publish the point cloud at 10 Hz
 			pc2.header.stamp = n->get_stamp();
 			lidar_pub->publish(pc2);
-			pc2.header.seq++;
+      avt_341::node::inc_set_seq(pc2.header);
 		}
 			
 		// update and publish time if necessary
