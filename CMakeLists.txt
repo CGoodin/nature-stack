@@ -30,7 +30,6 @@ endif()
 find_package(PCL REQUIRED)
 add_definitions(${PCL_DEFINITIONS})
 
-
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -47,7 +46,7 @@ catkin_package(
 include_directories(
  include
   ${catkin_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS} 
+  ${PCL_INCLUDE_DIRS}
 )
 link_directories(
   ${PCL_LIBRARY_DIRS} 
@@ -87,6 +86,8 @@ add_executable(avt_341_local_planner_node
   src/planning/local/spline_planner.cpp
   src/planning/local/spline_plotter.cpp
   src/node/node_proxy.cpp
+  src/visualization/image_visualizer.cpp
+  src/planning/local/rviz_spline_plotter.cpp
 )
 target_link_libraries(avt_341_local_planner_node
   ${catkin_LIBRARIES}
@@ -97,6 +98,7 @@ add_executable(avt_341_global_path_node
   src/planning/global/avt_341_global_path_node.cpp 
   src/planning/global/astar.cpp
   src/node/node_proxy.cpp
+  src/visualization/image_visualizer.cpp
 )
 target_link_libraries(avt_341_global_path_node
   ${catkin_LIBRARIES}
@@ -128,6 +130,7 @@ src/perception/elevation_grid.cpp
 src/planning/local/spline_path.cpp
 src/planning/local/spline_planner.cpp
 src/planning/local/spline_plotter.cpp
+src/visualization/image_visualizer.cpp
 )
 
 add_library(avt_341 ${LIB_SOURCES})

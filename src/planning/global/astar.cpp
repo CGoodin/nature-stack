@@ -12,8 +12,9 @@
 namespace avt_341 {
 namespace planning{
 
-Astar::Astar(){
+Astar::Astar(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer){
   dfac_ = 0;
+  visualizer_ = visualizer;
 }
 
 Astar::~Astar(){
@@ -277,8 +278,7 @@ void Astar::ExtractPath(){
 }
 
 void Astar::SaveMap(std::string imname){
-	cimg_library::CImg<float> img(disp_);
-	img.save(imname.c_str());
+	visualizer_->save(imname);
 }
 
 void Astar::Display(){
@@ -286,33 +286,31 @@ void Astar::Display(){
   if (map_[0].size()==0)return;
   int nx = map_.size();
   int ny = map_[0].size();
-  cimg_library::CImg<float> img;
-	img.assign(nx,ny,1,3,0.0f);
-  float yellow[3], green[3], red[3];
-	yellow[0] = 255.0f; yellow[1]=255.0f; yellow[2]=0.0f;
-	green[0] = 0.0f; green[1]=255.0f; green[2]=0.0f;
-	red[0]=255.0f; red[1]=0.0f; red[2]=0.0f;
+	if(!visualizer_->initialize_display(nx, ny)){
+	  return;
+	}
+  avt_341::utils::vec3 red(255.0f, 0.0f, 0.0f);
+  avt_341::utils::vec3 green(0.0f, 255.0f, 0.0f);
+  avt_341::utils::vec3 yellow(255.0f, 255.0f, 0.0f);
   for (int i=0;i<nx;i++){
     for (int j=0;j<ny;j++){
-      if (map_[i][j]>0) img.draw_point(i,j,red);
+      if (map_[i][j]>0) visualizer_->draw_point(i,j,red);
     }
   }
 
 	for (int i=0;i<path_world_.size();i++){
 		int ix = (int)floor((path_world_[i][0] - llx_) / map_res_);
 		int iy = (int)floor((path_world_[i][1] - lly_) / map_res_);
-		img.draw_point(ix,iy,(float *)&yellow);
+    visualizer_->draw_point(ix,iy,yellow);
 	}
 
   std::vector<float> goal = GetCurrentGoal(); 
 
 	int gx = (int)floor((goal[0] - llx_) / map_res_);
 	int gy = (int)floor((goal[1] - lly_) / map_res_);
-	img.draw_circle(gx,gy,2,(float *)&green);
+  visualizer_->draw_circle(gx,gy,2,green);
 
-	img.mirror('y');
-
-  disp_ = img;
+  visualizer_->display();
 }
 
 std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position) {

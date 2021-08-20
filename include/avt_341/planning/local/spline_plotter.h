@@ -11,11 +11,13 @@
 #ifndef SPLINE_PLOTTER_H
 #define SPLINE_PLOTTER_H
 
-#include "avt_341/CImg.h"
 #include "avt_341/avt_341_utils.h"
 #include "avt_341/planning/local/candidate.h"
+#include "avt_341/visualization/base_visualizer.h"
+
 // ros includes
 #include "avt_341/node/ros_types.h"
+
 
 namespace avt_341 {
 namespace planning{
@@ -25,7 +27,7 @@ public:
 	/**
 	 * Create a plotter object. 
 	 */
-	Plotter();
+	Plotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer);
 
 	/**
 	 * Set the centerline to be plotted.
@@ -64,19 +66,19 @@ public:
 	 * \param nx The number of horizontal pixels to save
 	 * \param ny The number of vertical pixels to save
 	 */
-	void Display(bool save, std::string ofname, int nx, int ny);
+	virtual void Display(bool save, const std::string & ofname, int nx, int ny);
 
 	utils::ivec2 GetDimensions(){
 		utils::ivec2 dim(nx_, ny_);
 		return dim;
 	}
 
-private:
+protected:
 	std::vector<utils::vec2> path_;
 	std::vector<utils::vec2> waypoints_;
 	std::vector<Candidate> curves_;
-	cimg_library::CImgDisplay disp_;
-    avt_341::msg::OccupancyGrid grid_;
+  std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer_;
+  avt_341::msg::OccupancyGrid grid_;
 
 	float x_lo_;
 	float x_hi_;
