@@ -64,13 +64,14 @@ int main(int argc, char **argv){
 	// variables for tracking time if "use_sim_time" is on
 	double elapsed_time = 0.0;
 	int nloops = 0;
-
+	float desired_speed = 5.0f;
 	// ros simulation loop
 	while (avt_341::node::ok()) {
 
 		// publish the odometry message
 		odom_msg.header.stamp = n->get_stamp();
-		odom_msg.pose.pose.position.x += twist.linear.x*5.0f*dt;
+		odom_msg.pose.pose.position.x += twist.linear.x*desired_speed*dt;
+		odom_msg.twist.twist.linear.x = desired_speed*twist.linear.x;
 		odom_pub->publish(odom_msg);
 		odom_msg.header.seq++;
 

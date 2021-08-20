@@ -186,7 +186,7 @@ void Path::FixBeginning(float x, float y){
 		Init(points_);
 		utils::vec2 sr0 = ToSRho(x,y);
 		s = sr0.x;
-		std::cout<<"New point = "<<s<<" "<<new_point.x<<" "<<new_point.y<<std::endl;
+		//std::cout<<"New point = "<<s<<" "<<new_point.x<<" "<<new_point.y<<std::endl;
 	}
 }
 
