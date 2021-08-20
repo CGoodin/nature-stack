@@ -33,7 +33,7 @@
     <param name="grid_width" value="200.0" />
     <param name="grid_llx" value="-100.0" />
     <param name="grid_lly" value="-100.0" />
-    <param name="grid_res" value="1.0" />
+    <param name="grid_res" value="0.5" />
     <param name="overhead_clearance" value="7.0" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="true" />
