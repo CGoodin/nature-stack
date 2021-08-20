@@ -12,6 +12,9 @@ $git clone https://github.com/CGoodin/avt_341.git
 From the top level catkin_ws directory, type
 ```bash
 $catkin_make install
+
+# Or to build only this package: 
+$catkin_make --only-pkg-with-deps avt_341
 ```
 
 To test the installation, type

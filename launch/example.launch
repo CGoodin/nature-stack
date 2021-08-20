@@ -73,6 +73,7 @@
   <!-- Use this node to test the build if no simulator is being used. -->
   <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
 
+  <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->
   <group if="$(eval arg('display') == 'rviz' and arg('auto_launch_rviz'))">
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find avt_341)/rviz/avt_341.rviz" />
   </group>

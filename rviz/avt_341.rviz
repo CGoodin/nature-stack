@@ -75,6 +75,29 @@ Visualization Manager:
       Topic: /avt_341/global_path
       Unreliable: false
       Value: true
+    - Alpha: 0
+      Buffer Length: 1
+      Class: rviz/Path
+      Color: 255; 255; 255
+      Enabled: true
+      Head Diameter: 0
+      Head Length: 0.5
+      Length: 0.30000001192092896
+      Line Style: Billboards
+      Line Width: 0.0010000000474974513
+      Name: Waypoints
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Pose Color: 255; 255; 255
+      Pose Style: Arrows
+      Radius: 10
+      Shaft Diameter: 2
+      Shaft Length: 2
+      Topic: /avt_341/waypoints
+      Unreliable: false
+      Value: true
     - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: map
@@ -207,21 +230,26 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: 0
-      Class: rviz/TopDownOrtho
+      Class: rviz/Orbit
+      Distance: 142.86398315429688
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
+      Focal Point:
+        X: 21.56048583984375
+        Y: 0.4441010057926178
+        Z: 1.82915198802948
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 17.119516372680664
+      Pitch: 1.2547966241836548
       Target Frame: <Fixed Frame>
-      Value: TopDownOrtho (rviz)
-      X: 30.179834365844727
-      Y: 3.8621575832366943
+      Value: Orbit (rviz)
+      Yaw: 4.763188362121582
     Saved: ~
 Window Geometry:
   Displays:
