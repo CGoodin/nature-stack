@@ -1,6 +1,8 @@
 <launch>
 
   <param name="/use_sim_time" value="false"/> 
+  <arg name="display" default="x11"/>
+  <arg name="auto_launch_rviz" default="true"/>
 
   <rosparam file="$(find avt_341)/config/waypoints.yaml" />
 
@@ -31,7 +33,7 @@
     <param name="grid_width" value="200.0" />
     <param name="grid_llx" value="-100.0" />
     <param name="grid_lly" value="-100.0" />
-    <param name="grid_res" value="1.0" />
+    <param name="grid_res" value="0.5" />
     <param name="overhead_clearance" value="7.0" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="true" />
@@ -46,8 +48,9 @@
 
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
     <param name="goal_dist" value="5.0" /> 
-    <param name="global_lookahead" value="75.0" /> 
+    <param name="global_lookahead" value="75.0" />
     <param name="shutdown_behavior" value="2" />
+    <param name="display" value="$(arg display)" />
   </node>
 
 
@@ -65,12 +68,17 @@
     <param name="w_r" value="0.2" /> 
     <param name="rate" value="50.0" />
     <param name="trim_path" value="true" />
-    <param name="display" value="true" />
+    <param name="display" value="$(arg display)" />
   </node>
 
   <!-- Use this node to test the build if no simulator is being used. -->
   <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
-  
+
+  <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->
+  <group if="$(eval arg('display') == 'rviz' and arg('auto_launch_rviz'))">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find avt_341)/rviz/avt_341.rviz" />
+  </group>
+
   <!-- Uncomment this section to use the MAVS simlator.
        Must have MAVS built and installed and the 
        mavs_avt_example catkin package built. -->

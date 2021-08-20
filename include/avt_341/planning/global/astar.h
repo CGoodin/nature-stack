@@ -2,6 +2,7 @@
 #define ASTAR_H
 
 #include <vector>
+#include <avt_341/visualization/base_visualizer.h>
 #include "avt_341/node/ros_types.h"
 #include "avt_341/CImg.h"
 
@@ -15,7 +16,7 @@ namespace planning{
 class Astar {
  public:
   /// Constructor
-  Astar();
+  Astar(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer);
 
   /// Destructor
   ~Astar();
@@ -211,7 +212,7 @@ class Astar {
   float llx_,lly_;
   float map_res_;
 
-  cimg_library::CImgDisplay disp_;
+  std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer_;
 };
 
 } // namespace planning
