@@ -2,8 +2,7 @@
 #define AVT_341_VISUALIZATION_FACTORY_H
 
 #include "avt_341/visualization/base_visualizer.h"
-#include "avt_341/visualization/opencv_visualizer.h"
-#include "avt_341/visualization/x11_visualizer.h"
+#include "avt_341/visualization/image_visualizer.h"
 #include "avt_341/planning/local/rviz_spline_plotter.h"
 
 namespace avt_341{
@@ -12,10 +11,7 @@ namespace avt_341{
     const std::string default_display = "x11";    // x11, opencv, rviz, none
 
     inline std::shared_ptr<avt_341::visualization::VisualizerBase> create_visualizer(const std::string & display_type){
-      if(display_type == "x11"){
-        return std::make_shared<avt_341::visualization::X11Visualizer>();
-      }
-      return display_type == "opencv" ? std::make_shared<avt_341::visualization::OpenCVVisualizer>()
+      return display_type == "image" ? std::make_shared<avt_341::visualization::ImageVisualizer>()
                                       : std::make_shared<avt_341::visualization::VisualizerBase>();
     }
 
