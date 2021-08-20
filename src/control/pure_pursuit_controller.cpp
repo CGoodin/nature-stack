@@ -20,15 +20,17 @@ PurePursuitController::PurePursuitController() {
 	veh_x_ = 0.0;
 	veh_y_ = 0.0;
 	veh_speed_ = 0.0;
+	vx_ = 0.0f;
+	vy_ = 0.0f;
 }
 
 void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
 // Set the current state of the vehicle, which should be the first pose in the path
 	veh_x_ = state.pose.pose.position.x;
 	veh_y_ = state.pose.pose.position.y;
-	float vx = state.twist.twist.linear.x;
-	float vy = state.twist.twist.linear.y;
-	veh_speed_ = sqrt(vx*vx + vy*vy);
+	vx_ = state.twist.twist.linear.x;
+	vy_ = state.twist.twist.linear.y;
+	veh_speed_ = sqrt(vx_*vx_ + vy_*vy_);
 	veh_heading_ = utils::GetHeadingFromOrientation(state.pose.pose.orientation);
 }
 
@@ -114,7 +116,9 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 	//addjust the target speed so you back off during hard turns
 	float adj_speed = target_speed * exp(-0.69*pow(fabs(dc.angular.z), 4.0f));
 	speed_controller_.SetSetpoint(adj_speed);
-	float throttle = speed_controller_.GetControlVariable(veh_speed_, 0.1f);
+	float vdot = vx_*curr_dir.x + vy_*curr_dir.y;
+	//float throttle = speed_controller_.GetControlVariable(veh_speed_, 0.1f);
+	float throttle = speed_controller_.GetControlVariable(vdot, 0.1f);
 	if (throttle < 0.0f) { //braking
 		dc.linear.x = 0.0f;
 		dc.linear.y = std::max(-1.0f, throttle);

@@ -84,11 +84,13 @@ int main(int argc, char *argv[]){
   while (avt_341::node::ok()){
     double start_secs = n->get_now_seconds();
     if (global_path.poses.size() > 0 && odom_rcvd && grid.data.size() > 0){
+
       std::vector<avt_341::utils::vec2> path_points;
       for (int i = 0; i < global_path.poses.size(); i++){
         avt_341::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
         path_points.push_back(point);
       }
+
       avt_341::planning::Path path;
       if (trim_path ){
         avt_341::utils::vec2 current_pos(odom.pose.pose.position.x, odom.pose.pose.position.y);
@@ -97,23 +99,22 @@ int main(int argc, char *argv[]){
       else{
         path.Init(path_points);
       }
-      //path.FixBeginning(odom.pose.pose.position.x, odom.pose.pose.position.y);
+
+      path.FixBeginning(odom.pose.pose.position.x, odom.pose.pose.position.y);
 
       std::vector<avt_341::utils::vec2> culled_points = path.GetPoints();
       float s_max = path.GetTotalLength();
-
       avt_341::utils::vec2 srho = path.ToSRho(odom.pose.pose.position.x, odom.pose.pose.position.y);
       float s = srho.x;
       float rho_start = srho.y;
       avt_341::utils::vec2 pconv = path.ToCartesian(s,rho_start);
-
       float s_lookahead = std::min(path_look_ahead, s_max - s);
       float theta = avt_341::utils::GetHeadingFromOrientation(odom.pose.pose.orientation);
       avt_341::planning::CurveInfo ci = path.GetCurvatureAndAngle(s);
 
       planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
       planner.SetCenterline(path);
-
+  
       // calculate bounds around the vehicle to limit grid dilation to space 10m behind and path_look_ahead distance in front of the vehicle
       float veh_heading_x = cos(theta);
       float veh_heading_y = sin(theta);
@@ -133,7 +134,6 @@ int main(int argc, char *argv[]){
       float lly = std::min({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
       float urx = std::max({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x});
       float ury = std::max({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
-
 
       if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor, llx, lly, urx, ury);
       // Note: if grid size gets large, DilateGrid can take a significant amount of time
@@ -189,14 +189,14 @@ int main(int argc, char *argv[]){
         //std::cout << "Local planner did not run because vehicle odometry not recieved." << std::endl;
       }
       else if (grid.data.size() <= 0){
-        std::cout << "Local planner did not run because occupancy grid not recieved." << std::endl;
+        //std::cout << "Local planner did not run because occupancy grid not recieved." << std::endl;
       }
     }
     new_grid_rcvd = false;
     loop_count++;
     double end_secs = n->get_now_seconds();
     if ((end_secs - start_secs) > 2.5 * dt){
-      std::cout << "WARNING: TANG PLANNER TOOK " << (end_secs - start_secs) << " TO COMPLETE. REQUESTED UPDATE SPEED IS " << dt << std::endl;
+      //std::cout << "WARNING: TANG PLANNER TOOK " << (end_secs - start_secs) << " TO COMPLETE. REQUESTED UPDATE SPEED IS " << dt << std::endl;
     }
 
     n->spin_some();
