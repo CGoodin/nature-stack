@@ -55,22 +55,28 @@ int main(int argc, char *argv[])
 
   // ctg, 8-19-2021
   // the state values can be
+  // -1 - startup (stopped and not shut down)
   // 0 - active 
   // 1 - bring to a smooth stop but do not shut down
   // 2 - bring to a smooth stop and shut down
   // 3 - bring to an immediate stop (hard braking) and shut down
   auto state_pub = n->create_publisher<avt_341::msg::Int32>("avt_341/state", 10);
+  avt_341::msg::Int32 state;
+  state.data = -1; // start up state
 
   float goal_dist, global_lookahead;
   std::vector<double> waypoints_x_list, waypoints_y_list;
   std::string display_type;
+
+  std::vector<float> goal;
+  goal.resize(2, 0.0f);
 
   n->get_parameter("~goal_dist", goal_dist, 3.0f);
   n->get_parameter("~display", display_type, avt_341::visualization::default_display);
   n->get_parameter("~global_lookahead", global_lookahead, 50.0f);
   n->get_parameter("/waypoints_x", waypoints_x_list, std::vector<double>(0));
   n->get_parameter("/waypoints_y", waypoints_y_list, std::vector<double>(0));
-
+  
   int shutdown_behavior = 1;
   n->get_parameter("~shutdown_behavior", shutdown_behavior, 1);
   if (shutdown_behavior>3 || shutdown_behavior<1)shutdown_behavior = 1;
@@ -81,12 +87,9 @@ int main(int argc, char *argv[])
   }
   if (waypoints_x_list.size() == 0 || waypoints_y_list.size() == 0)
   {
-    std::cerr << "ERROR: NO WAYPOINTS WERE LISTED IN /waypoints_x OR /waypoints_y, EXITING." << std::endl;
-    return 2;
+    std::cerr << "WARNING: NO WAYPOINTS WERE LISTED IN /waypoints_x OR /waypoints_y." << std::endl;
+    //return 2;
   }
-
-  auto visualizer = avt_341::visualization::create_visualizer(display_type);
-  avt_341::planning::Astar astar_planner(visualizer);
 
   int num_waypoints = std::min(waypoints_x_list.size(), waypoints_y_list.size());
 
@@ -107,14 +110,14 @@ int main(int argc, char *argv[])
       pose.pose.orientation.z = 0.0f;
       current_waypoints.poses.push_back(pose);
     }
+      // Initialize goal to first waypoint
+    goal[0] = waypoints_x_list[0];
+    goal[1] = waypoints_y_list[0];
+    state.data = 0; // go active
   }
 
-  // Initialize goal to first waypoint
-  std::vector<float> goal;
-  goal.resize(2, 0.0f);
-  goal[0] = waypoints_x_list[0];
-  goal[1] = waypoints_y_list[0];
-
+  auto visualizer = avt_341::visualization::create_visualizer(display_type);
+  avt_341::planning::Astar astar_planner(visualizer);
 
   avt_341::node::Rate r(10.0f); // Hz
   //bool goal_reached = false;
@@ -131,9 +134,10 @@ int main(int argc, char *argv[])
       goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
       std::cout << "New waypoints! Updated goal " << goal[0] << ", " << goal[1] << std::endl;
       waypoints_rcvd = false;
+      state.data = 0;  // go active
     }
 
-    if (odom_rcvd){
+    if (odom_rcvd && state.data != -1){ // data received and not in startup mode
       std::vector<float> pos;
       pos.push_back(odom.pose.pose.position.x);
       pos.push_back(odom.pose.pose.position.y);
@@ -191,39 +195,24 @@ int main(int argc, char *argv[])
       if (nl % 100 == 0){ //update every 2 seconds
         std::cout << "Distance to goal " << goal[0] << ", " << goal[1] << " = " << d << std::endl;
       }
-      //if (d < goal_dist){
-      //if (d < global_lookahead){
-        //if (current_waypoint == waypoints_x_list.size() - 1){
-        if (current_waypoint == current_waypoints.poses.size() - 1) {
-          if ( d<goal_dist){
-            //goal_reached = true;
-            avt_341::msg::Int32 state;
-            state.data = shutdown_behavior; // smooth stop but do not shut down
-            state_pub->publish(state);
-          }
-        }
-        else{
-          if (d<goal_dist){
-            current_waypoint++;
-            goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
-            goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
-            //std::cout << "Updated goal " << goal[0] << ", " << goal[1] << std::endl;
-          }
-          avt_341::msg::Int32 state;
-          state.data = 0;
+      if (current_waypoint == current_waypoints.poses.size() - 1){  // last waypoint
+        if (d<goal_dist){   // reached the goal
+          state.data = shutdown_behavior; // request shutdown behavior
           state_pub->publish(state);
         }
-      //}
-      //else{
-      //  avt_341::msg::Int32 state;
-      //  state.data = 0;
-      //  state_pub->publish(state);
-      //}
-
+      }
+      else{     // intermediate waypoint
+        if (d<goal_dist){   // reached the waypoint
+          current_waypoint++;
+          goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
+          goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
+        }
+        state.data = 0;         // request active behavior
+        state_pub->publish(state);
+      }
     } // if odom_recvd
-    else{
-      avt_341::msg::Int32 state;
-      state.data = 1;
+    else if(state.data != -1){  // not in startup
+      state.data = 1;       // request smooth stop but don't shutdown (waiting for odom data)
       state_pub->publish(state);
     }
 
