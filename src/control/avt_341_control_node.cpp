@@ -18,7 +18,7 @@
 
 avt_341::msg::Path control_msg;
 avt_341::msg::Odometry state;
-int current_run_state = 0;
+int current_run_state = -1;   // startup state
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
@@ -66,20 +66,20 @@ int main(int argc, char *argv[]){
     avt_341::msg::Twist dc;
 
     controller.SetVehicleState(state);
-    if (current_run_state==0){
+    if (current_run_state==0){    // active running state
       controller.SetDesiredSpeed(vehicle_speed);
       //controller.SetVehicleState(state);
       dc = controller.GetDcFromTraj(control_msg);
       dc_pub->publish(dc);
     }
-    else if (current_run_state==1){
+    else if (current_run_state==-1 || current_run_state==1){    // startup or smooth stop
       // bring to a smooth stop and wait
       controller.SetDesiredSpeed(0.0f);
       //controller.SetVehicleState(state);
       dc = controller.GetDcFromTraj(control_msg);
       dc_pub->publish(dc);
     }
-    else if (current_run_state==2){
+    else if (current_run_state==2){ 
       // bring to a smooth stop and shut down
       controller.SetDesiredSpeed(0.0f);
       float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
