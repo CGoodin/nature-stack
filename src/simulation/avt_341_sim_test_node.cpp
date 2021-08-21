@@ -73,14 +73,14 @@ int main(int argc, char **argv){
 		odom_msg.pose.pose.position.x += twist.linear.x*desired_speed*dt;
 		odom_msg.twist.twist.linear.x = desired_speed*twist.linear.x;
 		odom_pub->publish(odom_msg);
-    avt_341::node::inc_set_seq(odom_msg.header);
+    avt_341::node::inc_seq(odom_msg.header);
 
 		
 		if (nloops%10==0){
 			// publish the point cloud at 10 Hz
 			pc2.header.stamp = n->get_stamp();
 			lidar_pub->publish(pc2);
-      avt_341::node::inc_set_seq(pc2.header);
+      avt_341::node::inc_seq(pc2.header);
 		}
 			
 		// update and publish time if necessary
