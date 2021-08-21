@@ -49,7 +49,7 @@ namespace avt_341 {
       return rclcpp::Time(header.stamp).seconds();
     }
 
-    inline void inc_set_seq(const std_msgs::msg::Header & header){
+    inline void inc_seq(const std_msgs::msg::Header & header){
       // Seq removed from ROS2
     }
 
