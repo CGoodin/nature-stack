@@ -69,7 +69,7 @@ class ElevationGrid{
         dilate_ = use_dil;
     }
 
-    avt_341::msg::OccupancyGrid GetGrid(std::string grid_type);
+    avt_341::msg::OccupancyGrid GetGrid(std::string grid_type, bool row_major=false);
 
     void SetCorner(float llx, float lly){
         llx_ = llx;
@@ -77,6 +77,7 @@ class ElevationGrid{
     }
 
   private:
+    void GetGridCell(const std::string & grid_type, avt_341::msg::OccupancyGrid & grid, const int & i, const int & j, int & c);
     void ResizeGrid();
     void FillImage();
     std::vector< std::vector<Cell> > cells_;
