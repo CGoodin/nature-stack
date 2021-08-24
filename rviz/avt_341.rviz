@@ -5,7 +5,9 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /OccupancyGrid1
         - /CandidatePaths1/Namespaces1
+        - /SelectedLocalPath1
       Splitter Ratio: 0.5
     Tree Height: 751
   - Class: rviz/Selection
@@ -104,7 +106,7 @@ Visualization Manager:
       Draw Behind: true
       Enabled: true
       Name: OccupancyGrid
-      Topic: /avt_341/occupancy_grid
+      Topic: /avt_341/occupancy_grid_vis
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -121,7 +123,7 @@ Visualization Manager:
       Marker Topic: /avt_341/candidate_paths_blocked
       Name: BlockedCandidatePaths
       Namespaces:
-        {}
+        "": true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -138,7 +140,7 @@ Visualization Manager:
       Offset:
         X: 0
         Y: 0
-        Z: 0
+        Z: 0.10000000149011612
       Pose Color: 255; 85; 255
       Pose Style: None
       Radius: 0.029999999329447746
@@ -162,14 +164,14 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
+      Max Intensity: 7
       Min Color: 0; 0; 0
       Min Intensity: 0
       Name: Lidar
       Position Transformer: XYZ
       Queue Size: 10
       Selectable: true
-      Size (Pixels): 10
+      Size (Pixels): 6
       Size (m): 1
       Style: Points
       Topic: /avt_341/points
@@ -230,26 +232,21 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/Orbit
-      Distance: 142.86398315429688
+      Angle: 0
+      Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
-      Focal Point:
-        X: 21.56048583984375
-        Y: 0.4441010057926178
-        Z: 1.82915198802948
-      Focal Shape Fixed Size: true
-      Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.2547966241836548
+      Scale: 15.06517219543457
       Target Frame: <Fixed Frame>
-      Value: Orbit (rviz)
-      Yaw: 4.763188362121582
+      Value: TopDownOrtho (rviz)
+      X: 6.361544132232666
+      Y: -2.887704849243164
     Saved: ~
 Window Geometry:
   Displays:

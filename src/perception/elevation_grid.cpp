@@ -157,7 +157,39 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
   return surface_points;
 } // method AddPoints
 
-avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(std::string grid_type){
+void ElevationGrid::GetGridCell(const std::string & grid_type, avt_341::msg::OccupancyGrid & grid, const int & i, const int & j, int & c){
+  if (grid_type == "elevation"){
+    if (cells_[i][j].filled){
+      /*float val = cells_[i][j].high*30.0;
+      if (val<0.0f)val = 0.0f;
+      if (val>100.0f)val =100.0f;
+      grid.data[c] = (uint8_t)(val);*/
+      if (cells_[i][j].high>thresh_){
+        grid.data[c] = 100;
+      }
+    }
+  }
+  else {
+    if (cells_[i][j].filled){
+      float s = sqrt(cells_[i][j].slope_x*cells_[i][j].slope_x + cells_[i][j].slope_y*cells_[i][j].slope_y);
+      uint8_t val = (uint8_t) (50.0f*s);
+      if (val<0) val = 0;
+      if (val>100) val = 100;
+      if (s>thresh_){
+        grid.data[c] = val;
+      }
+      else{
+        grid.data[c] = 0;
+      }
+    }
+    else{
+      grid.data[c] = 0;
+    }
+  }
+  c++;
+}
+
+avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(std::string grid_type, bool row_major){
   avt_341::msg::OccupancyGrid grid;
   grid.header.frame_id = "map";
   grid.info.resolution = res_;
@@ -171,37 +203,17 @@ avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(std::string grid_type){
   grid.info.origin.orientation.z = 0.0;
   grid.data.resize(nx_*ny_);
   int c = 0;
-  for (int i=0;i<nx_;i++){
+  if(row_major){
     for (int j=0;j<ny_;j++){
-      if (grid_type == "elevation"){
-        if (cells_[i][j].filled){
-          /*float val = cells_[i][j].high*30.0;
-          if (val<0.0f)val = 0.0f;
-          if (val>100.0f)val =100.0f;
-          grid.data[c] = (uint8_t)(val);*/
-          if (cells_[i][j].high>thresh_){
-            grid.data[c] = 100;
-          }
-        }
+      for (int i=0;i<nx_;i++){
+        GetGridCell(grid_type, grid, i, j, c);
       }
-      else {
-        if (cells_[i][j].filled){
-          float s = sqrt(cells_[i][j].slope_x*cells_[i][j].slope_x + cells_[i][j].slope_y*cells_[i][j].slope_y);
-          uint8_t val = (uint8_t) (50.0f*s);
-          if (val<0) val = 0;
-          if (val>100) val = 100;
-          if (s>thresh_){
-            grid.data[c] = val;
-          }
-          else{
-            grid.data[c] = 0;
-          }
-        }
-        else{
-          grid.data[c] = 0;
-        }
+    }
+  }else{
+    for (int i=0;i<nx_;i++){
+      for (int j=0;j<ny_;j++){
+        GetGridCell(grid_type, grid, i, j, c);
       }
-      c++;
     }
   }
   return grid;

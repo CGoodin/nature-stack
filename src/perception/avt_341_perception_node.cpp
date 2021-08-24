@@ -115,6 +115,7 @@ int main(int argc, char *argv[]) {
 
     float grid_res, grid_llx, grid_lly, warmup_time, thresh;
     bool use_elevation;
+    std::string display;
 
     n->get_parameter("~grid_res", grid_res, 1.0f);
     n->get_parameter("~grid_llx", grid_llx, -100.0f);
@@ -125,6 +126,12 @@ int main(int argc, char *argv[]) {
     n->get_parameter("~use_elevation", use_elevation, false);
     n->get_parameter("~use_registered", use_registered, true);
     n->get_parameter("~overhead_clearance", overhead_clearance, 100.0f);
+    n->get_parameter("~display", display, std::string("image"));
+    bool use_rviz = display == "rviz";
+    std::shared_ptr<avt_341::node::Publisher<avt_341::msg::OccupancyGrid>> grid_pub_vis;
+    if(use_rviz){
+      grid_pub_vis = n->create_publisher<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid_vis", 1);
+    }
 
 	grid.SetSlopeThreshold(thresh);
 	grid.SetRes(grid_res);
@@ -132,6 +139,7 @@ int main(int argc, char *argv[]) {
 	
 	double start_time = n->get_now_seconds();
 	avt_341::node::Rate rate(100.0);
+  int nloops = 0;
 	while (avt_341::node::ok()){
 		double elapsed_time = (n->get_now_seconds()-start_time);
 		if (grid_created && elapsed_time > warmup_time) {
@@ -144,6 +152,14 @@ int main(int argc, char *argv[]) {
 			}
       grd.header.stamp = n->get_stamp();
 			grid_pub->publish(grd);
+
+			if(use_rviz && nloops % 10 == 0){
+        avt_341::msg::OccupancyGrid grd_vis = grid.GetGrid(use_elevation ? "elevation" : "slope", true);
+        grd_vis.header.stamp = n->get_stamp();
+        grid_pub_vis->publish(grd_vis);
+			}
+      nloops++;
+
 		}
 		n->spin_some();
 		rate.sleep();
