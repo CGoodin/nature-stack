@@ -32,6 +32,6 @@ ros2 launch avt_341 example.launch.py
 ```
 RVIZ Visualization:
 ```bash
-ros2 run rviz2 rviz2 -d "<path_to_avt_341_repo>\rviz\avt_341.rviz"
-# Example: ros2 run rviz2 rviz2 -d "C:\Users\Stefan\source\ros_ws\src\avt_341\rviz\avt_341.rviz" 
+ros2 run rviz2 rviz2 -d "<path_to_avt_341_repo>\rviz\avt_341_ros2.rviz"
+# Example: ros2 run rviz2 rviz2 -d "C:\Users\Stefan\source\ros_ws\src\avt_341\rviz\avt_341_ros2.rviz" 
 ```

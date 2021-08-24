@@ -60,7 +60,8 @@ def generate_launch_description():
                 'grid_res': 0.5,
                 'overhead_clearance': 7.0,
                 'warmup_time': 5.0,
-                'use_registered': True
+                'use_registered': True,
+                'display': display_type
             }],
         ),
         Node(
