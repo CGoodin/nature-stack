@@ -17,6 +17,7 @@ bool odom_rcvd = false;
 std::vector<avt_341::msg::Odometry> current_pose_list;
 bool use_registered = true;
 float overhead_clearance = 100.0f;
+double time_register_window = 0.02;
 
 void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 	// assumes point cloud is already registered to odom frame
@@ -55,7 +56,7 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 			dt = dt_this;
 		}
 	}
-	if (converted && fabs(dt)<0.01 && odom_rcvd){
+	if (converted && fabs(dt)<time_register_window && odom_rcvd){
     avt_341::msg_tf::Quaternion q(pose_to_use.pose.pose.orientation.x, pose_to_use.pose.pose.orientation.y, pose_to_use.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
     avt_341::msg_tf::Matrix3x3 R(q);
     avt_341::msg_tf::Vector3 origin(pose_to_use.pose.pose.position.x, pose_to_use.pose.pose.position.y, pose_to_use.pose.pose.position.z);
@@ -120,7 +121,7 @@ int main(int argc, char *argv[]) {
     n->get_parameter("~grid_res", grid_res, 1.0f);
     n->get_parameter("~grid_llx", grid_llx, -100.0f);
     n->get_parameter("~grid_lly", grid_lly, -100.0f);
-
+	n->get_parameter("~time_register_window", time_register_window, 0.02);
     n->get_parameter("~warmup_time", warmup_time, 1.0f);
     n->get_parameter("~slope_threshold", thresh, 1.0f);
     n->get_parameter("~use_elevation", use_elevation, false);

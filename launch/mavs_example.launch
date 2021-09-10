@@ -31,6 +31,7 @@
     <param name="slope_threshold" value="2.5" />
     <param name="grid_height" value="120.0" />
     <param name="grid_width" value="120.0" />
+    <param name="time_register_window" value="0.015" />
     <param name="grid_llx" value="-60.0" />
     <param name="grid_lly" value="-60.0" />
     <param name="grid_res" value="0.25" />
