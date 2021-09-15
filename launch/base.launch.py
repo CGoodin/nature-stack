@@ -16,33 +16,6 @@ def generate_launch_description():
     waypoints_file = LaunchConfiguration('waypoints_file')
     robot_description = LaunchConfiguration('robot_description')
 
-    # Elevation Grid
-    slope_threshold = LaunchConfiguration('slope_threshold')
-    grid_height = LaunchConfiguration('grid_height')
-    grid_width = LaunchConfiguration('grid_width')
-    grid_llx = LaunchConfiguration('grid_llx')
-    grid_lly = LaunchConfiguration('grid_lly')
-    grid_res = LaunchConfiguration('grid_res')
-
-    # Global Planner
-    global_lookahead = LaunchConfiguration('global_lookahead')
-    goal_dist = LaunchConfiguration('goal_dist')
-
-    # Local Planner
-    path_look_ahead = LaunchConfiguration('path_look_ahead')
-    vehicle_width = LaunchConfiguration('vehicle_width')
-    max_steer_angle = LaunchConfiguration('max_steer_angle')
-    w_c = LaunchConfiguration('w_c')
-    w_s = LaunchConfiguration('w_s')
-    w_d = LaunchConfiguration('w_d')
-    w_r = LaunchConfiguration('w_r')
-
-    # Pure Pursuit Control
-    vehicle_wheelbase = LaunchConfiguration('vehicle_wheelbase')
-    vehicle_max_steer_angle_degrees = LaunchConfiguration('vehicle_max_steer_angle_degrees')
-    steering_coefficient = LaunchConfiguration('steering_coefficient')
-    vehicle_speed = LaunchConfiguration('vehicle_speed')
-
     rviz_config_path = os.path.join(get_package_share_directory('avt_341'), 'rviz', 'avt_341_ros2.rviz')
 
     launch_description = LaunchDescription([
@@ -61,7 +34,6 @@ def generate_launch_description():
         DeclareLaunchArgument('grid_res', default_value='0.5', description="Elevation grid - Grid resolution in meters."),
 
         # Global Planner
-        DeclareLaunchArgument('global_lookahead', default_value='75.0', description="Removed? To check with Chris."),
         DeclareLaunchArgument('goal_dist', default_value='5.0', description="Global planner - Lookahead threshold within which next waypoint selected."),
 
         # Local Planner
@@ -102,12 +74,12 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'use_elevation': False,
-                'slope_threshold': slope_threshold,
-                'grid_height': grid_height,
-                'grid_width': grid_width,
-                'grid_llx': grid_llx,
-                'grid_lly': grid_lly,
-                'grid_res': grid_res,
+                'slope_threshold': launch.substitutions.LaunchConfiguration('slope_threshold'),
+                'grid_height': launch.substitutions.LaunchConfiguration('grid_height'),
+                'grid_width': launch.substitutions.LaunchConfiguration('grid_width'),
+                'grid_llx': launch.substitutions.LaunchConfiguration('grid_llx'),
+                'grid_lly': launch.substitutions.LaunchConfiguration('grid_lly'),
+                'grid_res': launch.substitutions.LaunchConfiguration('grid_res'),
                 'overhead_clearance': 7.0,
                 'warmup_time': 5.0,
                 'use_registered': True,
@@ -120,10 +92,10 @@ def generate_launch_description():
             name='vehicle_control_node',
             output='screen',
             parameters=[{
-                'vehicle_wheelbase': vehicle_wheelbase,
-                'vehicle_max_steer_angle_degrees': vehicle_max_steer_angle_degrees,
-                'steering_coefficient': steering_coefficient,
-                'vehicle_speed': vehicle_speed,
+                'vehicle_wheelbase': launch.substitutions.LaunchConfiguration('vehicle_wheelbase'),
+                'vehicle_max_steer_angle_degrees': launch.substitutions.LaunchConfiguration('vehicle_max_steer_angle_degrees'),
+                'steering_coefficient': launch.substitutions.LaunchConfiguration('steering_coefficient'),
+                'vehicle_speed': launch.substitutions.LaunchConfiguration('vehicle_speed'),
             }],
         ),
         Node(
@@ -132,8 +104,8 @@ def generate_launch_description():
             name='avt_341_global_path_node',
             output='screen',
             parameters=[{
-                'goal_dist': goal_dist,
-                'global_lookahead': global_lookahead,
+                'goal_dist': launch.substitutions.LaunchConfiguration('goal_dist'),
+                'global_lookahead': 75.0,
                 'shutdown_behavior': 2,
                 'display': display_type
             }, waypoints_file],
@@ -144,17 +116,17 @@ def generate_launch_description():
             name='local_planner_node',
             output='screen',
             parameters=[{
-                'path_look_ahead': path_look_ahead,
-                'vehicle_width': vehicle_width,
+                'path_look_ahead': launch.substitutions.LaunchConfiguration('path_look_ahead'),
+                'vehicle_width': launch.substitutions.LaunchConfiguration('vehicle_width'),
                 'num_paths': 21,
-                'max_steer_angle': max_steer_angle,
+                'max_steer_angle': launch.substitutions.LaunchConfiguration('max_steer_angle'),
                 'output_path_step': 0.5,
                 'path_integration_step': 0.35,
                 'dilation_factor': 1,
-                'w_c': w_c,
-                'w_s': w_s,
-                'w_d': w_d,
-                'w_r': w_r,
+                'w_c': launch.substitutions.LaunchConfiguration('w_c'),
+                'w_s': launch.substitutions.LaunchConfiguration('w_s'),
+                'w_d': launch.substitutions.LaunchConfiguration('w_d'),
+                'w_r': launch.substitutions.LaunchConfiguration('w_r'),
                 'rate': 50.0,
                 'trim_path': True,
                 'display': display_type,
