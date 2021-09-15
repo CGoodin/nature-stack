@@ -133,13 +133,6 @@ def generate_launch_description():
             }],
         ),
         Node(
-            package='avt_341',
-            executable='avt_341_sim_test_node',
-            name='sim_test_node',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time}],
-        ),
-        Node(
             package='rviz2',
             executable='rviz2',
             name='rviz2',
