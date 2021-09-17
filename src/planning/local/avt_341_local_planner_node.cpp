@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
   float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
   int dilation_factor, num_paths;
   float w_c, w_d, w_s, w_r;
-  bool trim_path;
+  bool trim_path, use_global_path;
   std::string display;
 
   n->get_parameter("~path_look_ahead", path_look_ahead, 15.0f);
@@ -73,7 +73,14 @@ int main(int argc, char *argv[]){
   n->get_parameter("~w_r", w_r, 0.4f);
   n->get_parameter("~rate", rate, 50.0f);
   n->get_parameter("~trim_path", trim_path, false);
+  n->get_parameter("~use_global_path", use_global_path, false);
   n->get_parameter("~display", display, avt_341::visualization::default_display);
+
+  planner.SetArcLengthIntegrationStep(path_int_step);
+  planner.SetComfortabilityWeight(w_c);
+  planner.SetDynamicSafetyWeight(w_d);
+  planner.SetStaticSafetyWeight(w_s);
+  planner.SetPathAdherenceWeight(w_r);
 
   std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, n);
 
@@ -86,9 +93,17 @@ int main(int argc, char *argv[]){
     if (global_path.poses.size() > 0 && odom_rcvd && grid.data.size() > 0){
 
       std::vector<avt_341::utils::vec2> path_points;
-      for (int i = 0; i < global_path.poses.size(); i++){
-        avt_341::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
-        path_points.push_back(point);
+      if (use_global_path){
+        for (int i = 0; i < global_path.poses.size(); i++){
+          avt_341::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
+          path_points.push_back(point);
+        }
+      }
+      else{
+        for (int i = 0; i < waypoints.poses.size(); i++){
+          avt_341::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
+          path_points.push_back(point);
+        }
       }
 
       avt_341::planning::Path path;
