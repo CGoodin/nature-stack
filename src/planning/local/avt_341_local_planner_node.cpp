@@ -100,14 +100,16 @@ int main(int argc, char *argv[]){
         }
       }
       else{
+        std::cout<<"Not using global planner, using waypoints instead "<<std::endl;
         for (int i = 0; i < waypoints.poses.size(); i++){
+          std::cout<<waypoints.poses[i].pose.position.x <<" "<< waypoints.poses[i].pose.position.y<<std::endl;
           avt_341::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
           path_points.push_back(point);
         }
+        
       }
-
       avt_341::planning::Path path;
-      if (trim_path ){
+      if (trim_path && use_global_path ){
         avt_341::utils::vec2 current_pos(odom.pose.pose.position.x, odom.pose.pose.position.y);
         path.Init(path_points, current_pos, 1.5f * path_look_ahead);
       }
