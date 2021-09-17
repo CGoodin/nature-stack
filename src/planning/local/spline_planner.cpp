@@ -174,7 +174,7 @@ void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
 		float fcount = 0.0f;
 		for (int k = -averaging_window_size_; k <= averaging_window_size_; k++) {
 			int ndx = i + k;
-			if (ndx >= 0 && ndx <= candidates_.size()) {
+			if (ndx >= 0 && ndx < candidates_.size()) {
 				fs[i] += candidates_[ndx].GetStaticSafety();
 				fcount += 1.0f;
 			}

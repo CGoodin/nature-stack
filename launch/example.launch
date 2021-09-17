@@ -1,7 +1,7 @@
 <launch>
 
   <param name="/use_sim_time" value="false"/> 
-  <arg name="display" default="image"/>
+  <arg name="display" default="rviz"/>
   <arg name="auto_launch_rviz" default="true"/>
 
   <rosparam file="$(find avt_341)/config/waypoints.yaml" />
@@ -69,6 +69,7 @@
     <param name="w_r" value="0.2" /> 
     <param name="rate" value="50.0" />
     <param name="trim_path" value="true" />
+    <param name="use_global_path" value="true" />
     <param name="display" value="$(arg display)" />
   </node>
 

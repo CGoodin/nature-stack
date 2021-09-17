@@ -76,6 +76,12 @@ int main(int argc, char *argv[]){
   n->get_parameter("~use_global_path", use_global_path, false);
   n->get_parameter("~display", display, avt_341::visualization::default_display);
 
+  planner.SetArcLengthIntegrationStep(path_int_step);
+  planner.SetComfortabilityWeight(w_c);
+  planner.SetDynamicSafetyWeight(w_d);
+  planner.SetStaticSafetyWeight(w_s);
+  planner.SetPathAdherenceWeight(w_r);
+
   std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, n);
 
   unsigned int loop_count = 0;
