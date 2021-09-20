@@ -100,9 +100,7 @@ int main(int argc, char *argv[]){
         }
       }
       else{
-        std::cout<<"Not using global planner, using waypoints instead "<<std::endl;
         for (int i = 0; i < waypoints.poses.size(); i++){
-          std::cout<<waypoints.poses[i].pose.position.x <<" "<< waypoints.poses[i].pose.position.y<<std::endl;
           avt_341::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
           path_points.push_back(point);
         }
