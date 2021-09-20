@@ -18,6 +18,17 @@ std::vector<avt_341::msg::Odometry> current_pose_list;
 bool use_registered = true;
 float overhead_clearance = 100.0f;
 double time_register_window = 0.02;
+bool cull_lidar_points = true;
+float cull_lidar_points_dist_sqr = 10000.0f;
+
+double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose, const avt_341::msg::Point32& point)
+{
+	double dx = odom_pose.x - point.x;
+	double dy = odom_pose.y - point.y;
+	double dz = odom_pose.z - point.z;
+	
+	return dx*dx + dy*dy + dz*dz;
+}
 
 void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 	// assumes point cloud is already registered to odom frame
@@ -32,8 +43,28 @@ void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 			tp.y = point_cloud.points[p].y;
 			tp.z = point_cloud.points[p].z;
 			if ( !(tp.x==0.0 && tp.y==0.0) && !std::isnan(tp.x) && (tp.z-current_pose.pose.pose.position.z)<overhead_clearance ){
-				points.push_back(tp);
 				
+				bool not_cull_point = true;
+				
+				if (cull_lidar_points)
+				{
+					double dt = 1.0;
+					avt_341::msg::Odometry pose_to_use;
+					for (int i=0;i<current_pose_list.size();i++){
+						double dt_this = fabs(avt_341::node::seconds_from_header(current_pose_list[i].header) - avt_341::node::seconds_from_header(rcv_cloud->header));
+						if (dt_this<dt){
+							pose_to_use = current_pose_list[i];
+							dt = dt_this;
+						}		
+					}
+					
+					not_cull_point = (CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr); 
+				}
+				
+				if (not_cull_point)
+				{
+					points.push_back(tp);
+				}
 			}
 		}
 		point_cloud.points.clear();
@@ -71,7 +102,9 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 				tp.x = vp.x();
 				tp.y = vp.y();
 				tp.z = vp.z();
-				if ( (tp.z-current_pose.pose.pose.position.z)<overhead_clearance){
+				if ( (tp.z-current_pose.pose.pose.position.z)<overhead_clearance && 
+						(CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr))
+				{
 					points.push_back(tp);
 				}
 				
@@ -128,6 +161,12 @@ int main(int argc, char *argv[]) {
     n->get_parameter("~use_registered", use_registered, true);
     n->get_parameter("~overhead_clearance", overhead_clearance, 100.0f);
     n->get_parameter("~display", display, std::string("image"));
+	
+	float cull_lidar_points_dist;
+	n->get_parameter("~cull_lidar_points", cull_lidar_points, true);
+	n->get_parameter("~cull_lidar_points_dist", cull_lidar_points_dist, 100.0f);
+	cull_lidar_points_dist_sqr = cull_lidar_points_dist * cull_lidar_points_dist;
+	
     bool use_rviz = display == "rviz";
     std::shared_ptr<avt_341::node::Publisher<avt_341::msg::OccupancyGrid>> grid_pub_vis;
     if(use_rviz){

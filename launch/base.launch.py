@@ -32,7 +32,10 @@ def generate_launch_description():
         DeclareLaunchArgument('grid_llx', default_value='-100.0', description="Elevation grid - X coordinate grid bottom left anchor point."),
         DeclareLaunchArgument('grid_lly', default_value='-100.0', description="Elevation grid - Y coordinate grid bottom left anchor point."),
         DeclareLaunchArgument('grid_res', default_value='0.5', description="Elevation grid - Grid resolution in meters."),
-
+        
+        DeclareLaunchArgument('cull_lidar_points', default_value='True', description="Elevation - Cull lidar points flag based on distance from odometry."),
+        DeclareLaunchArgument('cull_lidar_points_dist', default_value='100.0', description="Elevation grid - Distance used to cull lidar points"),
+        
         # Global Planner
         DeclareLaunchArgument('goal_dist', default_value='5.0', description="Global planner - Lookahead threshold within which next waypoint selected."),
 
@@ -82,6 +85,8 @@ def generate_launch_description():
                 'grid_lly': launch.substitutions.LaunchConfiguration('grid_lly'),
                 'grid_res': launch.substitutions.LaunchConfiguration('grid_res'),
                 'overhead_clearance': 7.0,
+                'cull_lidar_points': launch.substitutions.LaunchConfiguration('cull_lidar_points'),
+                'cull_lidar_points_dist': launch.substitutions.LaunchConfiguration('cull_lidar_points_dist'),
                 'warmup_time': 5.0,
                 'use_registered': True,
                 'display': display_type
