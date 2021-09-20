@@ -40,6 +40,7 @@ def generate_launch_description():
         DeclareLaunchArgument('goal_dist', default_value='5.0', description="Global planner - Lookahead threshold within which next waypoint selected."),
 
         # Local Planner
+        DeclareLaunchArgument('num_paths', default_value='21', description="Local planner - Number of candidate paths to be generated."),
         DeclareLaunchArgument('path_look_ahead', default_value='30.0', description="Local planner - Planning horizon."),
         DeclareLaunchArgument('vehicle_width', default_value='3.0', description="Local planner - Vehicle width."),
         DeclareLaunchArgument('max_steer_angle', default_value='0.5', description="Local planner - Maximum steer angle in radians. Used to compute rho_max during local planning."),
@@ -124,7 +125,7 @@ def generate_launch_description():
             parameters=[{
                 'path_look_ahead': launch.substitutions.LaunchConfiguration('path_look_ahead'),
                 'vehicle_width': launch.substitutions.LaunchConfiguration('vehicle_width'),
-                'num_paths': 21,
+                'num_paths': launch.substitutions.LaunchConfiguration('num_paths'),
                 'max_steer_angle': launch.substitutions.LaunchConfiguration('max_steer_angle'),
                 'output_path_step': 0.5,
                 'path_integration_step': 0.35,
