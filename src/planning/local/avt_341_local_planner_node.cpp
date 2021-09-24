@@ -58,7 +58,7 @@ int main(int argc, char *argv[]){
   int dilation_factor, num_paths;
   float w_c, w_d, w_s, w_r;
   bool trim_path, use_global_path;
-  std::string display;
+  std::string display, cost_vis;
 
   n->get_parameter("~path_look_ahead", path_look_ahead, 15.0f);
   n->get_parameter("~vehicle_width", vehicle_width, 3.0f);
@@ -74,6 +74,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~rate", rate, 50.0f);
   n->get_parameter("~trim_path", trim_path, false);
   n->get_parameter("~use_global_path", use_global_path, false);
+  n->get_parameter("~cost_vis", cost_vis, std::string("final"));
   n->get_parameter("~display", display, avt_341::visualization::default_display);
 
   planner.SetArcLengthIntegrationStep(path_int_step);
@@ -82,7 +83,9 @@ int main(int argc, char *argv[]){
   planner.SetStaticSafetyWeight(w_s);
   planner.SetPathAdherenceWeight(w_r);
 
-  std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, n);
+  std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, cost_vis, n,
+                                                                      planner.GetComfortabilityWeight(), planner.GetStaticSafetyWeight(),
+                                                                      planner.GetPathAdherenceWeight(), planner.GetDynamicSafetyWeight());
 
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;

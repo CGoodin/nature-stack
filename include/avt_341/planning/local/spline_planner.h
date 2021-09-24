@@ -112,6 +112,11 @@ public:
 	 */ 
 	void SetPathAdherenceWeight(float w){ w_r_ = w; }
 
+	float GetComfortabilityWeight() const { return w_c_; }
+	float GetStaticSafetyWeight() const { return w_s_; }
+	float GetDynamicSafetyWeight() const { return w_d_; }
+	float GetPathAdherenceWeight() const { return w_r_; }
+
 	/**
 	 * Set the weight on the consistency factor on the comfortability calculation. 
 	 * Default is b = 2.0

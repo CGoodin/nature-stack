@@ -49,6 +49,7 @@ def generate_launch_description():
         DeclareLaunchArgument('w_d', default_value='0.0', description="Local planner - w_d dynamic safety weighting factor"),
         DeclareLaunchArgument('w_r', default_value='0.2', description="Local planner - w_r rho (minimize rho offset) weighting factor"),
         DeclareLaunchArgument('use_global_path', default_value='True', description="Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints"),
+        DeclareLaunchArgument('cost_vis', default_value='all', description="What type of cost to display on candidate paths: none | final | components | all"),
 
         # Pure Pursuit Control
         DeclareLaunchArgument('vehicle_wheelbase', default_value='2.72', description="Pure pursuit controller - vehicle_wheelbase."),
@@ -135,6 +136,7 @@ def generate_launch_description():
                 'w_s': launch.substitutions.LaunchConfiguration('w_s'),
                 'w_d': launch.substitutions.LaunchConfiguration('w_d'),
                 'w_r': launch.substitutions.LaunchConfiguration('w_r'),
+                'cost_vis': launch.substitutions.LaunchConfiguration('cost_vis'),
                 'rate': 50.0,
                 'trim_path': True,
                 'display': display_type,

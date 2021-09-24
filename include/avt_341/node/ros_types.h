@@ -19,7 +19,7 @@
 #include "nav_msgs/msg/path.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 
-#include "visualization_msgs/msg/marker.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
 
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Matrix3x3.h"
@@ -67,6 +67,9 @@ namespace avt_341 {
 
     using Marker = visualization_msgs::msg::Marker;
     using MarkerPtr = visualization_msgs::msg::Marker::SharedPtr;
+
+    using MarkerArray = visualization_msgs::msg::MarkerArray;
+    using MarkerArrayPtr = const visualization_msgs::msg::MarkerArray::ConstPtr &;
 
     using Float64 = std_msgs::msg::Float64;
     using Float64Ptr = std_msgs::msg::Float64::SharedPtr;

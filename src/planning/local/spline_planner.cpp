@@ -1,5 +1,6 @@
 #include "avt_341/planning/local/spline_planner.h"
 #include <algorithm>
+#include <iostream>
 
 namespace avt_341 {
 namespace planning{
@@ -196,7 +197,8 @@ void Planner::CalculateRhoCost() {
 
 float Planner::GetTotalCostOfCandidate(int i) {
 	float cost = w_c_ * candidates_[i].GetComfortability() + w_s_ * candidates_[i].GetStaticSafety() + w_r_ * candidates_[i].GetRhoCost() + w_d_*candidates_[i].GetDynamicSafety();
-	return cost;
+  candidates_[i].SetCost(cost);
+  return cost;
 }
 
 bool Planner::CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::Odometry odom) {
