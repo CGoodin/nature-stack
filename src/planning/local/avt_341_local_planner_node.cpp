@@ -56,7 +56,7 @@ int main(int argc, char *argv[]){
   // planner params
   float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
   int dilation_factor, num_paths;
-  float w_c, w_d, w_s, w_r;
+  float w_c, w_d, w_s, w_r, cost_vis_text_size;
   bool trim_path, use_global_path;
   std::string display, cost_vis;
 
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~trim_path", trim_path, false);
   n->get_parameter("~use_global_path", use_global_path, false);
   n->get_parameter("~cost_vis", cost_vis, std::string("final"));
+  n->get_parameter("~cost_vis_text_size", cost_vis_text_size, 2.0f);
   n->get_parameter("~display", display, avt_341::visualization::default_display);
 
   planner.SetArcLengthIntegrationStep(path_int_step);
@@ -85,7 +86,8 @@ int main(int argc, char *argv[]){
 
   std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, cost_vis, n,
                                                                       planner.GetComfortabilityWeight(), planner.GetStaticSafetyWeight(),
-                                                                      planner.GetPathAdherenceWeight(), planner.GetDynamicSafetyWeight());
+                                                                      planner.GetPathAdherenceWeight(), planner.GetDynamicSafetyWeight(),
+                                                                      cost_vis_text_size);
 
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;

@@ -15,13 +15,15 @@ namespace avt_341 {
 
     class RVIZPlotter : public Plotter {
     public:
-      RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, const std::string & cos_vis, std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d);
+      RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, const std::string & cos_vis,
+                  std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float cost_vis_text_size_);
       virtual void Display(bool save, const std::string & ofname, int nx, int ny) override;
 
     private:
       avt_341::msg::Marker get_marker_msg(int type, int id, bool is_blocked = false) const;
       std::shared_ptr<avt_341::node::NodeProxy> node_;
       std::string cost_vis_;
+      float cost_vis_text_size_;
       std::shared_ptr<avt_341::node::Publisher<avt_341::msg::MarkerArray>> candidate_paths_publisher;
       float w_c_;
       float w_d_;

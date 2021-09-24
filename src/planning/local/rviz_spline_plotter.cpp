@@ -7,8 +7,8 @@ namespace avt_341 {
   namespace planning{
 
     RVIZPlotter::RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, const std::string & cost_vis,
-                             std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d) : Plotter(visualizer), cost_vis_(cost_vis), node_(node),
-                             w_c_(w_c), w_s_(w_s), w_r_(w_r), w_d_(w_d) {
+                             std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float cost_vis_text_size_) : Plotter(visualizer), cost_vis_(cost_vis), node_(node),
+                             w_c_(w_c), w_s_(w_s), w_r_(w_r), w_d_(w_d), cost_vis_text_size_(cost_vis_text_size_) {
       candidate_paths_publisher = node->create_publisher<avt_341::msg::MarkerArray>("avt_341/candidate_paths", 1);
     }
 
@@ -23,7 +23,7 @@ namespace avt_341 {
       if(type == avt_341::msg::Marker::LINE_LIST){
         marker.scale.x = 0.15;
       }else{
-        marker.scale.z = 2.0;
+        marker.scale.z = cost_vis_text_size_;
       }
       if(is_blocked){
         marker.color.r = 1.0;
