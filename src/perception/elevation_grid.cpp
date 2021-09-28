@@ -55,12 +55,15 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
   }
 
   //find the slopes
-  for (int i=1;i<(nx_-1);i++){
-    for (int j=1;j<(ny_-1);j++){
+  //for (int i=1;i<(nx_-1);i++){
+  //  for (int j=1;j<(ny_-1);j++){
+  for (int i=0; i<nx_;i++){
+    for (int j=0; j<ny_; j++){
       if (cells_[i][j].filled){
         cells_[i][j].height = cells_[i][j].high - cells_[i][j].low;
-        //for (int ii=i+1;ii<n_;ii++){
-
+        //if (cells_[i][j].height/res_ > thresh_) cells_[i][j].obstacle = true;
+        cells_[i][j].slope = cells_[i][j].height/res_;
+          /*
           if (cells_[i+1][j].filled){
             int ii = i+1;
             float run = (float)(ii-i)*res_;
@@ -83,8 +86,7 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
               cells_[i][j].obstacle = true;
             }
           }
-        //}
-        //for (int jj=j+1;j<n_;jj++){
+
           if (cells_[i][j+1].filled){
             int jj = j+1;;
             float run = (float)(jj-j)*res_;
@@ -107,7 +109,7 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
               cells_[i][j].obstacle = true;
             }
           }
-        //}
+        */
       } // if cell filled
     } //over j
   } //over i
@@ -171,7 +173,7 @@ void ElevationGrid::GetGridCell(const std::string & grid_type, avt_341::msg::Occ
   }
   else {
     if (cells_[i][j].filled){
-      float s = sqrt(cells_[i][j].slope_x*cells_[i][j].slope_x + cells_[i][j].slope_y*cells_[i][j].slope_y);
+      float s = cells_[i][j].slope; //sqrt(cells_[i][j].slope_x*cells_[i][j].slope_x + cells_[i][j].slope_y*cells_[i][j].slope_y);
       uint8_t val = (uint8_t) (50.0f*s);
       if (val<0) val = 0;
       if (val>100) val = 100;

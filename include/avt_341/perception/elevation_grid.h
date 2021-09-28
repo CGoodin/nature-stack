@@ -23,8 +23,9 @@ struct Cell{
     float high = std::numeric_limits<float>::lowest();
     float height = 0.0f;
     bool filled = false;
-    float slope_x = 0.0f;
-    float slope_y = 0.0f;
+    //float slope_x = 0.0f;
+    //float slope_y = 0.0f;
+    float slope = 0.0f;
     bool obstacle = false;
 };
 
