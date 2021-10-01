@@ -95,8 +95,10 @@ namespace avt_341 {
             bool get_parameter(const std::string &name, ParameterT &parameter_out, const ParameterT default_value) {
                 if (ros::param::has(name)){
                     ros::param::get(name, parameter_out);
+                    return true;
                 }else{
                     parameter_out = default_value;
+                    return false;
                 }
             }
 
