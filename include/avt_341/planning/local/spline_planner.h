@@ -112,6 +112,13 @@ public:
 	 */ 
 	void SetPathAdherenceWeight(float w){ w_r_ = w; }
 
+	void SetIgnoreCollBeforeDist(float s_no_coll_before) { s_no_coll_before_ = s_no_coll_before; }
+
+	float GetComfortabilityWeight() const { return w_c_; }
+	float GetStaticSafetyWeight() const { return w_s_; }
+	float GetDynamicSafetyWeight() const { return w_d_; }
+	float GetPathAdherenceWeight() const { return w_r_; }
+
 	/**
 	 * Set the weight on the consistency factor on the comfortability calculation. 
 	 * Default is b = 2.0
@@ -190,6 +197,7 @@ private:
 	float a_;
 	float b_;
 	float ds_;
+	float s_no_coll_before_;
 	int averaging_window_size_;
 };
 

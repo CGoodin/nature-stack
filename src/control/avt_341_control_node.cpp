@@ -44,23 +44,29 @@ int main(int argc, char *argv[]){
 
   auto control_sub = n->create_subscription<avt_341::msg::Int32>("avt_341/state",1,StateCallback);
 
+
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
 	float wheelbase, steer_angle, vehicle_speed, steering_coeff;
+	std::string display;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
-    n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
-    n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
-    n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
-    controller.SetSteeringParam(steering_coeff);
+  n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
+  n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
+  n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
+  n->get_parameter("~display", display, std::string("none"));
+  controller.SetSteeringParam(steering_coeff);
 
-  
-	controller.SetWheelbase(wheelbase);
+  bool display_rviz = display == "rviz";
+  auto next_waypoint_pub = display_rviz ? n->create_publisher<avt_341::msg::PointStamped>("avt_341/control_next_waypoint", 1) : nullptr;
+
+  controller.SetWheelbase(wheelbase);
 	controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
 	controller.SetDesiredSpeed(vehicle_speed);
 
   float rate = 50.0f;
   float dt = 1.0f/rate;
   avt_341::node::Rate r(rate);
+  avt_341::utils::vec2 goal;
 
   while (avt_341::node::ok()){
     avt_341::msg::Twist dc;
@@ -69,14 +75,14 @@ int main(int argc, char *argv[]){
     if (current_run_state==0){    // active running state
       controller.SetDesiredSpeed(vehicle_speed);
       //controller.SetVehicleState(state);
-      dc = controller.GetDcFromTraj(control_msg);
+      dc = controller.GetDcFromTraj(control_msg, goal);
       dc_pub->publish(dc);
     }
     else if (current_run_state==-1 || current_run_state==1){    // startup or smooth stop
       // bring to a smooth stop and wait
       controller.SetDesiredSpeed(0.0f);
       //controller.SetVehicleState(state);
-      dc = controller.GetDcFromTraj(control_msg);
+      dc = controller.GetDcFromTraj(control_msg, goal);
       dc_pub->publish(dc);
     }
     else if (current_run_state==2){ 
@@ -93,7 +99,7 @@ int main(int argc, char *argv[]){
       }
       else{
        // controller.SetVehicleState(state);
-        dc = controller.GetDcFromTraj(control_msg);
+        dc = controller.GetDcFromTraj(control_msg, goal);
         dc.linear.x = 0.0f;
         dc.angular.z = 0.0f;
         dc_pub->publish(dc);
@@ -107,7 +113,17 @@ int main(int argc, char *argv[]){
       dc_pub->publish(dc);
       break;
     }
-    
+
+    if(display_rviz){
+      avt_341::msg::PointStamped next_waypoint_msg;
+      next_waypoint_msg.point.x = goal.x;
+      next_waypoint_msg.point.y = goal.y;
+      next_waypoint_msg.point.z = state.pose.pose.position.z;
+      next_waypoint_msg.header.frame_id = "map";
+      next_waypoint_msg.header.stamp = n->get_stamp();
+      next_waypoint_pub->publish(next_waypoint_msg);
+    }
+
     n->spin_some();
 
     r.sleep();

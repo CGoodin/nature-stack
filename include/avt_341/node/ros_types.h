@@ -15,12 +15,14 @@
 #include "geometry_msgs/Point32.h"
 #include "geometry_msgs/Quaternion.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/PointStamped.h"
 
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/Path.h"
 #include "nav_msgs/Odometry.h"
 
 #include "visualization_msgs/Marker.h"
+#include "visualization_msgs/MarkerArray.h"
 
 #include "tf/LinearMath/Transform.h"
 
@@ -56,6 +58,9 @@ namespace avt_341 {
         using PoseStamped = geometry_msgs::PoseStamped;
         using PoseStampedPtr = const geometry_msgs::PoseStamped::ConstPtr &;
 
+        using PointStamped = geometry_msgs::PointStamped;
+        using PointStampedPtr = const geometry_msgs::PointStamped::ConstPtr &;
+
         using OccupancyGrid = nav_msgs::OccupancyGrid;
         using OccupancyGridPtr = const nav_msgs::OccupancyGrid::ConstPtr &;
 
@@ -67,6 +72,9 @@ namespace avt_341 {
 
         using Marker = visualization_msgs::Marker;
         using MarkerPtr = const visualization_msgs::Marker::ConstPtr &;
+
+        using MarkerArray = visualization_msgs::MarkerArray;
+        using MarkerArrayPtr = const visualization_msgs::MarkerArray::ConstPtr &;
 
         using Float64 = std_msgs::Float64;
         using Float64Ptr = const std_msgs::Float64::ConstPtr &;

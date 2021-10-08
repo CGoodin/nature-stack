@@ -22,6 +22,7 @@ Planner::Planner() {
 	s_max_ = 0.0f;
 	first_iter_ = true;
 	s_start_ = 0.0f;
+  s_no_coll_before_ = 0.0f;
 }
 
 std::vector<float> Planner::CalcCoeffs(float rho_start, float theta_start, float s_end, float rho_end) {
@@ -78,7 +79,7 @@ CurveInfo Planner::InfoOfCurve(Candidate candidate, float s, CurveInfo base_ca) 
 void Planner::CalculateComfortability() {
 	// comfortability and consistency
 	for (int i = 0; i < candidates_.size(); i++) {
-		float s = 0.0f;
+		float s = s_no_coll_before_;
 		float comfort = 0.0f;
 		float consistent = 0.0f;
 		candidates_[i].SetMaxCurvature(0.0f);
@@ -196,6 +197,7 @@ void Planner::CalculateRhoCost() {
 
 float Planner::GetTotalCostOfCandidate(int i) {
 	float cost = w_c_ * candidates_[i].GetComfortability() + w_s_ * candidates_[i].GetStaticSafety() + w_r_ * candidates_[i].GetRhoCost() + w_d_*candidates_[i].GetDynamicSafety();
+  	candidates_[i].SetCost(cost);
 	return cost;
 }
 

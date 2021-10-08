@@ -1,5 +1,4 @@
 #include "avt_341/control/pure_pursuit_controller.h"
-#include "avt_341/avt_341_utils.h"
 
 namespace avt_341 {
 namespace control{
@@ -34,7 +33,7 @@ void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
 	veh_heading_ = utils::GetHeadingFromOrientation(state.pose.pose.orientation);
 }
 
-avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj) {
+avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj, utils::vec2 & goal) {
 	//initialize the driving command
     avt_341::msg::Twist dc;
 	dc.linear.x = 0.0;
@@ -75,7 +74,7 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 		}
 	}
 
-	utils::vec2 goal = path[start_seg];
+	goal = path[start_seg];
 	float target_speed = desired_speed_;
 	if (closest < lookahead) {
 		//find point on path at lookahead distance away

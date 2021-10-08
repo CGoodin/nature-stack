@@ -27,6 +27,8 @@ struct Cell{
     //float slope_y = 0.0f;
     float slope = 0.0f;
     bool obstacle = false;
+    bool has_dilated = false;
+    uint8_t dilated_val = 0;
 };
 
 class ElevationGrid{
@@ -64,21 +66,33 @@ class ElevationGrid{
         thresh_ = tr;
     }
 
+    void SetUseElevation(bool use_elevation){
+        use_elevation_ = use_elevation;
+    }
+
     void ClearGrid();
 
     void UseDilation(bool use_dil){
         dilate_ = use_dil;
     }
 
-    avt_341::msg::OccupancyGrid GetGrid(std::string grid_type, bool row_major=false);
+    avt_341::msg::OccupancyGrid GetGrid(bool row_major=false);
 
     void SetCorner(float llx, float lly){
         llx_ = llx;
         lly_ = lly;
     }
 
+    void SetDilation(bool grid_dilate, float grid_dilate_x, float grid_dilate_y, float grid_dilate_proportion){
+        dilate_ = grid_dilate;
+        grid_dilate_x_ = grid_dilate_x;
+        grid_dilate_y_ = grid_dilate_y;
+        grid_dilate_proportion_ = grid_dilate_proportion;
+    }
+
+
   private:
-    void GetGridCell(const std::string & grid_type, avt_341::msg::OccupancyGrid & grid, const int & i, const int & j, int & c);
+    uint8_t GetGridCellValue(const Cell & cell) const;
     void ResizeGrid();
     void FillImage();
     std::vector< std::vector<Cell> > cells_;
@@ -91,6 +105,13 @@ class ElevationGrid{
     bool dilate_;
     float llx_;
     float lly_;
+    float grid_dilate_x_;
+    float grid_dilate_y_;
+    float grid_dilate_proportion_;
+    bool use_elevation_;
+
+    const uint8_t GRID_MAX_VALUE = 100;
+    const float GRID_SLOPE_MULT = 50.0f;
 };
 
 } // namespace perception

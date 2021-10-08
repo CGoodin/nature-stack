@@ -1,0 +1,144 @@
+<launch>
+
+  <param name="/use_sim_time" value="false"/>
+
+  <!-- General  -->
+  <arg name="display_type" default="rviz" doc="Type of visualization to use rviz | none"/>
+  <arg name="auto_launch_rviz" default="true" doc="Open rviz automatically on launch. Only applies if display_type = rviz"/>
+  <arg name="waypoints_file" doc="Waypoints file containing locations to navigate to."/>
+  <arg name="robot_description_file" doc="URDF robot description file to use"/>
+
+  <!-- Elevation Grid  -->
+  <arg name="use_elevation" default="false" doc="Elevation grid - To use elevation or slope value when making occupancy grid based on heightmap."/>
+  <arg name="slope_threshold" default="0.5" doc="Elevation grid - Threshold within which next waypoint selected."/>
+  <arg name="grid_height" default="200.0" doc="Elevation grid - Grid height."/>
+  <arg name="grid_width" default="200.0" doc="Elevation grid - Grid width."/>
+  <arg name="grid_llx" default="-100.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
+  <arg name="grid_lly" default="-100.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
+  <arg name="grid_res" default="0.5" doc="Elevation grid - Grid resolution in meters."/>
+  <arg name="grid_dilate" default="false" doc="Elevation grid - Apply dilation in occupancy grid."/>
+  <arg name="grid_dilate_x" default="2.0" doc="Elevation grid - Amount of dilation in x direction."/>
+  <arg name="grid_dilate_y" default="2.0" doc="Elevation grid - Amount of dilation in y direction."/>
+  <arg name="grid_dilate_proportion" default="0.8" doc="Elevation grid - Proportion of original grid cell to dilate with."/>
+  <arg name="cull_lidar" default="false" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
+  <arg name="cull_lidar_dist" default="90.0" doc="Elevation grid - Distance used to cull lidar points"/>
+  <arg name="use_registered" default="true" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
+
+  <!-- Global Planner  -->
+  <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
+
+  <!-- Local Planner  -->
+  <arg name="num_paths" default="21" doc="Local planner - Number of candidate paths to be generated."/>
+  <arg name="path_look_ahead" default="30.0" doc="Local planner - Planning horizon."/>
+  <arg name="vehicle_width" default="3.0" doc="Local planner - Vehicle width. Used during blending phase when re-weighting each path cost by adjacent paths."/>
+  <arg name="max_steer_angle" default="0.5" doc="Local planner - Maximum steer angle in radians. Used to compute rho_max during local planning."/>
+  <arg name="dilation_factor" default="1" doc="Local planner - Dilation in number of grid cells to apply in local planner only."/>
+  <arg name="w_c" default="0.0" doc="Local planner - w_c conformability (minimize curvature) weighting factor"/>
+  <arg name="w_s" default="0.4" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
+  <arg name="w_d" default="0.0" doc="Local planner - w_d dynamic safety weighting factor"/>
+  <arg name="w_r" default="0.2" doc="Local planner - w_r rho (minimize rho offset) weighting factor"/>
+  <arg name="use_global_path" default="true" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints"/>
+  <arg name="cost_vis" default="final" doc="Local planner - What type of cost to display on candidate paths: none | final | components | all"/>
+  <arg name="cost_vis_text_size" default="2.0" doc="Cost vis text size"/>
+  <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
+
+  <!-- Pure Pursuit Control  -->
+  <arg name="vehicle_wheelbase" default="2.72" doc="Pure pursuit controller - vehicle_wheelbase."/>
+  <arg name="vehicle_max_steer_angle_degrees" default="30.0" doc="Pure pursuit controller - max steer angle in degrees."/>
+  <arg name="steering_coefficient" default="4.5" doc="Pure pursuit controller - steering coefficient."/>
+  <arg name="vehicle_speed" default="5.0" doc="Pure pursuit controller - vehicle_speed m/s."/>
+
+  <rosparam file="$(arg waypoints_file)" />
+  <param name="robot_description" command="cat $(arg robot_description_file)" />
+
+  <group if="$(eval env('ROS_DISTRO') =='noetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='kinetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
+  <node pkg="tf" name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
+  <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
+
+  <!-- Lidar perception algorithms  -->
+  <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
+    <param name="use_elevation" value="$(arg use_elevation)" />
+    <param name="slope_threshold" value="$(arg slope_threshold)" />
+    <param name="grid_height" value="$(arg grid_height)" />
+    <param name="grid_width" value="$(arg grid_width)" />
+    <param name="grid_llx" value="$(arg grid_llx)" />
+    <param name="grid_lly" value="$(arg grid_lly)" />
+    <param name="grid_res" value="$(arg grid_res)" />
+    <param name="overhead_clearance" value="7.0" />
+    <param name="grid_dilate" value="$(arg grid_dilate)" />
+    <param name="grid_dilate_x" value="$(arg grid_dilate_x)" />
+    <param name="grid_dilate_y" value="$(arg grid_dilate_y)" />
+    <param name="grid_dilate_proportion" value="$(arg grid_dilate_proportion)" />
+    <param name="cull_lidar" value="$(arg cull_lidar)" />
+    <param name="cull_lidar_dist" value="$(arg cull_lidar_dist)" />
+    <param name="warmup_time" value="5.0" />
+    <param name="use_registered" value="$(arg use_registered)"/>
+    <param name="display" value="$(arg display_type)" />
+  </node>
+
+  <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
+    <param name="vehicle_wheelbase" value="$(arg vehicle_wheelbase)" />
+    <param name="vehicle_max_steer_angle_degrees" value="$(arg vehicle_max_steer_angle_degrees)" />
+    <param name="steering_coefficient" value="$(arg steering_coefficient)" />
+    <param name="vehicle_speed" value="$(arg vehicle_speed)" />
+    <param name="display" value="$(arg display_type)" />
+  </node>
+
+  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
+    <param name="goal_dist" value="$(arg goal_dist)" />
+    <param name="global_lookahead" value="75.0" />
+    <param name="shutdown_behavior" value="2" />
+    <param name="display" value="$(arg display_type)" />
+  </node>
+
+
+  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" >
+    <param name="path_look_ahead" value="$(arg path_look_ahead)" />
+    <param name="vehicle_width" value="$(arg vehicle_width)" />
+    <param name="num_paths" value="$(arg num_paths)" />
+    <param name="max_steer_angle" value="$(arg max_steer_angle)" />
+    <param name="output_path_step" value="0.5" />
+    <param name="path_integration_step" value="0.35" />
+    <param name="dilation_factor" value="$(arg dilation_factor)" />
+    <param name="w_c" value="$(arg w_c)" />
+    <param name="w_s" value="$(arg w_s)" />
+    <param name="w_d" value="$(arg w_d)" />
+    <param name="w_r" value="$(arg w_r)" />
+    <param name="rate" value="50.0" />
+    <param name="trim_path" value="true" />
+    <param name="use_global_path" value="$(arg use_global_path)" />
+    <param name="cost_vis" value="$(arg cost_vis)" />
+    <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
+    <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
+    <param name="display" value="$(arg display_type)" />
+  </node>
+
+  <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->
+  <group if="$(eval arg('display_type') == 'rviz' and arg('auto_launch_rviz'))">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find avt_341)/rviz/avt_341.rviz" />
+  </group>
+
+  <!-- Uncomment this section to use the MAVS simlator.
+       Must have MAVS built and installed and the 
+       mavs_avt_example catkin package built. -->
+  <!--
+  <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
+    <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
+    <arg name="point_cloud_topic_arg" default="avt_341/points" />
+    <arg name="odometry_topic_arg" default="avt_341/odometry" />
+  </include>
+  -->
+
+</launch>

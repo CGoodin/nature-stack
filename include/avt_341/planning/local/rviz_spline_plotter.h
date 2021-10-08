@@ -15,14 +15,20 @@ namespace avt_341 {
 
     class RVIZPlotter : public Plotter {
     public:
-      RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, std::shared_ptr<avt_341::node::NodeProxy> node);
+      RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, const std::string & cos_vis,
+                  std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float cost_vis_text_size_);
       virtual void Display(bool save, const std::string & ofname, int nx, int ny) override;
 
     private:
-      avt_341::msg::Marker get_marker_msg(bool is_blocked) const;
+      avt_341::msg::Marker get_marker_msg(int type, int id, bool is_blocked = false) const;
       std::shared_ptr<avt_341::node::NodeProxy> node_;
-      std::shared_ptr<avt_341::node::Publisher<avt_341::msg::Marker>> candidate_paths_publisher;
-      std::shared_ptr<avt_341::node::Publisher<avt_341::msg::Marker>> blocked_paths_publisher;
+      std::string cost_vis_;
+      float cost_vis_text_size_;
+      std::shared_ptr<avt_341::node::Publisher<avt_341::msg::MarkerArray>> candidate_paths_publisher;
+      float w_c_;
+      float w_d_;
+      float w_r_;
+      float w_s_;
     };
   } // namespace planning
 } // namespace avt_341
