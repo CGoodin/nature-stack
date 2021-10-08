@@ -57,7 +57,7 @@ int main(int argc, char *argv[]){
   float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
   int dilation_factor, num_paths;
   float w_c, w_d, w_s, w_r, cost_vis_text_size, ignore_coll_before_dist;
-  bool trim_path, use_global_path;
+  bool trim_path, use_global_path, use_blend;
   std::string display, cost_vis;
 
   n->get_parameter("~path_look_ahead", path_look_ahead, 15.0f);
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~ignore_coll_before_dist", ignore_coll_before_dist, 0.0f);
   n->get_parameter("~trim_path", trim_path, false);
   n->get_parameter("~use_global_path", use_global_path, false);
+  n->get_parameter("~use_blend", use_blend, true);
   n->get_parameter("~cost_vis", cost_vis, std::string("final"));
   n->get_parameter("~cost_vis_text_size", cost_vis_text_size, 2.0f);
   n->get_parameter("~display", display, avt_341::visualization::default_display);
@@ -84,6 +85,7 @@ int main(int argc, char *argv[]){
   planner.SetDynamicSafetyWeight(w_d);
   planner.SetStaticSafetyWeight(w_s);
   planner.SetPathAdherenceWeight(w_r);
+  planner.SetUseBlend(use_blend);
   planner.SetIgnoreCollBeforeDist(ignore_coll_before_dist);
 
   std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, cost_vis, n,

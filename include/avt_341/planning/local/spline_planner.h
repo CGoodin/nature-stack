@@ -113,6 +113,7 @@ public:
 	void SetPathAdherenceWeight(float w){ w_r_ = w; }
 
 	void SetIgnoreCollBeforeDist(float s_no_coll_before) { s_no_coll_before_ = s_no_coll_before; }
+  void SetUseBlend(bool use_blend){ use_blend_ = use_blend; }
 
 	float GetComfortabilityWeight() const { return w_c_; }
 	float GetStaticSafetyWeight() const { return w_s_; }
@@ -199,6 +200,7 @@ private:
 	float ds_;
 	float s_no_coll_before_;
 	int averaging_window_size_;
+	bool use_blend_;
 };
 
 } // namespace planning

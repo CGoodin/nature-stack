@@ -37,7 +37,8 @@
   <arg name="w_s" default="0.4" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
   <arg name="w_d" default="0.0" doc="Local planner - w_d dynamic safety weighting factor"/>
   <arg name="w_r" default="0.2" doc="Local planner - w_r rho (minimize rho offset) weighting factor"/>
-  <arg name="use_global_path" default="true" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints"/>
+  <arg name="use_global_path" default="true" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints."/>
+  <arg name="use_blend" default="true" doc="Local planner - Whether to do blending of path costs based on vehicle width to adjacent paths."/>
   <arg name="cost_vis" default="final" doc="Local planner - What type of cost to display on candidate paths: none | final | components | all"/>
   <arg name="cost_vis_text_size" default="2.0" doc="Cost vis text size"/>
   <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
@@ -119,6 +120,7 @@
     <param name="rate" value="50.0" />
     <param name="trim_path" value="true" />
     <param name="use_global_path" value="$(arg use_global_path)" />
+    <param name="use_blend" value="$(arg use_blend)" />
     <param name="cost_vis" value="$(arg cost_vis)" />
     <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
     <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
