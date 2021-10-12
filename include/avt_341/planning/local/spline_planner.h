@@ -112,8 +112,21 @@ public:
 	 */ 
 	void SetPathAdherenceWeight(float w){ w_r_ = w; }
 
+	/**
+	 * Sets wether or not to use blending during local planning. 
+	 * Blending will blend cost of i'th candidate trajectory based on adjacent candidate paths within vehicle width.
+	 * Default use_blend = true
+	 * \param use_blend Whether to use blending or not.
+	 */ 
 	void SetIgnoreCollBeforeDist(float s_no_coll_before) { s_no_coll_before_ = s_no_coll_before; }
-  void SetUseBlend(bool use_blend){ use_blend_ = use_blend; }
+
+	/**
+	 * Sets wether or not to use blending during local planning. 
+	 * Blending will blend cost of i'th candidate trajectory based on adjacent candidate paths within vehicle width.
+	 * Default use_blend = true
+	 * \param use_blend Whether to use blending or not.
+	 */ 
+  	void SetUseBlend(bool use_blend){ use_blend_ = use_blend; }
 
 	float GetComfortabilityWeight() const { return w_c_; }
 	float GetStaticSafetyWeight() const { return w_s_; }

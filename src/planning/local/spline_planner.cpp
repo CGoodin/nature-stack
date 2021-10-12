@@ -22,8 +22,8 @@ Planner::Planner() {
 	s_max_ = 0.0f;
 	first_iter_ = true;
 	s_start_ = 0.0f;
-  s_no_coll_before_ = 0.0f;
-  use_blend_ = true;
+	s_no_coll_before_ = 0.0f;
+	use_blend_ = true;
 }
 
 std::vector<float> Planner::CalcCoeffs(float rho_start, float theta_start, float s_end, float rho_end) {
@@ -80,7 +80,7 @@ CurveInfo Planner::InfoOfCurve(Candidate candidate, float s, CurveInfo base_ca) 
 void Planner::CalculateComfortability() {
 	// comfortability and consistency
 	for (int i = 0; i < candidates_.size(); i++) {
-		float s = s_no_coll_before_;
+		float s = 0.0f;
 		float comfort = 0.0f;
 		float consistent = 0.0f;
 		candidates_[i].SetMaxCurvature(0.0f);
@@ -145,7 +145,7 @@ void Planner::DilateGrid(avt_341::msg::OccupancyGrid &grid, int x, float llx, fl
 
 void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
 	for (int i = 0; i < candidates_.size(); i++) {
-		float s = 0.0f;
+		float s = s_no_coll_before_;
 		float stat_safe = 0.0f;
 		while (s < s_max_) {
 			float rho = candidates_[i].At(s);
@@ -171,22 +171,22 @@ void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
 
 	// now blend
 	if(use_blend_){
-    std::vector<float> fs;
-    fs.resize(candidates_.size(),0.0f);
-    for (int i = 0; i < candidates_.size(); i++) {
-      float fcount = 0.0f;
-      for (int k = -averaging_window_size_; k <= averaging_window_size_; k++) {
-        int ndx = i + k;
-        if (ndx >= 0 && ndx < candidates_.size()) {
-          fs[i] += candidates_[ndx].GetStaticSafety();
-          fcount += 1.0f;
-        }
-      }
-      fs[i] = fs[i] / fcount;
-    }
-    for (int i = 0; i < candidates_.size(); i++) {
-      candidates_[i].SetStaticSafety(fs[i]);
-    }
+		std::vector<float> fs;
+		fs.resize(candidates_.size(),0.0f);
+		for (int i = 0; i < candidates_.size(); i++) {
+		float fcount = 0.0f;
+		for (int k = -averaging_window_size_; k <= averaging_window_size_; k++) {
+			int ndx = i + k;
+			if (ndx >= 0 && ndx < candidates_.size()) {
+			fs[i] += candidates_[ndx].GetStaticSafety();
+			fcount += 1.0f;
+			}
+		}
+		fs[i] = fs[i] / fcount;
+		}
+		for (int i = 0; i < candidates_.size(); i++) {
+		candidates_[i].SetStaticSafety(fs[i]);
+		}
 	}
 }
 
