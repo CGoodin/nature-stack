@@ -19,6 +19,7 @@ ElevationGrid::ElevationGrid(){
   grid_dilate_proportion_ = 0.8f;
   use_elevation_ = false;
   stitch_points_ = true;
+  filter_highest_ = false;
 }
     
 ElevationGrid::~ElevationGrid(){
@@ -54,7 +55,20 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
       if (xi>=0 && xi<nx_ && yi>=0 &&yi<ny_){
         float h = point_cloud.points[i].z;
         cells_[xi][yi].filled = true;
-        if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
+        if (filter_highest_){
+          if (h > cells_[xi][yi].highest ){
+            cells_[xi][yi].second_highest = cells_[xi][yi].highest;
+            cells_[xi][yi].highest = h;
+            cells_[xi][yi].high = cells_[xi][yi].second_highest;
+          }
+          else if (h  > cells_[xi][yi].second_highest){
+            cells_[xi][yi].second_highest = h;
+            cells_[xi][yi].high = cells_[xi][yi].second_highest;
+          }
+        }
+        else{
+          if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
+        }
         if (h < cells_[xi][yi].low ) cells_[xi][yi].low = h;
       }
     }
