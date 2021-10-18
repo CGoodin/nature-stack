@@ -66,6 +66,8 @@ class ElevationGrid{
         thresh_ = tr;
     }
 
+    void SetStitchPoints(bool stitch_points){ stitch_points_ = stitch_points; }
+
     void SetUseElevation(bool use_elevation){
         use_elevation_ = use_elevation;
     }
@@ -109,7 +111,7 @@ class ElevationGrid{
     float grid_dilate_y_;
     float grid_dilate_proportion_;
     bool use_elevation_;
-
+    bool stitch_points_;
     const uint8_t GRID_MAX_VALUE = 100;
     const float GRID_SLOPE_MULT = 50.0f;
 };
