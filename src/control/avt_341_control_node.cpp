@@ -47,15 +47,17 @@ int main(int argc, char *argv[]){
 
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
-	float wheelbase, steer_angle, vehicle_speed, steering_coeff;
+	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff;
 	std::string display;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
   n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
   n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
   n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
+  n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
   n->get_parameter("~display", display, std::string("none"));
   controller.SetSteeringParam(steering_coeff);
-
+  controller.SetThrottleCoeff(throttle_coeff);
+  
   bool display_rviz = display == "rviz";
   auto next_waypoint_pub = display_rviz ? n->create_publisher<avt_341::msg::PointStamped>("avt_341/control_next_waypoint", 1) : nullptr;
 
