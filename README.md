@@ -17,6 +17,16 @@ $catkin_make install
 $catkin_make --only-pkg-with-deps avt_341
 ```
 
+__If user-defined workspace with default install spaces:__ Make sure that ```setup.bash``` has been sourced in either the workspace's ```devel``` or ```install``` folder depending on if ```catkin_make``` or ```catkin_make install``` has been used respectively. Though typically this command is added to ```~/.bashrc``` so that it is called on opening a command prompt instead of being issued manually.  
+
+```bash 
+# Can be placed in ~/.bashrc also so does not need to be issued manually
+source ~/<path_to_catkin_workspace>/[install|devel]/setup.bash
+
+# Example on my computer (when built with catkin_make): 
+source ~/catkin_ws/devel/setup.bash
+```
+
 To test the installation, type
 ```bash
 $roslaunch avt_341 example.launch
