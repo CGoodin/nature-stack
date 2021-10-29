@@ -23,6 +23,8 @@
   <arg name="cull_lidar" default="false" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
   <arg name="cull_lidar_dist" default="90.0" doc="Elevation grid - Distance used to cull lidar points"/>
   <arg name="use_registered" default="true" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
+  <arg name="stitch_lidar_points" default="true" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
+  <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
 
   <!-- Global Planner  -->
   <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
@@ -48,6 +50,7 @@
   <arg name="vehicle_max_steer_angle_degrees" default="30.0" doc="Pure pursuit controller - max steer angle in degrees."/>
   <arg name="steering_coefficient" default="4.5" doc="Pure pursuit controller - steering coefficient."/>
   <arg name="vehicle_speed" default="5.0" doc="Pure pursuit controller - vehicle_speed m/s."/>
+  <arg name="throttle_coefficient" default="0.5" doc="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive" />
 
   <rosparam file="$(arg waypoints_file)" />
   <param name="robot_description" command="cat $(arg robot_description_file)" />
@@ -87,6 +90,8 @@
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="$(arg use_registered)"/>
     <param name="display" value="$(arg display_type)" />
+    <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
+    <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>
   </node>
 
   <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
@@ -95,6 +100,7 @@
     <param name="steering_coefficient" value="$(arg steering_coefficient)" />
     <param name="vehicle_speed" value="$(arg vehicle_speed)" />
     <param name="display" value="$(arg display_type)" />
+    <param name="throttle_coefficient" value="$(arg throttle_coefficient)" />
   </node>
 
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >

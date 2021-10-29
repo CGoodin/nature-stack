@@ -1,7 +1,7 @@
 <launch>
 
   <param name="/use_sim_time" value="false"/> 
-  <arg name="display" default="image"/>
+  <arg name="display" default="rviz"/>
   <arg name="auto_launch_rviz" default="true"/>
 
   <rosparam file="$(find avt_341)/config/waypoints.yaml" />
@@ -31,6 +31,8 @@
     <param name="slope_threshold" value="2.5" />
     <param name="grid_height" value="120.0" />
     <param name="grid_width" value="120.0" />
+    <param name="stitch_lidar_points" value="true"/>
+    <param name="filter_highest_lidar" value="false"/>
     <param name="time_register_window" value="0.015" />
     <param name="grid_llx" value="-60.0" />
     <param name="grid_lly" value="-60.0" />
@@ -45,6 +47,7 @@
     <param name="vehicle_wheelbase" value="2.72" />
     <param name="vehicle_max_steer_angle_degrees" value="35.0" />
     <param name="steering_coefficient" value="4.5" />
+    <param name="throttle_coefficient" value="0.5" />
     <param name="vehicle_speed" value="5.0" />
   </node>
 

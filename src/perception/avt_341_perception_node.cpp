@@ -147,7 +147,7 @@ int main(int argc, char *argv[]) {
     n->get_parameter("~grid_res", grid_res, 1.0f);
     n->get_parameter("~grid_llx", grid_llx, -100.0f);
     n->get_parameter("~grid_lly", grid_lly, -100.0f);
-	n->get_parameter("~time_register_window", time_register_window, 0.02);
+		n->get_parameter("~time_register_window", time_register_window, 0.02);
     n->get_parameter("~warmup_time", warmup_time, 1.0f);
     n->get_parameter("~slope_threshold", thresh, 1.0f);
     n->get_parameter("~use_elevation", use_elevation, false);
@@ -158,7 +158,10 @@ int main(int argc, char *argv[]) {
     n->get_parameter("~grid_dilate_proportion", grid_dilate_proportion, 0.8f);
     n->get_parameter("~overhead_clearance", overhead_clearance, 100.0f);
     n->get_parameter("~display", display, std::string("image"));
-
+		bool stitch_points;
+		n->get_parameter("~stitch_lidar_points", stitch_points, true);
+		bool filter_highest_lidar;
+		n->get_parameter("~filter_highest_lidar", filter_highest_lidar, false);
     float cull_lidar_points_dist;
     n->get_parameter("~cull_lidar", cull_lidar_points, false);
     n->get_parameter("~cull_lidar_dist", cull_lidar_points_dist, 100.0f);
@@ -177,6 +180,8 @@ int main(int argc, char *argv[]) {
 	grid.SetCorner(grid_llx,grid_lly);
 	grid.SetUseElevation(use_elevation);
 	grid.SetDilation(grid_dilate, grid_dilate_x, grid_dilate_y, grid_dilate_proportion);
+	grid.SetStitchPoints(stitch_points);
+	grid.SetFilterHighest(filter_highest_lidar);
 
 	double start_time = n->get_now_seconds();
 	avt_341::node::Rate rate(100.0);

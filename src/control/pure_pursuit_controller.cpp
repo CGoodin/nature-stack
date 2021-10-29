@@ -6,19 +6,20 @@ namespace control{
 PurePursuitController::PurePursuitController() {
 	//default wheelbase and steer angle
 	// set to MRZR values
-	wheelbase_ = 2.731; // meters
-	max_steering_angle_ = 0.69; //39.5 degrees
-	max_stable_speed_ = 35.0; //5.0;
+	wheelbase_ = 2.731f; // meters
+	max_steering_angle_ = 0.69f; //39.5 degrees
+	max_stable_speed_ = 35.0f; //5.0;
 
 	// tunable parameters
-	min_lookahead_ = 2.0;
-	max_lookahead_ = 25.0;
-	k_ = 2.0; //0.5;
+	min_lookahead_ = 2.0f;
+	max_lookahead_ = 25.0f;
+	k_ = 2.0f; //0.5;
+	throttle_coeff_ = 1.0f;
 
 	//vehicle state parameters
-	veh_x_ = 0.0;
-	veh_y_ = 0.0;
-	veh_speed_ = 0.0;
+	veh_x_ = 0.0f;
+	veh_y_ = 0.0f;
+	veh_speed_ = 0.0f;
 	vx_ = 0.0f;
 	vy_ = 0.0f;
 }
@@ -126,6 +127,9 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 		dc.linear.y = 0.0f;
 		dc.linear.x = std::min(1.0f, throttle);
 	}
+
+	dc.linear.x = throttle_coeff_*dc.linear.x;
+
 	return dc;
 }
 

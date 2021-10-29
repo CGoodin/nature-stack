@@ -18,6 +18,8 @@ ElevationGrid::ElevationGrid(){
   grid_dilate_y_ = 2.0f;
   grid_dilate_proportion_ = 0.8f;
   use_elevation_ = false;
+  stitch_points_ = true;
+  filter_highest_ = false;
 }
     
 ElevationGrid::~ElevationGrid(){
@@ -44,6 +46,7 @@ void ElevationGrid::ClearGrid(){
 }
 
 std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointCloud &point_cloud){
+  if (!stitch_points_)ClearGrid();
   // fill the cells with highest and lowest points
   for (int i=0;i<point_cloud.points.size();i++){
     if (!(point_cloud.points[i].x==0.0 && point_cloud.points[i].y==0.0)){
@@ -52,7 +55,20 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
       if (xi>=0 && xi<nx_ && yi>=0 &&yi<ny_){
         float h = point_cloud.points[i].z;
         cells_[xi][yi].filled = true;
-        if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
+        if (filter_highest_){
+          if (h > cells_[xi][yi].highest ){
+            cells_[xi][yi].second_highest = cells_[xi][yi].highest;
+            cells_[xi][yi].highest = h;
+            cells_[xi][yi].high = cells_[xi][yi].second_highest;
+          }
+          else if (h  > cells_[xi][yi].second_highest){
+            cells_[xi][yi].second_highest = h;
+            cells_[xi][yi].high = cells_[xi][yi].second_highest;
+          }
+        }
+        else{
+          if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
+        }
         if (h < cells_[xi][yi].low ) cells_[xi][yi].low = h;
       }
     }
@@ -62,8 +78,6 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
   std::vector<int> cells_to_dilate_y {};
 
   //find the slopes
-  //for (int i=1;i<(nx_-1);i++){
-  //  for (int j=1;j<(ny_-1);j++){
   for (int i=0; i<nx_;i++){
     for (int j=0; j<ny_; j++){
       if (cells_[i][j].filled){
@@ -75,54 +89,6 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
           cells_to_dilate_x.push_back(i);
           cells_to_dilate_y.push_back(j);
         }
-
-          /*
-          if (cells_[i+1][j].filled){
-            int ii = i+1;
-            float run = (float)(ii-i)*res_;
-            cells_[i][j].slope_x = (cells_[ii][j].high - cells_[i][j].high)/run;
-            if (cells_[i][j].slope_x>thresh_){
-              cells_[ii][j].obstacle = true;
-            }
-            else if (cells_[i][j].slope_x<-thresh_){
-              cells_[i][j].obstacle = true;
-            }
-          }
-          if (cells_[i-1][j].filled){
-            int ii = i-1;
-            float run = (float)(ii-i)*res_;
-            cells_[i][j].slope_x = (cells_[i][j].high - cells_[ii][j].high)/run;
-            if (cells_[i][j].slope_x>thresh_){
-              cells_[ii][j].obstacle = true;
-            }
-            else if (cells_[i][j].slope_x<-thresh_){
-              cells_[i][j].obstacle = true;
-            }
-          }
-
-          if (cells_[i][j+1].filled){
-            int jj = j+1;;
-            float run = (float)(jj-j)*res_;
-            cells_[i][j].slope_y = (cells_[i][jj].high - cells_[i][j].high)/run;
-            if (cells_[i][j].slope_y>thresh_){
-              cells_[i][jj].obstacle = true;
-            }
-            else if (cells_[i][j].slope_y<-thresh_){
-              cells_[i][j].obstacle = true;
-            }
-          }
-          if (cells_[i][j-1].filled){
-            int jj = j-1;
-            float run = (float)(jj-j)*res_;
-            cells_[i][j].slope_y = (cells_[i][j].high - cells_[i][jj].high)/run;
-            if (cells_[i][j].slope_y>thresh_){
-              cells_[i][jj].obstacle = true;
-            }
-            else if (cells_[i][j].slope_y<-thresh_){
-              cells_[i][j].obstacle = true;
-            }
-          }
-        */
       } // if cell filled
     } //over j
   } //over i
@@ -152,10 +118,8 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
             cell.dilated_val = std::max(grid_val, cell.dilated_val);
           }
         }
-
       }
     }
-
   }
 
 
