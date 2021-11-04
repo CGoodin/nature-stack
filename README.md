@@ -31,7 +31,7 @@ __Build package:__
 colcon build --merge-install --event-handlers console_cohesion+ --packages-select avt_341
  
 # On Linux
-colcon build --event-handlers console_cohesion+ --packages-select avt_341 
+colcon build --event-handlers console_cohesion+ --packages-select avt_341
 ```
 __To test the installation, source the build repository and launch:__
 ```bash
