@@ -112,11 +112,6 @@ public:
 	 */ 
 	void SetPathAdherenceWeight(float w){ w_r_ = w; }
 
-	float GetComfortabilityWeight() const { return w_c_; }
-	float GetStaticSafetyWeight() const { return w_s_; }
-	float GetDynamicSafetyWeight() const { return w_d_; }
-	float GetPathAdherenceWeight() const { return w_r_; }
-
 	/**
 	 * Sets wether or not to use blending during local planning. 
 	 * Blending will blend cost of i'th candidate trajectory based on adjacent candidate paths within vehicle width.
