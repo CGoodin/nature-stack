@@ -18,7 +18,7 @@ std::vector<avt_341::msg::Odometry> current_pose_list;
 bool use_registered = true;
 float overhead_clearance = 100.0f;
 double time_register_window = 0.02;
-bool cull_lidar_points = true;
+bool cull_lidar_points = false;
 float cull_lidar_points_dist_sqr = 10000.0f;
 
 double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose, const avt_341::msg::Point32& point)
@@ -26,8 +26,18 @@ double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose
 	double dx = odom_pose.x - point.x;
 	double dy = odom_pose.y - point.y;
 	double dz = odom_pose.z - point.z;
-	
 	return dx*dx + dy*dy + dz*dz;
+}
+
+void GetPoseToUse(avt_341::msg::Odometry & pose_to_use, avt_341::msg::PointCloud2Ptr rcv_cloud){
+  double dt = 1.0;
+  for (int i=0;i<current_pose_list.size();i++){
+    double dt_this = fabs(avt_341::node::seconds_from_header(current_pose_list[i].header) - avt_341::node::seconds_from_header(rcv_cloud->header));
+    if (dt_this<dt){
+      pose_to_use = current_pose_list[i];
+      dt = dt_this;
+    }
+  }
 }
 
 void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
@@ -43,28 +53,18 @@ void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 			tp.y = point_cloud.points[p].y;
 			tp.z = point_cloud.points[p].z;
 			if ( !(tp.x==0.0 && tp.y==0.0) && !std::isnan(tp.x) && (tp.z-current_pose.pose.pose.position.z)<overhead_clearance ){
-				
-				bool not_cull_point = true;
-				
+
 				if (cull_lidar_points)
 				{
-					double dt = 1.0;
 					avt_341::msg::Odometry pose_to_use;
-					for (int i=0;i<current_pose_list.size();i++){
-						double dt_this = fabs(avt_341::node::seconds_from_header(current_pose_list[i].header) - avt_341::node::seconds_from_header(rcv_cloud->header));
-						if (dt_this<dt){
-							pose_to_use = current_pose_list[i];
-							dt = dt_this;
-						}		
+					GetPoseToUse(pose_to_use, rcv_cloud);
+					if(CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr){
+						points.push_back(tp);	
 					}
-					
-					not_cull_point = (CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr); 
-				}
-				
-				if (not_cull_point)
-				{
+				}else{
 					points.push_back(tp);
 				}
+				
 			}
 		}
 		point_cloud.points.clear();
@@ -80,13 +80,7 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
   bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
 	double dt = 1.0;
 	avt_341::msg::Odometry pose_to_use;
-	for (int i=0;i<current_pose_list.size();i++){
-    double dt_this = fabs(avt_341::node::seconds_from_header(current_pose_list[i].header) - avt_341::node::seconds_from_header(rcv_cloud->header));
-		if (dt_this<dt){
-			pose_to_use = current_pose_list[i];
-			dt = dt_this;
-		}
-	}
+	GetPoseToUse(pose_to_use, rcv_cloud);
 	if (converted && fabs(dt)<time_register_window && odom_rcvd){
     avt_341::msg_tf::Quaternion q(pose_to_use.pose.pose.orientation.x, pose_to_use.pose.pose.orientation.y, pose_to_use.pose.pose.orientation.z, current_pose.pose.pose.orientation.w);
     avt_341::msg_tf::Matrix3x3 R(q);
@@ -102,9 +96,8 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 				tp.x = vp.x();
 				tp.y = vp.y();
 				tp.z = vp.z();
-				if ( (tp.z-current_pose.pose.pose.position.z)<overhead_clearance && 
-						(CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr))
-				{
+				if ( (tp.z-current_pose.pose.pose.position.z)<overhead_clearance &&
+             		(!cull_lidar_points || CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr)){
 					points.push_back(tp);
 				}
 				
@@ -147,27 +140,36 @@ int main(int argc, char *argv[]) {
     n->get_parameter("~grid_height", grid_height, 200.0f);
     grid.SetSize(grid_width,grid_height);
 
-    float grid_res, grid_llx, grid_lly, warmup_time, thresh;
-    bool use_elevation;
+    float grid_res, grid_llx, grid_lly, warmup_time, thresh, grid_dilate_x, grid_dilate_y, grid_dilate_proportion;
+    bool use_elevation, grid_dilate;
     std::string display;
 
     n->get_parameter("~grid_res", grid_res, 1.0f);
     n->get_parameter("~grid_llx", grid_llx, -100.0f);
     n->get_parameter("~grid_lly", grid_lly, -100.0f);
-	n->get_parameter("~time_register_window", time_register_window, 0.02);
+		n->get_parameter("~time_register_window", time_register_window, 0.02);
     n->get_parameter("~warmup_time", warmup_time, 1.0f);
     n->get_parameter("~slope_threshold", thresh, 1.0f);
     n->get_parameter("~use_elevation", use_elevation, false);
     n->get_parameter("~use_registered", use_registered, true);
+    n->get_parameter("~grid_dilate", grid_dilate, true);
+    n->get_parameter("~grid_dilate_x", grid_dilate_x, 2.0f);
+    n->get_parameter("~grid_dilate_y", grid_dilate_y, 2.0f);
+    n->get_parameter("~grid_dilate_proportion", grid_dilate_proportion, 0.8f);
     n->get_parameter("~overhead_clearance", overhead_clearance, 100.0f);
     n->get_parameter("~display", display, std::string("image"));
-	
-	float cull_lidar_points_dist;
-	n->get_parameter("~cull_lidar_points", cull_lidar_points, true);
-	n->get_parameter("~cull_lidar_points_dist", cull_lidar_points_dist, 100.0f);
-	cull_lidar_points_dist_sqr = cull_lidar_points_dist * cull_lidar_points_dist;
-	
-    bool use_rviz = display == "rviz";
+		bool stitch_points;
+		n->get_parameter("~stitch_lidar_points", stitch_points, true);
+		bool filter_highest_lidar;
+		n->get_parameter("~filter_highest_lidar", filter_highest_lidar, false);
+    float cull_lidar_points_dist;
+    n->get_parameter("~cull_lidar", cull_lidar_points, false);
+    n->get_parameter("~cull_lidar_dist", cull_lidar_points_dist, 100.0f);
+    std::cout << cull_lidar_points << " " << cull_lidar_points_dist << std::endl;
+    cull_lidar_points_dist_sqr = cull_lidar_points_dist * cull_lidar_points_dist;
+
+
+  bool use_rviz = display == "rviz";
     std::shared_ptr<avt_341::node::Publisher<avt_341::msg::OccupancyGrid>> grid_pub_vis;
     if(use_rviz){
       grid_pub_vis = n->create_publisher<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid_vis", 1);
@@ -176,7 +178,11 @@ int main(int argc, char *argv[]) {
 	grid.SetSlopeThreshold(thresh);
 	grid.SetRes(grid_res);
 	grid.SetCorner(grid_llx,grid_lly);
-	
+	grid.SetUseElevation(use_elevation);
+	grid.SetDilation(grid_dilate, grid_dilate_x, grid_dilate_y, grid_dilate_proportion);
+	grid.SetStitchPoints(stitch_points);
+	grid.SetFilterHighest(filter_highest_lidar);
+
 	double start_time = n->get_now_seconds();
 	avt_341::node::Rate rate(100.0);
   int nloops = 0;
@@ -184,19 +190,14 @@ int main(int argc, char *argv[]) {
 		double elapsed_time = (n->get_now_seconds()-start_time);
 		if (grid_created && elapsed_time > warmup_time) {
 			avt_341::msg::OccupancyGrid grd;
-			if (use_elevation){
-				grd = grid.GetGrid("elevation");
-			}  
-			else {
-				grd = grid.GetGrid("slope");
-			}
+      		grd = grid.GetGrid();
       grd.header.stamp = n->get_stamp();
 			grid_pub->publish(grd);
 
 			if(use_rviz && nloops % 10 == 0){
-        avt_341::msg::OccupancyGrid grd_vis = grid.GetGrid(use_elevation ? "elevation" : "slope", true);
-        grd_vis.header.stamp = n->get_stamp();
-        grid_pub_vis->publish(grd_vis);
+				avt_341::msg::OccupancyGrid grd_vis = grid.GetGrid( true);
+				grd_vis.header.stamp = n->get_stamp();
+				grid_pub_vis->publish(grd_vis);
 			}
       nloops++;
 

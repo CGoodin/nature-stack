@@ -1,5 +1,4 @@
 #include "avt_341/control/pure_pursuit_controller.h"
-#include "avt_341/avt_341_utils.h"
 
 namespace avt_341 {
 namespace control{
@@ -7,19 +6,20 @@ namespace control{
 PurePursuitController::PurePursuitController() {
 	//default wheelbase and steer angle
 	// set to MRZR values
-	wheelbase_ = 2.731; // meters
-	max_steering_angle_ = 0.69; //39.5 degrees
-	max_stable_speed_ = 35.0; //5.0;
+	wheelbase_ = 2.731f; // meters
+	max_steering_angle_ = 0.69f; //39.5 degrees
+	max_stable_speed_ = 35.0f; //5.0;
 
 	// tunable parameters
-	min_lookahead_ = 2.0;
-	max_lookahead_ = 25.0;
-	k_ = 2.0; //0.5;
+	min_lookahead_ = 2.0f;
+	max_lookahead_ = 25.0f;
+	k_ = 2.0f; //0.5;
+	throttle_coeff_ = 1.0f;
 
 	//vehicle state parameters
-	veh_x_ = 0.0;
-	veh_y_ = 0.0;
-	veh_speed_ = 0.0;
+	veh_x_ = 0.0f;
+	veh_y_ = 0.0f;
+	veh_speed_ = 0.0f;
 	vx_ = 0.0f;
 	vy_ = 0.0f;
 }
@@ -34,7 +34,7 @@ void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
 	veh_heading_ = utils::GetHeadingFromOrientation(state.pose.pose.orientation);
 }
 
-avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj) {
+avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj, utils::vec2 & goal) {
 	//initialize the driving command
     avt_341::msg::Twist dc;
 	dc.linear.x = 0.0;
@@ -75,7 +75,7 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 		}
 	}
 
-	utils::vec2 goal = path[start_seg];
+	goal = path[start_seg];
 	float target_speed = desired_speed_;
 	if (closest < lookahead) {
 		//find point on path at lookahead distance away
@@ -127,6 +127,9 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 		dc.linear.y = 0.0f;
 		dc.linear.x = std::min(1.0f, throttle);
 	}
+
+	dc.linear.x = throttle_coeff_*dc.linear.x;
+
 	return dc;
 }
 

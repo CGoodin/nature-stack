@@ -21,6 +21,7 @@
 
 #include "avt_341/control/pid_controller.h"
 #include "avt_341/node/ros_types.h"
+#include "avt_341/avt_341_utils.h"
 
 namespace avt_341 {
 namespace control{
@@ -36,7 +37,7 @@ public:
 	* vehicle state.
 	* \param traj The desired trajectory
 	*/
-	avt_341::msg::Twist GetDcFromTraj(avt_341::msg::Path traj);
+	avt_341::msg::Twist GetDcFromTraj(avt_341::msg::Path traj, utils::vec2 & goal);
 
 	/**
 	* Set the wheelbase of the vehicle in meters
@@ -128,6 +129,8 @@ public:
 	 */
 	void SetVehicleState(avt_341::msg::Odometry state);
 
+	void SetThrottleCoeff(float tc){ throttle_coeff_ = tc; }
+
 private:
 	float wheelbase_; //meters
 	float max_steering_angle_; //radians
@@ -136,6 +139,7 @@ private:
 	float k_; //unitless
 	float desired_speed_; // m/s
 	float max_stable_speed_;
+	float throttle_coeff_;
 	PidController speed_controller_;
 
 	//current vehicle state info

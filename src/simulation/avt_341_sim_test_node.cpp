@@ -53,8 +53,11 @@ int main(int argc, char **argv){
 	std::vector<avt_341::utils::vec3> points {
 	  avt_341::utils::vec3(50.0, 0.0, 0.0),
     avt_341::utils::vec3(15.1, 7.8, 5.0),
+    avt_341::utils::vec3(15.1, 7.8, 1.0),
     avt_341::utils::vec3(14.5, 8.5, 7.0),
-    avt_341::utils::vec3(14.6, 8.2, 4.5)
+    avt_341::utils::vec3(14.5, 8.5, 1.0),
+    avt_341::utils::vec3(14.6, 8.2, 4.5),
+    avt_341::utils::vec3(14.6, 8.2, 1.5)
 	};
   avt_341::perception::PointCloudGenerator::toROSMsg(points, pc2);
   pc2.header.frame_id = "odom";

@@ -56,8 +56,8 @@ int main(int argc, char *argv[]){
   // planner params
   float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
   int dilation_factor, num_paths;
-  float w_c, w_d, w_s, w_r, cost_vis_text_size;
-  bool trim_path, use_global_path;
+  float w_c, w_d, w_s, w_r, cost_vis_text_size, ignore_coll_before_dist;
+  bool trim_path, use_global_path, use_blend;
   std::string display, cost_vis;
 
   n->get_parameter("~path_look_ahead", path_look_ahead, 15.0f);
@@ -72,8 +72,10 @@ int main(int argc, char *argv[]){
   n->get_parameter("~w_s", w_s, 0.2f);
   n->get_parameter("~w_r", w_r, 0.4f);
   n->get_parameter("~rate", rate, 50.0f);
+  n->get_parameter("~ignore_coll_before_dist", ignore_coll_before_dist, 0.0f);
   n->get_parameter("~trim_path", trim_path, false);
   n->get_parameter("~use_global_path", use_global_path, false);
+  n->get_parameter("~use_blend", use_blend, true);
   n->get_parameter("~cost_vis", cost_vis, std::string("final"));
   n->get_parameter("~cost_vis_text_size", cost_vis_text_size, 2.0f);
   n->get_parameter("~display", display, avt_341::visualization::default_display);
@@ -83,11 +85,13 @@ int main(int argc, char *argv[]){
   planner.SetDynamicSafetyWeight(w_d);
   planner.SetStaticSafetyWeight(w_s);
   planner.SetPathAdherenceWeight(w_r);
+  planner.SetUseBlend(use_blend);
+  planner.SetIgnoreCollBeforeDist(ignore_coll_before_dist);
 
   std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, cost_vis, n,
-                                                                      planner.GetComfortabilityWeight(), planner.GetStaticSafetyWeight(),
-                                                                      planner.GetPathAdherenceWeight(), planner.GetDynamicSafetyWeight(),
-                                                                      cost_vis_text_size);
+                                                                                                          planner.GetComfortabilityWeight(), planner.GetStaticSafetyWeight(),
+                                                                                                          planner.GetPathAdherenceWeight(), planner.GetDynamicSafetyWeight(),
+                                                                                                          cost_vis_text_size);
 
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;
@@ -109,10 +113,10 @@ int main(int argc, char *argv[]){
           avt_341::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
           path_points.push_back(point);
         }
+        
       }
-
       avt_341::planning::Path path;
-      if (trim_path ){
+      if (trim_path && use_global_path ){
         avt_341::utils::vec2 current_pos(odom.pose.pose.position.x, odom.pose.pose.position.y);
         path.Init(path_points, current_pos, 1.5f * path_look_ahead);
       }
@@ -184,7 +188,8 @@ int main(int argc, char *argv[]){
           local_path.poses.push_back(pose);
           s0 += output_path_step;
         }
-        local_path.header.frame_id = "odom";
+        //local_path.header.frame_id = "odom";
+        local_path.header.frame_id = "map";
         local_path.header.stamp = n->get_stamp();
         avt_341::node::set_seq(local_path.header, loop_count);
         path_pub->publish(local_path);
@@ -194,7 +199,8 @@ int main(int argc, char *argv[]){
         avt_341::msg::PoseStamped pose;
         pose.pose = odom.pose.pose;
         local_path.poses.push_back(pose);
-        local_path.header.frame_id = "odom";
+        //local_path.header.frame_id = "odom";
+        local_path.header.frame_id = "map";
         local_path.header.stamp = n->get_stamp();
         avt_341::node::set_seq(local_path.header, loop_count);
         path_pub->publish(local_path);

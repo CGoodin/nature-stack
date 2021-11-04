@@ -49,6 +49,8 @@ int main(int argc, char *argv[])
 
   auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/global_path", 10);
   auto waypoint_pub = n->create_publisher<avt_341::msg::Path>("avt_341/waypoints", 10);
+  auto current_waypoint_pub = n->create_publisher<avt_341::msg::Int32>("avt_341/current_waypoint", 10);
+  auto dist_to_current_waypoint_pub = n->create_publisher<avt_341::msg::Float64>("avt_341/distance_to_current_waypoint", 10);
   auto odometry_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry", 10, OdometryCallback);
   auto map_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid", 10, MapCallback);
   auto waypoint_sub = n->create_subscription<avt_341::msg::Path>("avt_341/new_waypoints", 10, WaypointCallback);
@@ -98,7 +100,8 @@ int main(int argc, char *argv[])
   {
     //nav_msgs::Path loaded_waypoints;
     current_waypoints.poses.clear();
-    current_waypoints.header.frame_id = "odom";
+    //current_waypoints.header.frame_id = "odom";
+    current_waypoints.header.frame_id = "map";
     for (int32_t i=0;i<num_waypoints;i++){
       avt_341::msg::PoseStamped pose;
       pose.pose.position.x = static_cast<float>(waypoints_x_list[i]);
@@ -145,7 +148,8 @@ int main(int argc, char *argv[])
       std::vector<std::vector<float>> path = astar_planner.PlanPath(&current_grid, goal, pos);
 
       avt_341::msg::Path ros_path;
-      ros_path.header.frame_id = "odom";
+      //ros_path.header.frame_id = "odom";
+      ros_path.header.frame_id = "map";
       ros_path.poses.clear();
       for (int32_t i = 0; i < path.size(); i++){
         avt_341::msg::PoseStamped pose;
@@ -192,6 +196,12 @@ int main(int argc, char *argv[])
       float dx = goal[0] - odom.pose.pose.position.x;
       float dy = goal[1] - odom.pose.pose.position.y;
       double d = sqrt(dx * dx + dy * dy);
+      avt_341::msg::Float64 dist_to_goal;
+      dist_to_goal.data = d;
+      avt_341::msg::Int32 curr_wp;
+      curr_wp.data = current_waypoint;
+      current_waypoint_pub->publish(curr_wp);
+      dist_to_current_waypoint_pub->publish(dist_to_goal);
       if (nl % 100 == 0){ //update every 2 seconds
         std::cout << "Distance to goal " << goal[0] << ", " << goal[1] << " = " << d << std::endl;
       }
