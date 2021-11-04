@@ -23,7 +23,7 @@ def generate_launch_description():
         'waypoints.yaml'
     )
     avt_341_dir = get_package_share_directory('avt_341')
-    included_launch = launch.actions.IncludeLaunchDescription(
+    base_launch = launch.actions.IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(avt_341_dir, 'launch', 'base.launch.py')),
         launch_arguments={'waypoints_file': waypoints_file,
                           'robot_description': robot_desc,
@@ -40,7 +40,7 @@ def generate_launch_description():
             output='screen',
             parameters=[{'use_sim_time': False}],
         ),
-        included_launch
+        base_launch
     ])
 
     return launch_description

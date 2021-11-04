@@ -1,4 +1,2 @@
-avt_341_global_path_node:
-  ros__parameters:
-    /waypoints_x: [ -50.0, 0.0, 50.0 ]
-    /waypoints_y: [ 0.0, 0.0, 0.0 ]
+waypoints_x: [ -50.0, 0.0, 50.0 ]
+waypoints_y: [ 0.0, 0.0, 0.0 ]

@@ -6,6 +6,24 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch.actions import OpaqueFunction
+
+
+def evaluate_waypoint_parameters(context, *args, **kwargs):
+    waypoints_file_path = LaunchConfiguration('waypoints_file').perform(context)
+    waypoints_x = "[ ]"
+    waypoints_y = "[ ]"
+    with open(waypoints_file_path, 'r') as f:
+        for line in f.readlines():
+            if "waypoints_x" in line:
+                waypoints_x = line.split(":")[1]
+            if "waypoints_y" in line:
+                waypoints_y = line.split(":")[1]
+
+    return [
+        DeclareLaunchArgument('waypoints_x', description="List of waypoint x coordinates. Will override waypoints_file is specified.", default_value=waypoints_x),
+        DeclareLaunchArgument('waypoints_y', description="List of waypoint y coordinates. Will override waypoints_file is specified.", default_value=waypoints_y),
+    ]
 
 
 def generate_launch_description():
@@ -22,7 +40,7 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('auto_launch_rviz', default_value='True', description="Automatically launch rviz display window"),
         DeclareLaunchArgument('display_type', default_value='rviz', description="Type of display method to use. Values = [rviz, image]"),
-        DeclareLaunchArgument('waypoints_file', description="Path to waypoint file to use"),
+        DeclareLaunchArgument('waypoints_file', default_value=os.path.join(get_package_share_directory('avt_341'), 'config', 'no_waypoints.yaml'), description="Path to waypoint file to use"),
         DeclareLaunchArgument('robot_description', description="URDF robot description contents"),
 
         # Elevation Grid
@@ -68,6 +86,8 @@ def generate_launch_description():
         DeclareLaunchArgument('steering_coefficient', default_value='4.5', description="Pure pursuit controller - steering coefficient."),
         DeclareLaunchArgument('vehicle_speed', default_value='5.0', description="Pure pursuit controller - vehicle_speed m/s."),
         DeclareLaunchArgument('throttle_coefficient', default_value='0.5', description="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive"),
+
+        OpaqueFunction(function=evaluate_waypoint_parameters),
 
         Node(
             package='robot_state_publisher',
@@ -134,8 +154,10 @@ def generate_launch_description():
                 'goal_dist': launch.substitutions.LaunchConfiguration('goal_dist'),
                 'global_lookahead': 75.0,
                 'shutdown_behavior': 2,
-                'display': display_type
-            }, waypoints_file],
+                'display': display_type,
+                '/waypoints_x': launch.substitutions.LaunchConfiguration('waypoints_x'),
+                '/waypoints_y': launch.substitutions.LaunchConfiguration('waypoints_y'),
+            }],
         ),
         Node(
             package='avt_341',
