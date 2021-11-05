@@ -47,8 +47,11 @@
     <param name="vehicle_wheelbase" value="2.72" />
     <param name="vehicle_max_steer_angle_degrees" value="35.0" />
     <param name="steering_coefficient" value="4.5" />
-    <param name="throttle_coefficient" value="0.5" />
+    <param name="throttle_coefficient" value="1.0" />
     <param name="vehicle_speed" value="5.0" />
+    <param name="throttle_kp" value="0.09" />
+    <param name="throttle_ki" value="0.01" />
+    <param name="throttle_kd" value="0.16" />
   </node>
 
 <!--
