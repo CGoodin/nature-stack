@@ -117,6 +117,7 @@ int main(int argc, char *argv[])
     goal[0] = waypoints_x_list[0];
     goal[1] = waypoints_y_list[0];
     state.data = 0; // go active
+    state_pub->publish(state);
   }
 
   auto visualizer = avt_341::visualization::create_visualizer(display_type);
@@ -138,6 +139,7 @@ int main(int argc, char *argv[])
       std::cout << "New waypoints! Updated goal " << goal[0] << ", " << goal[1] << std::endl;
       waypoints_rcvd = false;
       state.data = 0;  // go active
+      state_pub->publish(state);
     }
 
     if (odom_rcvd && state.data != -1){ // data received and not in startup mode
