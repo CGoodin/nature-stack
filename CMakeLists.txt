@@ -69,6 +69,14 @@ target_link_libraries(avt_341_perception_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(avt_341_map_publisher_node 
+src/perception/avt_341_map_publisher_node.cpp 
+src/node/node_proxy.cpp
+)
+target_link_libraries(avt_341_map_publisher_node
+  ${catkin_LIBRARIES}
+)
+
 add_executable(avt_341_control_node 
   src/control/avt_341_control_node.cpp 
   src/control/pure_pursuit_controller.cpp
@@ -149,6 +157,7 @@ catkin_package(INCLUDE_DIRS include
 
 install(TARGETS 
 avt_341_perception_node
+avt_341_map_publisher_node
 avt_341_control_node
 avt_341_local_planner_node
 avt_341_global_path_node
