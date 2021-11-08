@@ -17,6 +17,12 @@ if($ENV{ROS_DISTRO} STREQUAL "noetic")
     pcl_ros
     std_msgs
     tf
+     tf2
+  tf2_ros
+  tf2_msgs
+  tf2_sensor_msgs
+  geometry_msgs
+  sensor_msgs
   )
 else()
   find_package(catkin REQUIRED COMPONENTS
@@ -74,6 +80,14 @@ src/perception/avt_341_map_publisher_node.cpp
 src/node/node_proxy.cpp
 )
 target_link_libraries(avt_341_map_publisher_node
+  ${catkin_LIBRARIES}
+)
+
+add_executable(avt_341_merge_pc_node 
+src/perception/avt_341_merge_pc_node.cpp 
+src/node/node_proxy.cpp
+)
+target_link_libraries(avt_341_merge_pc_node
   ${catkin_LIBRARIES}
 )
 
@@ -158,6 +172,7 @@ catkin_package(INCLUDE_DIRS include
 install(TARGETS 
 avt_341_perception_node
 avt_341_map_publisher_node
+avt_341_merge_pc_node
 avt_341_control_node
 avt_341_local_planner_node
 avt_341_global_path_node

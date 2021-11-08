@@ -26,19 +26,23 @@
   <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
 
   <!-- Lidar perception algorithms  -->
-  <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
+ <node name="cloud_merge_node" pkg="avt_341" type="avt_341_merge_pc_node" required="true" output="screen">
+
+ </node>
+ <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
     <param name="use_elevation" value="false" />
     <param name="slope_threshold" value="2.5" />
-    <param name="grid_height" value="120.0" />
-    <param name="grid_width" value="120.0" />
+    <param name="grid_height" value="150.0" />
+    <param name="grid_width" value="150.0" />
     <param name="stitch_lidar_points" value="true"/>
     <param name="filter_highest_lidar" value="false"/>
     <param name="time_register_window" value="0.015" />
-    <param name="grid_llx" value="-60.0" />
-    <param name="grid_lly" value="-60.0" />
+    <param name="lidar_blanking_dist" value="3.0" />
+    <param name="grid_llx" value="-75.0" />
+    <param name="grid_lly" value="-75.0" />
     <param name="grid_res" value="0.25" />
     <param name="overhead_clearance" value="7.0" />
-    <param name="warmup_time" value="5.0" />
+    <param name="warmup_time" value="20.0" />
     <param name="use_registered" value="true" />
     <param name="display" value="$(arg display)" />
   </node>
@@ -88,7 +92,7 @@
 
   <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
     <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
-    <arg name="point_cloud_topic_arg" default="avt_341/points" />
+    <arg name="point_cloud_topic_arg" default="avt_341/top_lidar" />
     <arg name="odometry_topic_arg" default="avt_341/odometry" />
   </include>
 

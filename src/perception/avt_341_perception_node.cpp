@@ -20,6 +20,7 @@ float overhead_clearance = 100.0f;
 double time_register_window = 0.02;
 bool cull_lidar_points = false;
 float cull_lidar_points_dist_sqr = 10000.0f;
+float lidar_blanking_dist_sqr = 1.0f;
 
 double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose, const avt_341::msg::Point32& point)
 {
@@ -58,7 +59,8 @@ void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 				{
 					avt_341::msg::Odometry pose_to_use;
 					GetPoseToUse(pose_to_use, rcv_cloud);
-					if(CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr){
+					double pd = CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp);
+					if(pd < cull_lidar_points_dist_sqr && pd > lidar_blanking_dist_sqr){
 						points.push_back(tp);	
 					}
 				}else{
@@ -162,12 +164,13 @@ int main(int argc, char *argv[]) {
 		n->get_parameter("~stitch_lidar_points", stitch_points, true);
 		bool filter_highest_lidar;
 		n->get_parameter("~filter_highest_lidar", filter_highest_lidar, false);
-    float cull_lidar_points_dist;
+    float cull_lidar_points_dist, lidar_blanking_dist;
     n->get_parameter("~cull_lidar", cull_lidar_points, false);
     n->get_parameter("~cull_lidar_dist", cull_lidar_points_dist, 100.0f);
-    std::cout << cull_lidar_points << " " << cull_lidar_points_dist << std::endl;
+		n->get_parameter("~lidar_blanking_dist", lidar_blanking_dist, 1.0f);
+    //std::cout << cull_lidar_points << " " << cull_lidar_points_dist << std::endl;
     cull_lidar_points_dist_sqr = cull_lidar_points_dist * cull_lidar_points_dist;
-
+		lidar_blanking_dist_sqr = lidar_blanking_dist*lidar_blanking_dist;
 
   bool use_rviz = display == "rviz";
     std::shared_ptr<avt_341::node::Publisher<avt_341::msg::OccupancyGrid>> grid_pub_vis;
