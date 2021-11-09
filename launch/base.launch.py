@@ -85,7 +85,10 @@ def generate_launch_description():
         DeclareLaunchArgument('vehicle_max_steer_angle_degrees', default_value='30.0', description="Pure pursuit controller - max steer angle in degrees."),
         DeclareLaunchArgument('steering_coefficient', default_value='4.5', description="Pure pursuit controller - steering coefficient."),
         DeclareLaunchArgument('vehicle_speed', default_value='5.0', description="Pure pursuit controller - vehicle_speed m/s."),
-        DeclareLaunchArgument('throttle_coefficient', default_value='0.5', description="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive"),
+        DeclareLaunchArgument('throttle_coefficient', default_value='1.0', description="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive"),
+        DeclareLaunchArgument('throttle_kp', default_value='0.09', description="Throttle PID Control - proportional coeff for the PID speed controller"),
+        DeclareLaunchArgument('throttle_ki', default_value='0.01', description="Throttle PID Control - integral coeff for the PID speed controller"),
+        DeclareLaunchArgument('throttle_kd', default_value='0.16', description="Throttle PID Control - derivative coeff for the PID speed controller"),
 
         OpaqueFunction(function=evaluate_waypoint_parameters),
 
@@ -143,6 +146,9 @@ def generate_launch_description():
                 'steering_coefficient': launch.substitutions.LaunchConfiguration('steering_coefficient'),
                 'vehicle_speed': launch.substitutions.LaunchConfiguration('vehicle_speed'),
                 'throttle_coefficient': launch.substitutions.LaunchConfiguration('throttle_coefficient'),
+                'throttle_kp': launch.substitutions.LaunchConfiguration('throttle_kp'),
+                'throttle_ki': launch.substitutions.LaunchConfiguration('throttle_ki'),
+                'throttle_kd': launch.substitutions.LaunchConfiguration('throttle_kd'),
             }],
         ),
         Node(

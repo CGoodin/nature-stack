@@ -42,6 +42,15 @@ add_executable(avt_341_perception_node
         )
 ament_target_dependencies(avt_341_perception_node ${dependencies})
 
+add_executable(avt_341_map_publisher_node
+        src/perception/avt_341_map_publisher_node.cpp
+        src/node/node_proxy.cpp
+        )
+ament_target_dependencies(avt_341_map_publisher_node
+        ${dependencies}
+        )
+
+
 add_executable(avt_341_control_node
         src/control/avt_341_control_node.cpp
         src/control/pure_pursuit_controller.cpp
@@ -98,6 +107,7 @@ install(DIRECTORY
 
 install(TARGETS
         avt_341_perception_node
+        avt_341_map_publisher_node
         avt_341_control_node
         avt_341_local_planner_node
         avt_341_global_path_node
