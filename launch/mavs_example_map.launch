@@ -6,6 +6,8 @@
 
   <rosparam file="$(find avt_341)/config/waypoints.yaml" />
 
+  <rosparam file="$(find avt_341)/config/map_obstacles.yaml" />
+
   <param name="robot_description" command="cat $(find avt_341)/config/avt_bot.urdf" />
 
 
@@ -26,20 +28,12 @@
   <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
 
   <!-- Lidar perception algorithms  -->
-  <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
-    <param name="use_elevation" value="false" />
-    <param name="slope_threshold" value="2.5" />
+  <node name="perception_node" pkg="avt_341" type="avt_341_map_publisher_node" required="true" output="screen">
     <param name="grid_height" value="120.0" />
     <param name="grid_width" value="120.0" />
-    <param name="stitch_lidar_points" value="true"/>
-    <param name="filter_highest_lidar" value="false"/>
-    <param name="time_register_window" value="0.015" />
     <param name="grid_llx" value="-60.0" />
     <param name="grid_lly" value="-60.0" />
     <param name="grid_res" value="0.25" />
-    <param name="overhead_clearance" value="7.0" />
-    <param name="warmup_time" value="5.0" />
-    <param name="use_registered" value="true" />
     <param name="display" value="$(arg display)" />
   </node>
 

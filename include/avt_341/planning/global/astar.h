@@ -204,7 +204,7 @@ class Astar {
 	std::vector<std::vector<int> > path_;
 	std::vector<std::vector<float> > path_world_;
 
-  void ExtractPath();
+  bool ExtractPath();
   void PostSmoothing();
   bool LineOfSight(std::vector<int> p0, std::vector<int> p1);
 

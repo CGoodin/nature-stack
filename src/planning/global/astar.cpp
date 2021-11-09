@@ -221,12 +221,13 @@ bool Astar::Solve() {
   delete[] costs;
   delete[] nbrs;
 
-  if (solution_found)ExtractPath();
-  
+  if (solution_found){
+    solution_found = ExtractPath();
+  }
   return solution_found;
 }
 
-void Astar::ExtractPath(){
+bool Astar::ExtractPath(){
   path_.clear();
 	path_world_.clear();
   int path_idx = goal_;
@@ -248,6 +249,8 @@ void Astar::ExtractPath(){
 		smoothed_path.push_back(point);
   }
   
+  if (smoothed_path.size()<=0) return false;
+
   // the smoothed path may have much fewer points. Fill in the missing parts
   std::vector<std::vector<float> > filled_in_path_world;
   for (int i=0;i<smoothed_path.size()-1;i++){
@@ -274,7 +277,7 @@ void Astar::ExtractPath(){
 
   std::reverse(path_.begin(), path_.end());
 	std::reverse(path_world_.begin(), path_world_.end());
-
+  return true;
 }
 
 void Astar::SaveMap(std::string imname){

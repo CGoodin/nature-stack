@@ -48,12 +48,16 @@ int main(int argc, char *argv[]){
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
 	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff;
+  float throttle_kp, throttle_ki, throttle_kd;
 	std::string display;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
   n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
   n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
   n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
+  n->get_parameter("~throttle_kp", throttle_kp, 0.09f);
+  n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
+  n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
   n->get_parameter("~display", display, std::string("none"));
   controller.SetSteeringParam(steering_coeff);
   controller.SetThrottleCoeff(throttle_coeff);
@@ -64,6 +68,7 @@ int main(int argc, char *argv[]){
   controller.SetWheelbase(wheelbase);
 	controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
 	controller.SetDesiredSpeed(vehicle_speed);
+  controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
 
   float rate = 50.0f;
   float dt = 1.0f/rate;
