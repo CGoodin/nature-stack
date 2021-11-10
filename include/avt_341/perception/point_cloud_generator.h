@@ -8,6 +8,7 @@ namespace  avt_341 {
     class PointCloudGenerator {
       public:
         static void toROSMsg(const std::vector<avt_341::utils::vec3> & points, avt_341::msg::PointCloud2 & out_point_cloud);
+        static void toROSMsg(const std::vector<avt_341::utils::vec3> & points, const std::vector<int> & seg_values, avt_341::msg::PointCloud2 & out_point_cloud);
     };
   }
 }

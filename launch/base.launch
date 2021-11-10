@@ -39,6 +39,7 @@
   <arg name="w_s" default="0.4" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
   <arg name="w_d" default="0.0" doc="Local planner - w_d dynamic safety weighting factor"/>
   <arg name="w_r" default="0.2" doc="Local planner - w_r rho (minimize rho offset) weighting factor"/>
+  <arg name="w_t" default="0.0" doc="Local planner - w_t segmentation cost weight"/>
   <arg name="use_global_path" default="true" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints."/>
   <arg name="use_blend" default="true" doc="Local planner - Whether to do blending of path costs based on vehicle width to adjacent paths."/>
   <arg name="cost_vis" default="final" doc="Local planner - What type of cost to display on candidate paths: none | final | components | all"/>
@@ -53,7 +54,7 @@
   <arg name="throttle_coefficient" default="1.0" doc="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive" />
   <arg name="throttle_kp" default="0.09" doc="Proportional coeff for the PID speed controller" />
   <arg name="throttle_ki" default="0.01" doc="Integral coeff for the PID speed controller" />
-  <arg name="throttle_kp" default="0.16" doc="Derivative coeff for the PID speed controller" />
+  <arg name="throttle_kd" default="0.16" doc="Derivative coeff for the PID speed controller" />
 
   <rosparam file="$(arg waypoints_file)" />
   <param name="robot_description" command="cat $(arg robot_description_file)" />
@@ -129,6 +130,7 @@
     <param name="w_s" value="$(arg w_s)" />
     <param name="w_d" value="$(arg w_d)" />
     <param name="w_r" value="$(arg w_r)" />
+    <param name="w_t" value="$(arg w_t)" />
     <param name="rate" value="50.0" />
     <param name="trim_path" value="true" />
     <param name="use_global_path" value="$(arg use_global_path)" />

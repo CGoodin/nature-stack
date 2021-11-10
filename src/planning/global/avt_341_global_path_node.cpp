@@ -20,6 +20,7 @@
 avt_341::msg::Odometry odom;
 bool odom_rcvd = false;
 avt_341::msg::OccupancyGrid current_grid;
+avt_341::msg::OccupancyGrid segmentation_grid;
 avt_341::msg::Path current_waypoints;
 bool waypoints_rcvd = false;
 
@@ -32,6 +33,10 @@ void OdometryCallback(avt_341::msg::OdometryPtr rcv_odom)
 void MapCallback(avt_341::msg::OccupancyGridPtr rcv_grid)
 {
   current_grid = *rcv_grid;
+}
+
+void SegmentationMapCallback(avt_341::msg::OccupancyGridPtr rcv_grid){
+    segmentation_grid = *rcv_grid;
 }
 
 void WaypointCallback(avt_341::msg::PathPtr rcv_waypoints)
@@ -53,6 +58,7 @@ int main(int argc, char *argv[])
   auto dist_to_current_waypoint_pub = n->create_publisher<avt_341::msg::Float64>("avt_341/distance_to_current_waypoint", 10);
   auto odometry_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry", 10, OdometryCallback);
   auto map_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid", 10, MapCallback);
+  auto segmentation_map_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/segmentation_grid", 10, SegmentationMapCallback);
   auto waypoint_sub = n->create_subscription<avt_341::msg::Path>("avt_341/new_waypoints", 10, WaypointCallback);
 
   // ctg, 8-19-2021
@@ -147,7 +153,7 @@ int main(int argc, char *argv[])
       pos.push_back(odom.pose.pose.position.x);
       pos.push_back(odom.pose.pose.position.y);
 
-      std::vector<std::vector<float>> path = astar_planner.PlanPath(&current_grid, goal, pos);
+      std::vector<std::vector<float>> path = astar_planner.PlanPath(&current_grid, &segmentation_grid, goal, pos);
 
       avt_341::msg::Path ros_path;
       //ros_path.header.frame_id = "odom";
