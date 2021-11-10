@@ -105,10 +105,12 @@ namespace avt_341 {
             float c = w_c_ * curves_[j].GetComfortability();
             float r = w_r_ * curves_[j].GetRhoCost();
             float d = w_d_ * curves_[j].GetDynamicSafety();
+            float t = curves_[j].GetSegmentationCost();
             if(s > 1e-3) out << " s: " << s;
             if(c > 1e-3) out << " c: " << c;
             if(r > 1e-3) out << " r: " << r;
             if(d > 1e-3) out << " d: " << d;
+            if(t > 1e-3) out << " t: " << t;
           }
           text_marker.text = out.str();
 

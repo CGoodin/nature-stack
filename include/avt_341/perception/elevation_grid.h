@@ -31,6 +31,7 @@ struct Cell{
     bool obstacle = false;
     bool has_dilated = false;
     uint8_t dilated_val = 0;
+    float terrain = 0.0f;
 };
 
 class ElevationGrid{
@@ -46,6 +47,8 @@ class ElevationGrid{
      * \param point_cloud PointCloud message
      */
     std::vector<avt_341::msg::Point32> AddPoints(avt_341::msg::PointCloud &point_cloud);
+
+    bool has_segmentation() const { return has_segmentation_; }
 
     void SetSize(float s){
         width_ = s;
@@ -82,7 +85,7 @@ class ElevationGrid{
         dilate_ = use_dil;
     }
 
-    avt_341::msg::OccupancyGrid GetGrid(bool row_major=false);
+    avt_341::msg::OccupancyGrid GetGrid(bool row_major=false, bool is_segmentation=false);
 
     void SetCorner(float llx, float lly){
         llx_ = llx;
@@ -119,6 +122,7 @@ class ElevationGrid{
     bool filter_highest_;
     const uint8_t GRID_MAX_VALUE = 100;
     const float GRID_SLOPE_MULT = 50.0f;
+    bool has_segmentation_ = false;
 };
 
 } // namespace perception

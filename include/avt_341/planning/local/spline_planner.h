@@ -60,7 +60,7 @@ public:
 	 * \param grid ROS occupancy grid.
 	 * \param odom ROS odometry of the current vehicle.
 	 */ 
-	bool CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::Odometry odom);
+	bool CalculateCandidateCosts(const avt_341::msg::OccupancyGrid & grid, const avt_341::msg::OccupancyGrid & segmentation_grid, avt_341::msg::Odometry odom);
 
 	/**
 	 * Dilate the map with a mask of given size.
@@ -140,6 +140,13 @@ public:
 	 */ 
 	void SetConsistencyFactorWeight(float w){ b_= w; }
 
+    /**
+    * Set the weight on the terrain segmentation cost.
+    * Default is w_t = 0.00
+    * \param w Desired weight.
+    */
+    void SetSegmentationFactorWeight(float w){ w_t_ = w; }
+
 	/**
 	 * Set the weight on the curvature factor on the comfortability calculation. 
 	 * Default is a = 0.01
@@ -179,7 +186,7 @@ private:
 	// private methods
 	std::vector<float> CalcCoeffs(float rho_start, float theta_start, float s_end, float rho_end);
 	void CalculateComfortability();
-	void CalculateStaticSafety(avt_341::msg::OccupancyGrid grid);
+	void CalculateStaticSafetyAndSegCost(const avt_341::msg::OccupancyGrid & grid,const avt_341::msg::OccupancyGrid & segmentation_grid);
 	void CalculateRhoCost();
 	void CalculateDynamicSafety(avt_341::msg::Odometry odom);
 	float GetTotalCostOfCandidate(int pathnum);
@@ -205,6 +212,7 @@ private:
 	float w_s_;
 	float w_d_;
 	float w_r_;
+	float w_t_;
 	float alpha_max_; 
 	float k_safe_;
 	float v_curve_;
