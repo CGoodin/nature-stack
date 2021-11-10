@@ -186,7 +186,7 @@ private:
 	// private methods
 	std::vector<float> CalcCoeffs(float rho_start, float theta_start, float s_end, float rho_end);
 	void CalculateComfortability();
-    void CalculateStaticSafetyAndSegCost(const avt_341::msg::OccupancyGrid & grid,const avt_341::msg::OccupancyGrid & segmentation_grid);
+	void CalculateStaticSafetyAndSegCost(const avt_341::msg::OccupancyGrid & grid,const avt_341::msg::OccupancyGrid & segmentation_grid);
 	void CalculateRhoCost();
 	void CalculateDynamicSafety(avt_341::msg::Odometry odom);
 	float GetTotalCostOfCandidate(int pathnum);
@@ -212,7 +212,7 @@ private:
 	float w_s_;
 	float w_d_;
 	float w_r_;
-    float w_t_;
+	float w_t_;
 	float alpha_max_; 
 	float k_safe_;
 	float v_curve_;

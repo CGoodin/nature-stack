@@ -60,7 +60,7 @@ public:
 		comfortability_ = c.comfortability_;
 		static_safety_ = c.static_safety_;
 		dynamic_safety_ = c.dynamic_safety_;
-        segmentation_cost_ = c.segmentation_cost_;
+		segmentation_cost_ = c.segmentation_cost_;
 		rank_ = c.rank_;
 		max_length_ = c.max_length_;
 		max_curvature_ = c.max_curvature_;
@@ -225,7 +225,7 @@ private:
 	float cost_;
 	float comfortability_;
 	float static_safety_;
-    float segmentation_cost_;
+	float segmentation_cost_;
 	float dynamic_safety_;
 	float rho_final_;
 	float max_curvature_;
