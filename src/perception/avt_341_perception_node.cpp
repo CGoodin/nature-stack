@@ -140,7 +140,6 @@ void PointCloudCallback(avt_341::msg::PointCloud2Ptr rcv_cloud){
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_odom){
 	current_pose = *rcv_odom;
-	//std::cout<<"Vehicle positoin = "<<current_pose.pose.pose.position.x<<" "<<current_pose.pose.pose.position.y<<" "<<current_pose.pose.pose.position.z<<std::endl;
 	odom_rcvd = true;
 	current_pose_list.push_back(current_pose);
 	if (current_pose_list.size()>50) current_pose_list.erase(current_pose_list.begin());
@@ -186,7 +185,6 @@ int main(int argc, char *argv[]) {
     float cull_lidar_points_dist;
     n->get_parameter("~cull_lidar", cull_lidar_points, false);
     n->get_parameter("~cull_lidar_dist", cull_lidar_points_dist, 100.0f);
-    std::cout << cull_lidar_points << " " << cull_lidar_points_dist << std::endl;
     cull_lidar_points_dist_sqr = cull_lidar_points_dist * cull_lidar_points_dist;
 
 
