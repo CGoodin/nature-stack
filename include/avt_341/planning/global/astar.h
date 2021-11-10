@@ -55,7 +55,7 @@ class Astar {
 	int GetGridHeight() { return height_; }
 
 	/// Inherited from planner base class.
-	std::vector<std::vector<float> > PlanPath(avt_341::msg::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position);
+	std::vector<std::vector<float> > PlanPath(avt_341::msg::OccupancyGrid *grid, avt_341::msg::OccupancyGrid *segmentation_grid, std::vector<float> goal, std::vector<float> position);
 
   /**
    * Allocate memory for the map and initialize
@@ -69,9 +69,9 @@ class Astar {
    * Set the value of cell (i,j).
    * \param i Vertical index of the cell to set
    * \param j Horizontal index of the cell to set
-   * \param val Value to set, [0,100]
+   * \param val_height Value to set, [0,100]
    */
-  void SetMapValue(int i, int j, int val);
+  void SetMapValue(int i, int j, int val_height, int val_seg);
 
   /**
    * Returns the map value of cell (i,j).

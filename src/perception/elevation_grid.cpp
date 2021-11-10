@@ -46,6 +46,10 @@ void ElevationGrid::ClearGrid(){
 }
 
 std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointCloud &point_cloud){
+
+  bool has_segmentation_local = !point_cloud.channels.empty() && point_cloud.channels[0].name == "segmentation";
+  has_segmentation_ = has_segmentation_local || has_segmentation_;
+
   if (!stitch_points_)ClearGrid();
   // fill the cells with highest and lowest points
   for (int i=0;i<point_cloud.points.size();i++){
@@ -70,6 +74,11 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
           if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
         }
         if (h < cells_[xi][yi].low ) cells_[xi][yi].low = h;
+
+        if (has_segmentation_local){
+          float terr_val = point_cloud.channels[0].values[i];
+          cells_[xi][yi].terrain = fmax(cells_[xi][yi].terrain, terr_val);
+         }
       }
     }
   }
@@ -169,7 +178,7 @@ uint8_t ElevationGrid::GetGridCellValue(const Cell & cell) const{
   return 0;
 }
 
-avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major){
+avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major, bool is_segmentation){
   avt_341::msg::OccupancyGrid grid;
   grid.header.frame_id = "map";
   grid.info.resolution = res_;
@@ -187,13 +196,13 @@ avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major){
   if(row_major){
     for (int j=0;j<ny_;j++){
       for (int i=0;i<nx_;i++){
-        grid.data[c++] = std::max(GetGridCellValue(cells_[i][j]), cells_[i][j].dilated_val);
+        grid.data[c++] = is_segmentation ? (uint8_t)(cells_[i][j].terrain) : std::max(GetGridCellValue(cells_[i][j]), cells_[i][j].dilated_val);
       }
     }
   }else{
     for (int i=0;i<nx_;i++){
       for (int j=0;j<ny_;j++){
-        grid.data[c++] = std::max(GetGridCellValue(cells_[i][j]), cells_[i][j].dilated_val);
+        grid.data[c++] = is_segmentation ? (uint8_t)(cells_[i][j].terrain) : std::max(GetGridCellValue(cells_[i][j]), cells_[i][j].dilated_val);
       }
     }
   }

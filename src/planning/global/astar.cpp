@@ -52,9 +52,9 @@ void Astar::AllocateMap(int h, int w, int init_val){
 	map_.resize(width_, column);
 }
 
-void Astar::SetMapValue(int i, int j, int val){
-  weights_[FlattenIndex(i,j)]=val;
-	map_[i][j] = (float)val;
+void Astar::SetMapValue(int i, int j, int val_height, int val_seg){
+  weights_[FlattenIndex(i,j)]=val_height+val_seg;
+	map_[i][j] = (float)val_height;
 }
 
 bool Astar::LineOfSight(std::vector<int> p0, std::vector<int> p1){
@@ -316,9 +316,10 @@ void Astar::Display(){
   visualizer_->display();
 }
 
-std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *grid, std::vector<float> goal, std::vector<float> position) {
+std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *grid, avt_341::msg::OccupancyGrid *grid_segmentation, std::vector<float> goal, std::vector<float> position) {
 	if (grid->info.height<=0 || grid->info.width<=0) return path_world_;
 
+    bool has_segmentation = grid_segmentation->info.height>0 && grid_segmentation->info.width>0;
   SetCornerCoords(grid->info.origin.position.x, grid->info.origin.position.y);
 	SetMapRes(grid->info.resolution);
 
@@ -342,7 +343,7 @@ std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *gr
   int n =0;
 	for (int i=0;i<width_;i++){
 		for (int j = 0; j < height_; j++) {
-			SetMapValue(i, j, grid->data[n]);
+			SetMapValue(i, j, grid->data[n], has_segmentation ? grid_segmentation->data[n] : 0);
       n++;
 		}
 	}
@@ -363,7 +364,7 @@ std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *gr
     }
     for (int i=1;i<width_-1;i++){
       for (int j = 1; j < height_-1; j++) {
-        SetMapValue(i,j,dmap[i][j]);
+        SetMapValue(i,j,dmap[i][j], has_segmentation ? grid_segmentation->data[FlattenIndex(i,j)] : 0);
       }
     }
   }

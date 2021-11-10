@@ -18,10 +18,12 @@
 
 avt_341::msg::Odometry odom;
 avt_341::msg::OccupancyGrid grid;
+avt_341::msg::OccupancyGrid segmentation_grid;
 avt_341::msg::Path global_path;
 avt_341::msg::Path waypoints;
 bool odom_rcvd = false;
 bool new_grid_rcvd = false;
+bool new_seg_grid_rcvd = false;
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_odom){
   odom = *rcv_odom;
@@ -31,6 +33,11 @@ void OdometryCallback(avt_341::msg::OdometryPtr rcv_odom){
 void GridCallback(avt_341::msg::OccupancyGridPtr rcv_grid){
   grid = *rcv_grid;
   new_grid_rcvd = true;
+}
+
+void SegmentationGridCallback(avt_341::msg::OccupancyGridPtr rcv_grid){
+    segmentation_grid = *rcv_grid;
+    new_seg_grid_rcvd = true;
 }
 
 void PathCallback(avt_341::msg::PathPtr rcv_path){
@@ -49,6 +56,7 @@ int main(int argc, char *argv[]){
   auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/local_path", 10);
   auto odometry_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry", 10, OdometryCallback);
   auto grid_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/occupancy_grid", 10, GridCallback);
+  auto segmentation_grid_sub = n->create_subscription<avt_341::msg::OccupancyGrid>("avt_341/segmentation_grid", 10, SegmentationGridCallback);
   auto path_sub = n->create_subscription<avt_341::msg::Path>("avt_341/global_path", 10, PathCallback);
   auto wp_sub = n->create_subscription<avt_341::msg::Path>("avt_341/waypoints", 10, WaypointCallback);
 
@@ -56,7 +64,7 @@ int main(int argc, char *argv[]){
   // planner params
   float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
   int dilation_factor, num_paths;
-  float w_c, w_d, w_s, w_r, cost_vis_text_size, ignore_coll_before_dist;
+  float w_c, w_d, w_s, w_r, w_t, cost_vis_text_size, ignore_coll_before_dist;
   bool trim_path, use_global_path, use_blend;
   std::string display, cost_vis;
 
@@ -71,6 +79,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~w_d", w_d, 0.2f);
   n->get_parameter("~w_s", w_s, 0.2f);
   n->get_parameter("~w_r", w_r, 0.4f);
+  n->get_parameter("~w_t", w_t, 0.0f);
   n->get_parameter("~rate", rate, 50.0f);
   n->get_parameter("~ignore_coll_before_dist", ignore_coll_before_dist, 0.0f);
   n->get_parameter("~trim_path", trim_path, false);
@@ -85,6 +94,7 @@ int main(int argc, char *argv[]){
   planner.SetDynamicSafetyWeight(w_d);
   planner.SetStaticSafetyWeight(w_s);
   planner.SetPathAdherenceWeight(w_r);
+  planner.SetSegmentationFactorWeight(w_t);
   planner.SetUseBlend(use_blend);
   planner.SetIgnoreCollBeforeDist(ignore_coll_before_dist);
 
@@ -160,10 +170,11 @@ int main(int argc, char *argv[]){
       float ury = std::max({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
 
       if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor, llx, lly, urx, ury);
+      if (new_seg_grid_rcvd) planner.DilateGrid(segmentation_grid, dilation_factor, llx, lly, urx, ury);
       // Note: if grid size gets large, DilateGrid can take a significant amount of time
 
       // most of the calculation time spent on this function call
-      bool path_found = planner.CalculateCandidateCosts(grid, odom);
+      bool path_found = planner.CalculateCandidateCosts(grid, segmentation_grid, odom);
       if (display != "none"){
         plotter->AddMap(grid);
         plotter->SetPath(culled_points);
@@ -219,6 +230,7 @@ int main(int argc, char *argv[]){
       }
     }
     new_grid_rcvd = false;
+    new_seg_grid_rcvd = false;
     loop_count++;
     double end_secs = n->get_now_seconds();
     if ((end_secs - start_secs) > 2.5 * dt){

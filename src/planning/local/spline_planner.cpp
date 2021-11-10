@@ -9,6 +9,7 @@ Planner::Planner() {
 	w_s_ = 0.2f; // safety
 	w_d_ = 0.2f; // dynamic safety
 	w_r_ = 0.4f; // path deviation
+    w_t_ = 0.0f; // terrain segmentation
 	alpha_max_ = 5000.0f;
 	k_safe_ = 0.8f;
 	v_curve_ = 50.0f;
@@ -143,10 +144,12 @@ void Planner::DilateGrid(avt_341::msg::OccupancyGrid &grid, int x, float llx, fl
 	grid.data = new_data;
 }
 
-void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
+void Planner::CalculateStaticSafetyAndSegCost(const avt_341::msg::OccupancyGrid & grid, const avt_341::msg::OccupancyGrid & grid_seg) {
+    bool has_segmentation = grid_seg.info.height>0 && grid_seg.info.width>0;
 	for (int i = 0; i < candidates_.size(); i++) {
 		float s = s_no_coll_before_;
 		float stat_safe = 0.0f;
+        float traj_seg_cost = 0.0;
 		while (s < s_max_) {
 			float rho = candidates_[i].At(s);
 			if (fabs(rho) > rho_max_)candidates_[i].SetOutOfBounds(true);
@@ -156,6 +159,7 @@ void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
 			if (ix >= 0 && ix < (int)grid.info.width && iy >= 0 && iy < (int)grid.info.height) {
 				int ndx = ix * grid.info.height + iy;
 				stat_safe += grid.data[ndx];
+                traj_seg_cost += (has_segmentation ? grid_seg.data[ndx] : 0.0f);
 			}
 			s += ds_;
 		}
@@ -167,25 +171,31 @@ void Planner::CalculateStaticSafety(avt_341::msg::OccupancyGrid grid) {
 			candidates_[i].SetHitsObstacle(false);
 			candidates_[i].SetStaticSafety(0.0f);
 		}
+        candidates_[i].SetSegmentationCost(traj_seg_cost);
 	}
 
 	// now blend
 	if(use_blend_){
 		std::vector<float> fs;
+		std::vector<float> fseg;
 		fs.resize(candidates_.size(),0.0f);
+        fseg.resize(candidates_.size(),0.0f);
 		for (int i = 0; i < candidates_.size(); i++) {
 		float fcount = 0.0f;
 		for (int k = -averaging_window_size_; k <= averaging_window_size_; k++) {
 			int ndx = i + k;
 			if (ndx >= 0 && ndx < candidates_.size()) {
 			fs[i] += candidates_[ndx].GetStaticSafety();
+            fseg[i] += candidates_[ndx].GetSegmentationCost();
 			fcount += 1.0f;
 			}
 		}
 		fs[i] = fs[i] / fcount;
+        fseg[i] = fseg[i] / fcount;
 		}
 		for (int i = 0; i < candidates_.size(); i++) {
 		candidates_[i].SetStaticSafety(fs[i]);
+        candidates_[i].SetSegmentationCost(fseg[i]);
 		}
 	}
 }
@@ -204,9 +214,9 @@ float Planner::GetTotalCostOfCandidate(int i) {
 	return cost;
 }
 
-bool Planner::CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::Odometry odom) {
+bool Planner::CalculateCandidateCosts(const avt_341::msg::OccupancyGrid & grid, const avt_341::msg::OccupancyGrid & segmentation_grid, avt_341::msg::Odometry odom) {
 
-	CalculateStaticSafety(grid);
+    CalculateStaticSafetyAndSegCost(grid, segmentation_grid);
 	CalculateComfortability();
 	CalculateRhoCost();
 	CalculateDynamicSafety(odom);
