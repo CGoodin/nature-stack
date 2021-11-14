@@ -214,7 +214,7 @@ float Planner::GetTotalCostOfCandidate(int i) {
 	return cost;
 }
 
-bool Planner::CalculateCandidateCosts(const avt_341::msg::OccupancyGrid & grid, const avt_341::msg::OccupancyGrid & segmentation_grid, avt_341::msg::Odometry odom) {
+bool Planner::CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::OccupancyGrid segmentation_grid, avt_341::msg::Odometry odom) {
 
 	CalculateStaticSafetyAndSegCost(grid, segmentation_grid);
 	CalculateComfortability();
