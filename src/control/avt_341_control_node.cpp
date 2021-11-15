@@ -27,6 +27,7 @@ void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 void PathCallback(avt_341::msg::PathPtr rcv_control){
   control_msg.poses = rcv_control->poses;
   control_msg.header = rcv_control->header;
+  current_run_state = 0;
 }
 
 void StateCallback(avt_341::msg::Int32Ptr rcv_state){
