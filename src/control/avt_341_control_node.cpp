@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){
 
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
-	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff;
+	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake;
   float throttle_kp, throttle_ki, throttle_kd;
 	std::string display;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
@@ -55,6 +55,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
   n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
+  n->get_parameter("~time_to_max_brake", time_to_max_brake, 4.0f);
   n->get_parameter("~throttle_kp", throttle_kp, 0.09f);
   n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
   n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
@@ -70,57 +71,66 @@ int main(int argc, char *argv[]){
 	controller.SetDesiredSpeed(vehicle_speed);
   controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
 
-  float rate = 50.0f;
+  float rate = 100.0f;
   float dt = 1.0f/rate;
+  float brake_step = dt/time_to_max_brake;
+  float current_brake_value = 0.0;
+
   avt_341::node::Rate r(rate);
   avt_341::utils::vec2 goal;
 
   while (avt_341::node::ok()){
     avt_341::msg::Twist dc;
+    bool time_to_quit = false;
 
+    // tell the controller the current vehicle state
     controller.SetVehicleState(state);
+
     if (current_run_state==0){    // active running state
       controller.SetDesiredSpeed(vehicle_speed);
-      //controller.SetVehicleState(state);
       dc = controller.GetDcFromTraj(control_msg, goal);
-      dc_pub->publish(dc);
     }
-    else if (current_run_state==-1 || current_run_state==1){    // startup or smooth stop
-      // bring to a smooth stop and wait
+    else if (current_run_state==-1 || current_run_state==1){
+      // bring to a smooth stop and wait / idle
       controller.SetDesiredSpeed(0.0f);
-      //controller.SetVehicleState(state);
       dc = controller.GetDcFromTraj(control_msg, goal);
-      dc_pub->publish(dc);
     }
     else if (current_run_state==2){ 
       // bring to a smooth stop and shut down
       controller.SetDesiredSpeed(0.0f);
       float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
-      if (vel<0.5f){
-        // bring to a stop and shut down
-        dc.linear.x = 0.0f;
-        dc.linear.y = 1.0f;
-        dc.angular.z = 0.0f;
-        dc_pub->publish(dc);
-        break;   
-      }
-      else{
-       // controller.SetVehicleState(state);
-        dc = controller.GetDcFromTraj(control_msg, goal);
-        dc.linear.x = 0.0f;
-        dc.angular.z = 0.0f;
-        dc_pub->publish(dc);
-      }
+      if (vel<0.5f)time_to_quit = true;
+      dc = controller.GetDcFromTraj(control_msg, goal);
+      dc.linear.x = 0.0f;
+      dc.angular.z = 0.0f;
+
     }
     else if (current_run_state==3){
       // bring to a hard stop and shut down
       dc.linear.x = 0.0f;
       dc.linear.y = 1.0f;
       dc.angular.z = 0.0f;
-      dc_pub->publish(dc);
-      break;
+      time_to_quit = true;
     }
+    
+    // check braking and throttle
+    if (dc.linear.y!=0.0){
+      // apply the ramp up to the brake
+      if (current_brake_value>dc.linear.y){
+        dc.linear.y = current_brake_value - brake_step;
+        if (dc.linear.y<-1.0)dc.linear.y = -1.0;
+        if (dc.linear.y>0.0)dc.linear.y = 0.0;
+      }
+      // make sure the throttle is zero when braking
+      dc.linear.x = 0.0f;
+    }
+    // publish the driving command
+    dc_pub->publish(dc);
+    current_brake_value = dc.linear.y;
 
+    // break the loop when an end state is reached
+    if (time_to_quit)break;
+    
     if(display_rviz){
       avt_341::msg::PointStamped next_waypoint_msg;
       next_waypoint_msg.point.x = goal.x;
