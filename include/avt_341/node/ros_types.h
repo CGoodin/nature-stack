@@ -28,6 +28,7 @@
 
 #include "std_msgs/Float64.h"
 #include "std_msgs/Int32.h"
+#include "std_msgs/Float64MultiArray.h"
 
 namespace avt_341 {
     namespace msg {
@@ -78,6 +79,9 @@ namespace avt_341 {
 
         using Float64 = std_msgs::Float64;
         using Float64Ptr = const std_msgs::Float64::ConstPtr &;
+
+        using Float64MultiArray = std_msgs::Float64MultiArray;
+        using Float64MultiArrayPtr = const std_msgs::Float64MultiArray::ConstPtr &;
 
         using Int32 = std_msgs::Int32;
         using Int32Ptr = const std_msgs::Int32::ConstPtr &;

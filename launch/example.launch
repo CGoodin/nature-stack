@@ -1,9 +1,12 @@
 <launch>
 
+  <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
+
   <include file="$(find avt_341)/launch/base.launch">
     <arg name="waypoints_file" value="$(find avt_341)/config/waypoints.yaml" />
     <arg name="robot_description_file" value="$(find avt_341)/config/avt_bot.urdf" />
     <arg name="cost_vis" value="final" />
+    <arg name="use_mpc" value="$(arg use_mpc)" />
 <!--     <arg name="grid_dilate" value="true" /> -->
 <!--     <arg name="grid_dilate_x" value="3.0" /> -->
 <!--     <arg name="grid_dilate_y" value="1.0" /> -->
