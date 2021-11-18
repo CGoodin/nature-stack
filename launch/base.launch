@@ -118,7 +118,7 @@
     <param name="display" value="$(arg display_type)" />
   </node>
 
-  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval arg('use_mpc') == 'false')" >
+  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
     <param name="path_look_ahead" value="$(arg path_look_ahead)" />
     <param name="vehicle_width" value="$(arg vehicle_width)" />
     <param name="num_paths" value="$(arg num_paths)" />
