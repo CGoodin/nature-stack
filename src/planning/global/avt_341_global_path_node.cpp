@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
   int current_waypoint = 0;
   //while (avt_341::node::ok() && !goal_reached){
   while (avt_341::node::ok()){
-
+    state_pub->publish(state);
     if (waypoints_rcvd) {
       // process a new set of waypoints
       // TODO: find closest point along path -  we probably don't want to reverse back to start point if we're past it.
@@ -229,10 +229,10 @@ int main(int argc, char *argv[])
         state_pub->publish(state);
       }
     } // if odom_recvd
-    else if(state.data != -1){  // not in startup
-      state.data = 1;       // request smooth stop but don't shutdown (waiting for odom data)
-      state_pub->publish(state);
-    }
+    //else if(state.data != -1){  // not in startup
+    //  state.data = 1;       // request smooth stop but don't shutdown (waiting for odom data)
+    //  state_pub->publish(state);
+    //}
 
     n->spin_some();
     r.sleep();
