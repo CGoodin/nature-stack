@@ -75,12 +75,12 @@ int main(int argc, char **argv){
             10,
             10
     };
-    std::vector<double> veh_data = {0.0, -50.0, 1.8, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    avt_341::msg::Float64MultiArray mpc_data_msg;
-    mpc_data_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    mpc_data_msg.layout.dim[0].size = veh_data.size();
-    mpc_data_msg.layout.dim[0].stride = 1;
-    mpc_data_msg.layout.dim[0].label = "x";
+	std::vector<double> veh_data = {0.0, -50.0, 1.8, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	avt_341::msg::Float64MultiArray mpc_data_msg;
+	mpc_data_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+	mpc_data_msg.layout.dim[0].size = veh_data.size();
+	mpc_data_msg.layout.dim[0].stride = 1;
+	mpc_data_msg.layout.dim[0].label = "x";
 
   avt_341::perception::PointCloudGenerator::toROSMsg(points, seg_values,pc2);
   pc2.header.frame_id = "odom";
@@ -102,21 +102,21 @@ int main(int argc, char **argv){
 		odom_msg.pose.pose.position.x += twist.linear.x*desired_speed*dt;
 		odom_msg.twist.twist.linear.x = desired_speed*twist.linear.x;
 		odom_pub->publish(odom_msg);
-        veh_data[1] = odom_msg.pose.pose.position.x;
-        veh_data[2] = odom_msg.pose.pose.position.y;
-        veh_data[3] = odom_msg.twist.twist.linear.x;
-        veh_data[4] = odom_msg.twist.twist.linear.y;
-        mpc_data_msg.data.clear();
-        mpc_data_msg.data.insert(mpc_data_msg.data.end(), veh_data.begin(), veh_data.end());
-        mpc_state_pub->publish(mpc_data_msg);
-        avt_341::node::inc_seq(odom_msg.header);
+		veh_data[1] = odom_msg.pose.pose.position.x;
+		veh_data[2] = odom_msg.pose.pose.position.y;
+		veh_data[3] = odom_msg.twist.twist.linear.x;
+		veh_data[4] = odom_msg.twist.twist.linear.y;
+		mpc_data_msg.data.clear();
+		mpc_data_msg.data.insert(mpc_data_msg.data.end(), veh_data.begin(), veh_data.end());
+		mpc_state_pub->publish(mpc_data_msg);
+		avt_341::node::inc_seq(odom_msg.header);
 
 		
 		if (nloops%10==0){
 			// publish the point cloud at 10 Hz
 			pc2.header.stamp = n->get_stamp();
 			lidar_pub->publish(pc2);
-            avt_341::node::inc_seq(pc2.header);
+			avt_341::node::inc_seq(pc2.header);
 		}
 			
 		// update and publish time if necessary
