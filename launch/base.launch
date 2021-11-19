@@ -57,6 +57,7 @@
   <arg name="throttle_ki" default="0.01" doc="Integral coeff for the PID speed controller" />
   <arg name="throttle_kd" default="0.16" doc="Derivative coeff for the PID speed controller" />
   <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
+  <arg name="max_desired_lateral_g" default="0.75" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
 
   <rosparam file="$(arg waypoints_file)" />
   <param name="robot_description" command="cat $(arg robot_description_file)" />
@@ -111,6 +112,7 @@
     <param name="throttle_ki" value="$(arg throttle_ki)" />
     <param name="throttle_kd" value="$(arg throttle_kd)" />
     <param name="time_to_max_brake" value="$(arg time_to_max_brake)" />
+    <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
   </node>
 
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >

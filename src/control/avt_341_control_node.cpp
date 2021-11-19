@@ -33,6 +33,43 @@ void StateCallback(avt_341::msg::Int32Ptr rcv_state){
   current_run_state = rcv_state->data;
 }
 
+double length(avt_341::msg::Point a, avt_341::msg::Point b){
+  double dx = a.x - b.x;
+  double dy = a.y - b.y;
+  double dz = a.z - b.z;
+  return sqrt(dx*dx + dy*dy + dz*dz);
+}
+
+float TriangleArea(avt_341::msg::Point a, avt_341::msg::Point b, avt_341::msg::Point c) {
+	float area = (float)fabs(a.x*(b.y - c.y) + b.x*(c.y - a.y) + c.x*(a.y - b.y));
+	return area;
+}
+
+float MengerCurvature(avt_341::msg::Point a, avt_341::msg::Point b, avt_341::msg::Point c) {
+	float curv = 0.0f;
+	float denom = length(a, b)*length(b, c)*length(c, b);
+	if (denom == 0.0f) {
+		curv = std::numeric_limits<float>::max();
+	}
+	else {
+		float area = TriangleArea(a, b, c);
+		curv = 4.0f*area / denom;
+	}
+	return curv;
+}
+
+double GetMaxCurvature(avt_341::msg::Path path){
+  double max_curvature = 0.0;
+  if (path.poses.size() > 2) {
+		for (int i = 1; i < path.poses.size() - 1; i++){
+		  double curvature = MengerCurvature(path.poses[i - 1].pose.position, path.poses[i].pose.position, path.poses[i + 1].pose.position);
+      if (curvature>max_curvature)max_curvature = curvature;
+		}
+	}
+  return max_curvature;
+}
+
+
 int main(int argc, char *argv[]){
   auto n = avt_341::node::init_node(argc,argv,"avt_341_control_node");
 
@@ -48,7 +85,7 @@ int main(int argc, char *argv[]){
   avt_341::control::PurePursuitController controller;
 	// Set controller parameters
 	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake;
-  float throttle_kp, throttle_ki, throttle_kd;
+  float throttle_kp, throttle_ki, throttle_kd, max_desired_lateral_g;
 	std::string display;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
   n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
@@ -60,6 +97,8 @@ int main(int argc, char *argv[]){
   n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
   n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
   n->get_parameter("~display", display, std::string("none"));
+  n->get_parameter("~max_desired_lateral_g", max_desired_lateral_g, 0.75f);
+
   controller.SetSteeringParam(steering_coeff);
   controller.SetThrottleCoeff(throttle_coeff);
   
@@ -87,7 +126,14 @@ int main(int argc, char *argv[]){
     controller.SetVehicleState(state);
 
     if (current_run_state==0){    // active running state
-      controller.SetDesiredSpeed(vehicle_speed);
+      double max_curvature = GetMaxCurvature(control_msg);
+      float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
+      double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
+      float desired_velocity = vehicle_speed;
+      if (lateral_g_force>max_desired_lateral_g){
+        desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
+      }
+      controller.SetDesiredSpeed(desired_velocity);
       dc = controller.GetDcFromTraj(control_msg, goal);
     }
     else if (current_run_state==-1 || current_run_state==1){
