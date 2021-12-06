@@ -99,16 +99,30 @@ int main(int argc, char *argv[]){
   n->get_parameter("~display", display, std::string("none"));
   n->get_parameter("~max_desired_lateral_g", max_desired_lateral_g, 0.75f);
 
-  controller.SetSteeringParam(steering_coeff);
-  controller.SetThrottleCoeff(throttle_coeff);
+  // Get the parameters for a skid steered vehicle
+  bool skid_steered;
+  n->get_parameter("~skid_steered", skid_steered, false);
+  float skid_kl, skid_kt;
+  n->get_parameter("~skid_kl", skid_kl, 1.0f);
+  n->get_parameter("~skid_kt", skid_kt, 1.0f);
   
+
+  if (skid_steered){
+    controller.IsSkidSteered(true);
+    controller.SetSkidSteerParams(skid_kl, skid_kt);
+  }
+  else{
+    controller.SetSteeringParam(steering_coeff);
+    controller.SetThrottleCoeff(throttle_coeff);
+    controller.SetWheelbase(wheelbase);
+	  controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
+    controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
+  }
+  
+  controller.SetDesiredSpeed(vehicle_speed);
+
   bool display_rviz = display == "rviz";
   auto next_waypoint_pub = display_rviz ? n->create_publisher<avt_341::msg::PointStamped>("avt_341/control_next_waypoint", 1) : nullptr;
-
-  controller.SetWheelbase(wheelbase);
-	controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
-	controller.SetDesiredSpeed(vehicle_speed);
-  controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
 
   float rate = 100.0f;
   float dt = 1.0f/rate;
@@ -159,17 +173,20 @@ int main(int argc, char *argv[]){
       time_to_quit = true;
     }
     
-    // check braking and throttle
-    if (dc.linear.y!=0.0){
-      // apply the ramp up to the brake
-      if (current_brake_value>dc.linear.y){
-        dc.linear.y = current_brake_value - brake_step;
-        if (dc.linear.y<-1.0)dc.linear.y = -1.0;
-        if (dc.linear.y>0.0)dc.linear.y = 0.0;
+    if (!skid_steered){
+      // check braking and throttle
+      if (dc.linear.y!=0.0){
+        // apply the ramp up to the brake
+        if (current_brake_value>dc.linear.y){
+          dc.linear.y = current_brake_value - brake_step;
+          if (dc.linear.y<-1.0)dc.linear.y = -1.0;
+          if (dc.linear.y>0.0)dc.linear.y = 0.0;
+        }
+        // make sure the throttle is zero when braking
+        dc.linear.x = 0.0f;
       }
-      // make sure the throttle is zero when braking
-      dc.linear.x = 0.0f;
     }
+
     // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;

@@ -4,6 +4,8 @@ namespace avt_341 {
 namespace control{
 
 PurePursuitController::PurePursuitController() {
+	skid_steered_ = false;
+
 	//default wheelbase and steer angle
 	// set to MRZR values
 	wheelbase_ = 2.731f; // meters
@@ -22,6 +24,10 @@ PurePursuitController::PurePursuitController() {
 	veh_speed_ = 0.0f;
 	vx_ = 0.0f;
 	vy_ = 0.0f;
+
+	k_theta_ = 1.0f;
+	kx_ = 1.0f;
+	ky_ = 1.0f;
 }
 
 void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
@@ -30,16 +36,14 @@ void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
 	veh_y_ = state.pose.pose.position.y;
 	vx_ = state.twist.twist.linear.x;
 	vy_ = state.twist.twist.linear.y;
+	current_angular_velocity_ = state.twist.twist.angular.z;
 	veh_speed_ = sqrt(vx_*vx_ + vy_*vy_);
 	veh_heading_ = utils::GetHeadingFromOrientation(state.pose.pose.orientation);
 }
 
 avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj, utils::vec2 & goal) {
 	//initialize the driving command
-    avt_341::msg::Twist dc;
-	dc.linear.x = 0.0;
-	dc.angular.z = 0.0;
-	dc.linear.y = 0.0;
+  avt_341::msg::Twist dc;
 
 	//make sure the path contains some points
 	int np = traj.poses.size();
@@ -77,6 +81,7 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 
 	goal = path[start_seg];
 	float target_speed = desired_speed_;
+	utils::vec2 desired_direction;
 	if (closest < lookahead) {
 		//find point on path at lookahead distance away
 		float accum_dist = closest;
@@ -89,6 +94,7 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 				utils::vec2 dir = v / seg_dist;
 				float t = lookahead - accum_dist;
 				goal = path[i] + dir*t;
+				desired_direction = v;
 				target_speed = desired_speed_; //traj.path[i + 1].speed;
 				if (target_speed > max_stable_speed_)target_speed = max_stable_speed_;
 				break;
@@ -102,8 +108,57 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 	//find the angle, alpha, between the current orientation and the goal
 	utils::vec2 curr_dir(cos(veh_heading_), sin(veh_heading_));
 	utils::vec2 to_goal(goal.x - veh_x_,goal.y-veh_y_);
-	to_goal = to_goal / utils::length(to_goal);
+	//to_goal = to_goal / utils::length(to_goal);
 	float alpha = (float)atan2(to_goal.y, to_goal.x) - (float)atan2(curr_dir.y, curr_dir.x);
+
+	if (skid_steered_){
+		float desired_heading = atan2f(desired_direction.y, desired_direction.x);
+		float dtheta = desired_heading - veh_heading_;
+		dc = GetDcSkid(to_goal.x, to_goal.y, dtheta);
+	}
+	else{
+		dc = GetDcAckermann(alpha, lookahead, curr_dir, target_speed);
+	}
+	return dc;
+}
+
+avt_341::msg::Twist PurePursuitController::GetDcSkid(float dx, float dy, float dtheta){
+	// The skid steer algorithm is taken from 
+	// A Stable Tracking Control Method for a Non-Holonomic Mobile Robot
+	// Yutaka Kanayam, 1991
+	// Proceedings of IROS 91
+	// NOTE: The output is the typical cmd_vel message for a mobile robot where
+	// the velocities are true velocities, not throttle-steering-brake commands like 
+	// the controller for the Ackerman vehicle
+	avt_341::msg::Twist dc;
+	dc.linear.x = 0.0;
+	dc.linear.y = 0.0;
+	dc.linear.z = 0.0;
+	dc.angular.x = 0.0;
+	dc.angular.y = 0.0;
+	dc.angular.z = 0.0;
+
+	float vr = desired_speed_;
+	float ct = cosf(veh_heading_);
+	float st = sinf(veh_heading_);
+	float xe = ct*dx + st*dy;
+	float ye = -st*dx + ct*dy;
+
+	float v = vr*cosf(dtheta) + kx_*xe;
+	float w = current_angular_velocity_ + vr*(ky_*ye + k_theta_*sinf(dtheta));
+
+	dc.linear.x = v*ct;
+	dc.linear.y = v*st;
+	dc.angular.z = w;
+
+	return dc;
+}
+
+avt_341::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float lookahead, utils::vec2 curr_dir, float target_speed){
+	avt_341::msg::Twist dc;
+	dc.linear.x = 0.0;
+	dc.angular.z = 0.0;
+	dc.linear.y = 0.0;
 
 	//determine the desired normalized steering angle
 	float sangle = (float)atan2(2 * wheelbase_*sin(alpha), lookahead);
@@ -131,7 +186,7 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 	dc.linear.x = throttle_coeff_*dc.linear.x;
 
 	return dc;
-}
+} // GetDcAcerman
 
 } // namespace control
 } // namespace avt_341
