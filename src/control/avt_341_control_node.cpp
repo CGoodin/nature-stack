@@ -93,11 +93,17 @@ int main(int argc, char *argv[]){
   n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
   n->get_parameter("~time_to_max_brake", time_to_max_brake, 4.0f);
-  n->get_parameter("~throttle_kp", throttle_kp, 0.09f);
-  n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
-  n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
+  //n->get_parameter("~throttle_kp", throttle_kp, 0.09f);
+  //n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
+  //n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
+  n->get_parameter("~throttle_kp", throttle_kp, 0.462f);
+  n->get_parameter("~throttle_ki", throttle_ki, 0.222f);
+  n->get_parameter("~throttle_kd", throttle_kd, 0.24f);
   n->get_parameter("~display", display, std::string("none"));
   n->get_parameter("~max_desired_lateral_g", max_desired_lateral_g, 0.75f);
+
+  bool turn_off_velocity_overshoot_corrector;
+  n->get_parameter("~turn_off_velocity_overshoot_corrector", turn_off_velocity_overshoot_corrector, false);
 
   // Get the parameters for a skid steered vehicle
   bool skid_steered;
@@ -120,6 +126,9 @@ int main(int argc, char *argv[]){
   }
   
   controller.SetDesiredSpeed(vehicle_speed);
+  if (turn_off_velocity_overshoot_corrector){
+    controller.GetPidSpeedController()->SetOvershootLimiter(false);
+  }
 
   bool display_rviz = display == "rviz";
   auto next_waypoint_pub = display_rviz ? n->create_publisher<avt_341::msg::PointStamped>("avt_341/control_next_waypoint", 1) : nullptr;

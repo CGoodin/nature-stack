@@ -154,6 +154,9 @@ public:
 		k_theta_ = kt;
 	}
 
+	/// Get a pointer to the PID speed controller
+	PidController *GetPidSpeedController(){ return &speed_controller_; }
+
 private:
 	bool skid_steered_;
 	avt_341::msg::Twist GetDcAckermann(float alpha, float lookahead, utils::vec2 curr_dir, float target_speed);

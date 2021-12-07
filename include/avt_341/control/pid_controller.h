@@ -27,6 +27,8 @@ class PidController{
   void SetKi(double ki){ki_ = ki;}
 
   void SetKd(double kd){kd_ = kd;}
+
+  void SetOvershootLimiter(bool osl){ overshoot_limiter_ = osl; }
   
  private:
   double kp_;
@@ -35,6 +37,8 @@ class PidController{
   double setpoint_;
   double previous_error_;
   double integral_;
+  bool overshoot_limiter_;
+  bool crossed_setpoint_;
 };
 
 } // namespace control
