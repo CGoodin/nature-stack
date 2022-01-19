@@ -93,6 +93,7 @@ add_executable(avt_341_local_planner_node
   src/planning/local/spline_path.cpp
   src/planning/local/spline_planner.cpp
   src/planning/local/spline_plotter.cpp
+  src/planning/local/pf_planner.cpp
   src/node/node_proxy.cpp
   src/visualization/image_visualizer.cpp
   src/planning/local/rviz_spline_plotter.cpp
@@ -101,6 +102,18 @@ target_link_libraries(avt_341_local_planner_node
   ${catkin_LIBRARIES}
   X11
 )
+
+add_executable(avt_341_pf_planner_node 
+  src/planning/local/avt_341_pf_planner_node.cpp 
+  src/planning/local/pf_planner.cpp
+  src/node/node_proxy.cpp
+  src/visualization/image_visualizer.cpp
+)
+target_link_libraries(avt_341_pf_planner_node
+  ${catkin_LIBRARIES}
+  X11
+)
+
 
 add_executable(avt_341_global_path_node 
   src/planning/global/avt_341_global_path_node.cpp 
@@ -160,6 +173,7 @@ avt_341_perception_node
 avt_341_map_publisher_node
 avt_341_control_node
 avt_341_local_planner_node
+avt_341_pf_planner_node
 avt_341_global_path_node
 avt_341_sim_test_node
 avt_bot_state_publisher_node
