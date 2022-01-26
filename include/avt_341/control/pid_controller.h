@@ -30,6 +30,8 @@ class PidController{
 
   void SetOvershootLimiter(bool osl){ overshoot_limiter_ = osl; }
   
+  void SetStayPositive(bool sp){ stay_positive_ = sp; }
+
  private:
   double kp_;
   double ki_;
@@ -39,6 +41,7 @@ class PidController{
   double integral_;
   bool overshoot_limiter_;
   bool crossed_setpoint_;
+  bool stay_positive_;
 };
 
 } // namespace control

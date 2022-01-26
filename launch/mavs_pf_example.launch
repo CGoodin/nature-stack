@@ -49,11 +49,12 @@
     <param name="steering_coefficient" value="4.5" />
     <param name="throttle_coefficient" value="1.0" />
     <param name="vehicle_speed" value="5.0" />
-    <param name="throttle_kp" value="0.462" />
-    <param name="throttle_ki" value="0.222" />
-    <param name="throttle_kd" value="0.24" />
+    <param name="throttle_kp" value="0.2295" />
+    <param name="throttle_ki" value="0.070" />
+    <param name="throttle_kd" value="0.0" />
     <param name="max_desired_lateral_g" value="0.25" />
     <param name="time_to_max_brake" value="4.0" />
+    <param name="time_to_max_throttle" value="3.0" />
   </node>
 
 <!--

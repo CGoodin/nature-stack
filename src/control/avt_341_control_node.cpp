@@ -83,6 +83,11 @@ int main(int argc, char *argv[]){
 
 
   avt_341::control::PurePursuitController controller;
+
+  // added by CTG, 1/26/22
+  // The PID params are tuned with this value in mind
+  // so it's not a good idea to change it
+  float time_to_max_throttle = 3.0f; //seconds
 	// Set controller parameters
 	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake;
   float throttle_kp, throttle_ki, throttle_kd, max_desired_lateral_g;
@@ -93,6 +98,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
   n->get_parameter("~time_to_max_brake", time_to_max_brake, 4.0f);
+  n->get_parameter("~time_to_max_throttle", time_to_max_throttle, 3.0f);
   //n->get_parameter("~throttle_kp", throttle_kp, 0.09f);
   //n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
   //n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
@@ -136,8 +142,9 @@ int main(int argc, char *argv[]){
   float rate = 100.0f;
   float dt = 1.0f/rate;
   float brake_step = dt/time_to_max_brake;
-  float current_brake_value = 0.0;
-
+  float max_throttle_step = dt/time_to_max_throttle;
+  float current_brake_value = 0.0f;
+  float current_throttle_value = 0.0f;
   avt_341::node::Rate r(rate);
   avt_341::utils::vec2 goal;
 
@@ -147,14 +154,16 @@ int main(int argc, char *argv[]){
 
     // tell the controller the current vehicle state
     controller.SetVehicleState(state);
+    float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
 
     if (current_run_state==0){    // active running state
       double max_curvature = GetMaxCurvature(control_msg);
-      float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
+      
       double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
       float desired_velocity = vehicle_speed;
       if (lateral_g_force>max_desired_lateral_g){
         desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
+        if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
       }
       controller.SetDesiredSpeed(desired_velocity);
       dc = controller.GetDcFromTraj(control_msg, goal);
@@ -167,7 +176,6 @@ int main(int argc, char *argv[]){
     else if (current_run_state==2){ 
       // bring to a smooth stop and shut down
       controller.SetDesiredSpeed(0.0f);
-      float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
       if (vel<0.5f)time_to_quit = true;
       dc = controller.GetDcFromTraj(control_msg, goal);
       dc.linear.x = 0.0f;
@@ -194,11 +202,16 @@ int main(int argc, char *argv[]){
         // make sure the throttle is zero when braking
         dc.linear.x = 0.0f;
       }
+      // apply the throttle ramp up
+      if (dc.linear.x-current_throttle_value > max_throttle_step){
+        dc.linear.x = current_throttle_value + max_throttle_step;
+      }
     }
 
     // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;
+    current_throttle_value = dc.linear.x;
 
     // break the loop when an end state is reached
     if (time_to_quit)break;

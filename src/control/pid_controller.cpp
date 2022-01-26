@@ -13,6 +13,7 @@ PidController::PidController(){
   integral_ = 0.0;
   overshoot_limiter_ = true;
   crossed_setpoint_ = false;
+  stay_positive_ = true;
 }
 
 // see: https://en.wikipedia.org/wiki/PID_controller
@@ -36,6 +37,11 @@ double PidController::GetControlVariable(double measured_value, double dt){
   integral_ += error*dt;
   double derivative = (error - previous_error_)/dt;
   double output = kp_*error + ki*integral_ + kd_*derivative;
+
+  if (stay_positive_){
+    output = 0.5f*(1.0f+output);
+  }
+
   previous_error_ = error;
   return output;
 }
