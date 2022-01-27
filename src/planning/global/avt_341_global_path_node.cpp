@@ -129,10 +129,11 @@ int main(int argc, char *argv[])
   auto visualizer = avt_341::visualization::create_visualizer(display_type);
   avt_341::planning::Astar astar_planner(visualizer);
 
-  avt_341::node::Rate r(10.0f); // Hz
-  //bool goal_reached = false;
+  avt_341::node::Rate r(20.0f); // Hz
+  bool shutdown_condition = false;
   int nl = 0;
   int current_waypoint = 0;
+  int shutdown_count = 0;
   //while (avt_341::node::ok() && !goal_reached){
   while (avt_341::node::ok()){
     state_pub->publish(state);
@@ -210,13 +211,16 @@ int main(int argc, char *argv[])
       curr_wp.data = current_waypoint;
       current_waypoint_pub->publish(curr_wp);
       dist_to_current_waypoint_pub->publish(dist_to_goal);
-      if (nl % 100 == 0){ //update every 2 seconds
-        std::cout << "Distance to goal " << goal[0] << ", " << goal[1] << " = " << d << std::endl;
+      if (nl % 20 == 0){ //update every second
+        std::cout << "Distance to goal " << current_waypoint<<" = " << d << std::endl;
       }
       if (current_waypoint == current_waypoints.poses.size() - 1){  // last waypoint
-        if (d<goal_dist){   // reached the goal
+        if (d<goal_dist || shutdown_condition){   // reached the goal
+          shutdown_condition = true;
           state.data = shutdown_behavior; // request shutdown behavior
           state_pub->publish(state);
+          shutdown_count++;
+          if (shutdown_count>10) break;
         }
       }
       else{     // intermediate waypoint

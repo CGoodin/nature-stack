@@ -19,6 +19,7 @@
 avt_341::msg::Path control_msg;
 avt_341::msg::Odometry state;
 int current_run_state = -1;   // startup state
+bool shutdown_condition = false;
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
@@ -31,6 +32,7 @@ void PathCallback(avt_341::msg::PathPtr rcv_control){
 
 void StateCallback(avt_341::msg::Int32Ptr rcv_state){
   current_run_state = rcv_state->data;
+  if (current_run_state==2)shutdown_condition = true;
 }
 
 double length(avt_341::msg::Point a, avt_341::msg::Point b){
@@ -164,7 +166,16 @@ int main(int argc, char *argv[]){
     controller.SetVehicleState(state);
     float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
 
-    if (current_run_state==0){    // active running state
+    if (shutdown_condition){  // current_run_state = 2 
+      // bring to a smooth stop and shut down
+      controller.SetDesiredSpeed(0.0f);
+      if (vel<0.5f)time_to_quit = true;
+      dc = controller.GetDcFromTraj(control_msg, goal);
+      dc.linear.x = 0.0f;
+      dc.angular.z = 0.0f;
+
+    }
+    else if (current_run_state==0){    // active running state
       double max_curvature = GetMaxCurvature(control_msg);
       
       double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
@@ -181,15 +192,6 @@ int main(int argc, char *argv[]){
       controller.SetDesiredSpeed(0.0f);
       dc = controller.GetDcFromTraj(control_msg, goal);
     }
-    else if (current_run_state==2){ 
-      // bring to a smooth stop and shut down
-      controller.SetDesiredSpeed(0.0f);
-      if (vel<0.5f)time_to_quit = true;
-      dc = controller.GetDcFromTraj(control_msg, goal);
-      dc.linear.x = 0.0f;
-      dc.angular.z = 0.0f;
-
-    }
     else if (current_run_state==3){
       // bring to a hard stop and shut down
       dc.linear.x = 0.0f;
@@ -197,7 +199,6 @@ int main(int argc, char *argv[]){
       dc.angular.z = 0.0f;
       time_to_quit = true;
     }
-    
     if (!skid_steered){
       // check braking and throttle
       if (dc.linear.y!=0.0){
