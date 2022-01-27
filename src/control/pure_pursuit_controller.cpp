@@ -173,7 +173,7 @@ avt_341::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float loo
 	speed_controller_.SetSetpoint(adj_speed);
 	float vdot = vx_*curr_dir.x + vy_*curr_dir.y;
 	//float throttle = speed_controller_.GetControlVariable(veh_speed_, 0.1f);
-	float throttle = speed_controller_.GetControlVariable(vdot, 0.1f);
+	float throttle = speed_controller_.GetControlVariable(vdot, 0.01f);
 	if (throttle < 0.0f) { //braking
 		dc.linear.x = 0.0f;
 		dc.linear.y = std::max(-1.0f, throttle);

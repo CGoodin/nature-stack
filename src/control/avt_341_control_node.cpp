@@ -89,6 +89,8 @@ int main(int argc, char *argv[]){
   // so it's not a good idea to change it
   float time_to_max_throttle = 3.0f; //seconds
 	// Set controller parameters
+  float ff_a0, ff_a1, ff_a2;
+  bool use_feed_forward;
 	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake;
   float throttle_kp, throttle_ki, throttle_kd, max_desired_lateral_g;
 	std::string display;
@@ -99,9 +101,10 @@ int main(int argc, char *argv[]){
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
   n->get_parameter("~time_to_max_brake", time_to_max_brake, 4.0f);
   n->get_parameter("~time_to_max_throttle", time_to_max_throttle, 3.0f);
-  //n->get_parameter("~throttle_kp", throttle_kp, 0.09f);
-  //n->get_parameter("~throttle_ki", throttle_ki, 0.01f);
-  //n->get_parameter("~throttle_kd", throttle_kd, 0.16f);
+  n->get_parameter("~ff_a0", ff_a0, 0.0402f);
+  n->get_parameter("~ff_a1", ff_a1, 0.0814f);
+  n->get_parameter("~ff_a2", ff_a2, -0.0023f);
+  n->get_parameter("~use_feed_forward", use_feed_forward, true);
   n->get_parameter("~throttle_kp", throttle_kp, 0.462f);
   n->get_parameter("~throttle_ki", throttle_ki, 0.222f);
   n->get_parameter("~throttle_kd", throttle_kd, 0.24f);
@@ -129,6 +132,11 @@ int main(int argc, char *argv[]){
     controller.SetWheelbase(wheelbase);
 	  controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
     controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
+  }
+
+  if (use_feed_forward){
+    controller.GetPidSpeedController()->SetUseFeedForward(true);
+    controller.GetPidSpeedController()->SetForwardModelParams(ff_a0, ff_a1, ff_a2);
   }
   
   controller.SetDesiredSpeed(vehicle_speed);

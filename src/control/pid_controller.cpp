@@ -13,12 +13,20 @@ PidController::PidController(){
   integral_ = 0.0;
   overshoot_limiter_ = true;
   crossed_setpoint_ = false;
-  stay_positive_ = true;
+  stay_positive_ = false;
+  ff_a2_ = 0.0;
+  ff_a1_ = 0.0;
+  ff_a0_ = 0.0;
 }
 
 // see: https://en.wikipedia.org/wiki/PID_controller
 double PidController::GetControlVariable(double measured_value, double dt){
   double error = setpoint_ - measured_value;
+
+  double output = 0.0;
+  if (use_feed_forward_){
+    output = ff_a2_*setpoint_*setpoint_ + ff_a1_*setpoint_ + ff_a0_;
+  }
 
   // if overshoot limiter turned on, set integral to zero each time it crosses the setpoint
   // see: https://en.wikipedia.org/wiki/Integral_windup
@@ -36,7 +44,8 @@ double PidController::GetControlVariable(double measured_value, double dt){
 
   integral_ += error*dt;
   double derivative = (error - previous_error_)/dt;
-  double output = kp_*error + ki*integral_ + kd_*derivative;
+  //double output = kp_*error + ki*integral_ + kd_*derivative;
+  output += kp_*error + ki*integral_ + kd_*derivative;
 
   if (stay_positive_){
     output = 0.5f*(1.0f+output);
