@@ -10,6 +10,7 @@
 */
 #ifndef PID_CONTROLLER_H
 #define PID_CONTROLLER_H
+#include <fstream>
 
 namespace avt_341 {
 namespace control{
@@ -17,6 +18,8 @@ namespace control{
 class PidController{
  public:
   PidController();
+
+  ~PidController();
 
   double GetControlVariable(double measured_value, double dt);
 
@@ -56,6 +59,7 @@ class PidController{
   double ff_a1_;
   double ff_a2_;
   double ff_a0_;
+  std::ofstream fout_;
 };
 
 } // namespace control
