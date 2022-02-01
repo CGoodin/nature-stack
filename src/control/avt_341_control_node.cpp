@@ -20,9 +20,16 @@ avt_341::msg::Path control_msg;
 avt_341::msg::Odometry state;
 int current_run_state = -1;   // startup state
 bool shutdown_condition = false;
+double mrzr_speedometer = 0.0;
+bool speedometer_rcvd = false;
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
+}
+
+void SpeedCallback(avt_341::msg::Float64Ptr rcv_speed) {
+	mrzr_speedometer = rcv_speed->data;
+  speedometer_rcvd = true; 
 }
 
 void PathCallback(avt_341::msg::PathPtr rcv_control){
@@ -82,6 +89,8 @@ int main(int argc, char *argv[]){
   auto state_sub = n->create_subscription<avt_341::msg::Odometry>("avt_341/odometry",1, OdometryCallback);
 
   auto control_sub = n->create_subscription<avt_341::msg::Int32>("avt_341/state",1,StateCallback);
+
+  auto speed_sub = n->create_subscription<avt_341::msg::Float64>("mrzr_velocity",1,SpeedCallback);
 
 
   avt_341::control::PurePursuitController controller;
@@ -164,8 +173,14 @@ int main(int argc, char *argv[]){
 
     // tell the controller the current vehicle state
     controller.SetVehicleState(state);
-    float vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
-
+    float vel = 0.0f;
+    if (speedometer_rcvd){
+      vel = mrzr_speedometer;
+    }
+    else{
+      vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
+    }
+    
     if (shutdown_condition){  // current_run_state = 2 
       // bring to a smooth stop and shut down
       controller.SetDesiredSpeed(0.0f);

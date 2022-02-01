@@ -1,6 +1,8 @@
 
 #include "avt_341/control/pid_controller.h"
 
+#include <ctime>
+
 namespace avt_341 {
 namespace control{
   
@@ -17,7 +19,10 @@ PidController::PidController(){
   ff_a2_ = 0.0;
   ff_a1_ = 0.0;
   ff_a0_ = 0.0;
-  fout_.open("pid_log.txt", std::ofstream::out | std::ofstream::trunc);
+  std::time_t t = std::time(0);   // get time now
+  std::tm* now = std::localtime(&t);
+  std::string t_string = std::to_string((now->tm_mon+1))+"_"+std::to_string(now->tm_mday)+"_"+std::to_string(now->tm_hour)+"_"+std::to_string(now->tm_min)+"_pid_log.txt";
+  fout_.open(t_string.c_str(), std::ofstream::out | std::ofstream::trunc);
 }
 
 PidController::~PidController(){
@@ -46,8 +51,9 @@ double PidController::GetControlVariable(double measured_value, double dt){
   if ((!crossed_setpoint_) && overshoot_limiter_){
     ki = 0.0;
   }
-
-  integral_ += error*dt;
+  else{
+    integral_ += error*dt;
+  }
   double derivative = (error - previous_error_)/dt;
   //double output = kp_*error + ki*integral_ + kd_*derivative;
   output += kp_*error + ki*integral_ + kd_*derivative;

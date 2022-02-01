@@ -25,6 +25,15 @@
   <node pkg="tf"  name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
   <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
 
+
+  <node name="mrak_broadcaster_node" pkg="mrzr_speed_tuning" type="mrak_broadcaster_node" required="true" output="screen" >
+  <!--broadcast the mrak speed message -->
+  </node>
+
+  <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
+  <!--republish the mrak speed message as a float64 -->
+  </node>
+
   <!-- Lidar perception algorithms  -->
   <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
     <param name="use_elevation" value="false" />
@@ -56,9 +65,9 @@
     <param name="time_to_max_brake" value="4.0" />
     <param name="time_to_max_throttle" value="3.0" />
     <param name="use_feed_forward" value="true" />
-    <param name="ff_a0" value="0.0402" />
-    <param name="ff_a1" value="0.0814" />
-    <param name="ff_a2" value="-0.0023" />
+    <param name="ff_a0" value="0.2134" />
+    <param name="ff_a1" value="0.0422" />
+    <param name="ff_a2" value="-0.0003" />
   </node>
 
 <!--
