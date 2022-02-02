@@ -111,9 +111,7 @@ public:
 	* Set the current vehicle speed in m/s
 	* \param speed The current vehicle speed 
 	*/
-	void SetVehicleSpeed(float speed) {
-		veh_speed_ = speed;
-	}
+	void SetVehicleSpeed(float speed);
 
 	/**
 	* Set the current vehicle heading in radians

@@ -48,15 +48,18 @@ double PidController::GetControlVariable(double measured_value, double dt){
   }
   // if overshoot limiter turned on, set ki to zero until it crosses the setpoint the first time
   double ki = ki_;
+  double kp = kp_;
   if ((!crossed_setpoint_) && overshoot_limiter_){
     ki = 0.0;
+    kp = 0.0;
   }
   else{
     integral_ += error*dt;
   }
   double derivative = (error - previous_error_)/dt;
   //double output = kp_*error + ki*integral_ + kd_*derivative;
-  output += kp_*error + ki*integral_ + kd_*derivative;
+  //output += kp_*error + ki*integral_ + kd_*derivative;
+  output += kp*error + ki*integral_ + kd_*derivative;
 
   if (stay_positive_){
     output = 0.5f*(1.0f+output);

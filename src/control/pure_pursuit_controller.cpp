@@ -41,6 +41,12 @@ void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
 	veh_heading_ = utils::GetHeadingFromOrientation(state.pose.pose.orientation);
 }
 
+void PurePursuitController::SetVehicleSpeed(float speed){
+	veh_speed_ = speed;
+	vx_ = cosf(veh_heading_)*veh_speed_;
+	vy_ = sinf(veh_heading_)*veh_speed_;
+}
+
 avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj, utils::vec2 & goal) {
 	//initialize the driving command
   avt_341::msg::Twist dc;
@@ -172,8 +178,8 @@ avt_341::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float loo
 	float adj_speed = target_speed * exp(-0.69*pow(fabs(dc.angular.z), 4.0f));
 	speed_controller_.SetSetpoint(adj_speed);
 	float vdot = vx_*curr_dir.x + vy_*curr_dir.y;
-	//float throttle = speed_controller_.GetControlVariable(veh_speed_, 0.1f);
-	float throttle = speed_controller_.GetControlVariable(vdot, 0.01f);
+	float throttle = speed_controller_.GetControlVariable(veh_speed_, 0.01f);
+	//float throttle = speed_controller_.GetControlVariable(vdot, 0.01f);
 	if (throttle < 0.0f) { //braking
 		dc.linear.x = 0.0f;
 		dc.linear.y = 0.0; //std::max(-1.0f, throttle);

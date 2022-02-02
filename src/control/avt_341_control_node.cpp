@@ -172,7 +172,6 @@ int main(int argc, char *argv[]){
     bool time_to_quit = false;
 
     // tell the controller the current vehicle state
-    controller.SetVehicleState(state);
     float vel = 0.0f;
     if (speedometer_rcvd){
       vel = mrzr_speedometer;
@@ -181,6 +180,9 @@ int main(int argc, char *argv[]){
       vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
     }
     
+    controller.SetVehicleState(state);
+    controller.SetVehicleSpeed(vel);
+
     if (shutdown_condition){  // current_run_state = 2 
       // bring to a smooth stop and shut down
       controller.SetDesiredSpeed(0.0f);
