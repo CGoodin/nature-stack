@@ -123,6 +123,9 @@
     <param name="throttle_kp" value="$(arg throttle_kp)" />
     <param name="throttle_ki" value="$(arg throttle_ki)" />
     <param name="throttle_kd" value="$(arg throttle_kd)" />
+    <param name="ff_a0" value="$(arg ff_a0)" />
+    <param name="ff_a1" value="$(arg ff_a1)" />
+    <param name="ff_a2" value="$(arg ff_a2)" />
     <param name="time_to_max_brake" value="$(arg time_to_max_brake)" />
     <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
     <remap from="/avt_341/odometry" to="/odometry/filtered"/>
