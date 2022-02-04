@@ -57,13 +57,38 @@ int main(int argc, char **argv){
 
 
     int count = 0;
+    float utm_north = 0.0f;
+    float utm_east = 0.0f;
+    bool tf_rcvd = false;
+
+    tf::StampedTransform transform;
+    try {
+        listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
+        utm_east = transform.getOrigin().x();
+        utm_north = transform.getOrigin().y();
+        tf_rcvd = true;
+    }
+    catch (tf::TransformException ex){
+        //ROS_ERROR("%s",ex.what());
+        //ros::Duration(0.1).sleep();
+    }
+
     while(avt_341::node::ok()){
 
 
-        tf::StampedTransform transform;
-        try {
-            listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
-
+        if (!tf_rcvd){
+            try {
+                listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
+                utm_east = transform.getOrigin().x();
+                utm_north = transform.getOrigin().y();
+                tf_rcvd = true;
+            }
+            catch (tf::TransformException ex){
+                //ROS_ERROR("%s",ex.what());
+                //ros::Duration(0.1).sleep();
+            }
+        }
+        else {
             avt_341::msg::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
@@ -88,12 +113,8 @@ int main(int argc, char **argv){
 
             path_pub->publish(ros_path);
             count++;
+        }
         
-        }
-        catch (tf::TransformException ex){
-            ROS_ERROR("%s",ex.what());
-            ros::Duration(1.0).sleep();
-        }
         n->spin_some();
         loop_rate.sleep();
     }
