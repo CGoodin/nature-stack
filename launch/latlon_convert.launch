@@ -1,0 +1,12 @@
+<launch>
+
+
+  <rosparam file="$(find avt_341)/config/gps_waypoints_hilltop.yaml" />
+
+  <!-- Lidar perception algorithms  -->
+  <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
+
+  </node>
+
+
+</launch>
