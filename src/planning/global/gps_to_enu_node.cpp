@@ -56,7 +56,7 @@ int main(int argc, char **argv){
 
     avt_341::msg::Path enu_path;
 
-    //tf::TransformListener listener;
+    tf::TransformListener listener;
 
     avt_341::node::Rate loop_rate(10);
 
@@ -65,9 +65,9 @@ int main(int argc, char **argv){
     while(avt_341::node::ok()){
 
         //std::vector<std::vector<float>> path = {{0, 10}, {10, 20}, {10, 50}};
-
-        //listener.lookupTransform("/turtle2", "/turtle1",  ros::Time(0), transform);
-
+        tf::StampedTransform transform;
+        listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
+        std::cout<<transform.getOrigin().x() <<" "<<transform.getOrigin().y()<<std::endl;
         avt_341::msg::Path ros_path;
         ros_path.header.frame_id = "odom";
         ros_path.poses.clear();
