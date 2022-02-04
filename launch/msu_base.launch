@@ -133,6 +133,7 @@
     <remap from="/avt_341/odometry" to="/odometry/filtered"/>
   </node>
 
+  <!--
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
     <param name="goal_dist" value="$(arg goal_dist)" />
     <param name="global_lookahead" value="75.0" />
@@ -140,6 +141,7 @@
     <param name="display" value="$(arg display_type)" />
     <remap from="/avt_341/odometry" to="/odometry/filtered"/>
   </node>
+  -->
 
    <!-- Lat-lon convert algorithm  -->
   <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">

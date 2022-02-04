@@ -11,24 +11,53 @@
  */
 
 // ros includes
-#include <tf/transform_listener.h>
-#include "avt_341/node/ros_types.h"
-#include "avt_341/node/node_proxy.h"
+//#include <tf/transform_listener.h>
+#include "ros/ros.h"
+#include "nav_msgs/Path.h"
+#include "sensor_msgs/NavSatFix.h"
+//#include "avt_341/node/ros_types.h"
+//#include "avt_341/node/node_proxy.h"
 // local includes
 #include "avt_341/avt_341_utils.h"
 #include "avt_341/planning/global/coord_conversions/coord_conversions.h"
 // c++ includes
 #include <fstream>
 
+bool fix_rcvd = false;
+float lat_rcvd = 0.0f;
+float lon_rcvd = 0.0f;
+float alt_rcvd = 0.0f;
+
+void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
+    if (!fix_rcvd){
+        lat_rcvd = rcv_fix->latitude;
+        lon_rcvd = rcv_fix->longitude;
+        alt_rcvd = rcv_fix->altitude;
+    }
+  fix_rcvd = true;
+}
+
 int main(int argc, char **argv){
 
-    auto n = avt_341::node::init_node(argc,argv,"path_manager");
+    //auto n = avt_341::node::init_node(argc,argv,"gps_to_enu_node");
+    ros::init(argc, argv, "gps_to_enu_node");
+	ros::NodeHandle n;
 
-    auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/enu_waypoints", 10);
-    
+    //auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/enu_waypoints", 10);
+    ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/avt_341/enu_waypoints",10);
+
+    ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
+
     std::vector<double> gps_waypoints_lat, gps_waypoints_lon;
-    n->get_parameter("/gps_waypoints_lon", gps_waypoints_lon, std::vector<double>(0));
-    n->get_parameter("/gps_waypoints_lat", gps_waypoints_lat, std::vector<double>(0));
+
+    if (n.hasParam("gps_waypoints_lon")){
+		n.getParam("gps_waypoints_lon", gps_waypoints_lon);
+	}
+    if (n.hasParam("gps_waypoints_lat")){
+		n.getParam("gps_waypoints_lat", gps_waypoints_lat);
+	}
+    //n->get_parameter("/gps_waypoints_lon", gps_waypoints_lon, std::vector<double>(0));
+    //n->get_parameter("/gps_waypoints_lat", gps_waypoints_lat, std::vector<double>(0));
 
     if (gps_waypoints_lat.size()!=gps_waypoints_lon.size()){
         std::cerr<<"ERROR! IN THE GPS TO ENU WP FILE, THE NUMBER OF LAT AND LON ENTRIES WAS NOT THE SAME. EXITING."<<std::endl;
@@ -51,17 +80,17 @@ int main(int argc, char **argv){
         path.push_back(point);
     }
 
-    avt_341::msg::Path enu_path;
+    //avt_341::msg::Path enu_path;
 
-    tf::TransformListener listener;
+    //tf::TransformListener listener;
 
-    avt_341::node::Rate loop_rate(10);
-
+    //avt_341::node::Rate loop_rate(10);
+    ros::Rate rate(10.0);
 
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
-    bool tf_rcvd = false;
+    /*bool tf_rcvd = false;
 
     tf::StampedTransform transform;
     try {
@@ -73,12 +102,12 @@ int main(int argc, char **argv){
     catch (tf::TransformException ex){
         //ROS_ERROR("%s",ex.what());
         //ros::Duration(0.1).sleep();
-    }
+    }*/
 
-    while(avt_341::node::ok()){
+    //while(avt_341::node::ok()){
+    while (ros::ok()){
 
-
-        if (!tf_rcvd){
+        /*if (!tf_rcvd){
             try {
                 listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
                 utm_east = transform.getOrigin().x();
@@ -99,13 +128,36 @@ int main(int argc, char **argv){
             }
         }
         else {
-            avt_341::msg::Path ros_path;
+        */
+        if (fix_rcvd){
+
+            if (count==0){
+                // first time only 
+                avt_341::coordinate_system::LLA gps_origin;
+                gps_origin.latitude = lat_rcvd;
+                gps_origin.longitude = lon_rcvd;
+                gps_origin.altitude = alt_rcvd; // approximate elevation for Starkville, MS
+                avt_341::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
+                utm_east = utm_origin.x;
+                utm_north = utm_origin.y;
+                std::ofstream fout;
+                fout.open("gps_convert_log.txt");
+                fout<<"UTM Origin: ("<<utm_east<<", "<<utm_north<<")"<<std::endl;
+                fout<<"Waypoints: "<<std::endl;
+                for (int32_t i = 0; i < path.size(); i++){
+                    fout<<"("<<path[i][0] - utm_east<<", "<< path[i][1] - utm_north<<")"<<std::endl;
+                }
+                fout.close();
+            }
+
+            //avt_341::msg::Path ros_path;
+            nav_msgs::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
             for (int32_t i = 0; i < path.size(); i++){
                 avt_341::msg::PoseStamped pose;
-                pose.pose.position.x = path[i][0] + utm_east;
-                pose.pose.position.y = path[i][1] + utm_north;
+                pose.pose.position.x = path[i][0] - utm_east;
+                pose.pose.position.y = path[i][1] - utm_north;
                 pose.pose.position.z = 0.0f;
                 pose.pose.orientation.w = 1.0f;
                 pose.pose.orientation.x = 0.0f;
@@ -114,18 +166,22 @@ int main(int argc, char **argv){
                 ros_path.poses.push_back(pose);
             } 
 
-            ros_path.header.stamp = n->get_stamp();
-            avt_341::node::set_seq(ros_path.header, count);
+            ros_path.header.stamp =  ros::Time::now(); // n->get_stamp();
+            ros_path.header.seq = count;
+            //avt_341::node::set_seq(ros_path.header, count);
 
             for (int i = 0; i < ros_path.poses.size(); i++){
                 ros_path.poses[i].header = ros_path.header;
             }
 
-            path_pub->publish(ros_path);
+            //path_pub->publish(ros_path);
+            path_pub.publish(ros_path);
             count++;
         }
-        
-        n->spin_some();
-        loop_rate.sleep();
+
+        rate.sleep();
+		ros::spinOnce();
+        //n->spin_some();
+        //loop_rate.sleep();
     }
 }
