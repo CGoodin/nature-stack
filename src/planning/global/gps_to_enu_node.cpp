@@ -63,36 +63,37 @@ int main(int argc, char **argv){
         tf::StampedTransform transform;
         try {
             listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
+
+            avt_341::msg::Path ros_path;
+            ros_path.header.frame_id = "odom";
+            ros_path.poses.clear();
+            for (int32_t i = 0; i < path.size(); i++){
+                avt_341::msg::PoseStamped pose;
+                pose.pose.position.x = path[i][0] + transform.getOrigin().x();
+                pose.pose.position.y = path[i][1] + transform.getOrigin().y();
+                pose.pose.position.z = 0.0f;
+                pose.pose.orientation.w = 1.0f;
+                pose.pose.orientation.x = 0.0f;
+                pose.pose.orientation.y = 0.0f;
+                pose.pose.orientation.z = 0.0f;
+                ros_path.poses.push_back(pose);
+            } 
+
+            ros_path.header.stamp = n->get_stamp();
+            avt_341::node::set_seq(ros_path.header, count);
+
+            for (int i = 0; i < ros_path.poses.size(); i++){
+                ros_path.poses[i].header = ros_path.header;
+            }
+
+            path_pub->publish(ros_path);
+            count++;
+        
         }
         catch (tf::TransformException ex){
             ROS_ERROR("%s",ex.what());
             ros::Duration(1.0).sleep();
         }
-        avt_341::msg::Path ros_path;
-        ros_path.header.frame_id = "odom";
-        ros_path.poses.clear();
-        for (int32_t i = 0; i < path.size(); i++){
-            avt_341::msg::PoseStamped pose;
-            pose.pose.position.x = path[i][0] + transform.getOrigin().x();
-            pose.pose.position.y = path[i][1] + transform.getOrigin().y();
-            pose.pose.position.z = 0.0f;
-            pose.pose.orientation.w = 1.0f;
-            pose.pose.orientation.x = 0.0f;
-            pose.pose.orientation.y = 0.0f;
-            pose.pose.orientation.z = 0.0f;
-            ros_path.poses.push_back(pose);
-        } 
-
-        ros_path.header.stamp = n->get_stamp();
-        avt_341::node::set_seq(ros_path.header, count);
-
-        for (int i = 0; i < ros_path.poses.size(); i++){
-            ros_path.poses[i].header = ros_path.header;
-        }
-
-        path_pub->publish(ros_path);
-        count++;
-        
         n->spin_some();
         loop_rate.sleep();
     }
