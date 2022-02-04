@@ -2,6 +2,8 @@
 
   <param name="/use_sim_time" value="false"/>
 
+  <rosparam file="$(find avt_341)/config/gps_waypoints_hilltop.yaml" />
+
   <!-- General  -->
   <arg name="display_type" default="rviz" doc="Type of visualization to use rviz | none"/>
   <arg name="auto_launch_rviz" default="true" doc="Open rviz automatically on launch. Only applies if display_type = rviz"/>
@@ -139,6 +141,11 @@
     <remap from="/avt_341/odometry" to="/odometry/filtered"/>
   </node>
 
+   <!-- Lat-lon convert algorithm  -->
+  <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
+
+  </node>
+
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
     <param name="path_look_ahead" value="$(arg path_look_ahead)" />
     <param name="vehicle_width" value="$(arg vehicle_width)" />
@@ -161,6 +168,7 @@
     <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
     <param name="display" value="$(arg display_type)" />
     <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+    <remap from="/avt_341/global_path" to="/avt_341/enu_waypoints"/>
   </node>
 
   <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->

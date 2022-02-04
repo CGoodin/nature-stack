@@ -17,6 +17,8 @@
 // local includes
 #include "avt_341/avt_341_utils.h"
 #include "avt_341/planning/global/coord_conversions/coord_conversions.h"
+// c++ includes
+#include <fstream>
 
 int main(int argc, char **argv){
 
@@ -82,6 +84,14 @@ int main(int argc, char **argv){
                 utm_east = transform.getOrigin().x();
                 utm_north = transform.getOrigin().y();
                 tf_rcvd = true;
+                std::ofstream fout;
+                fout.open("gps_convert_log.txt");
+                fout<<"UTM Origin: ("<<-utm_east<<", "<<-utm_north<<")"<<std::endl;
+                fout<<"Waypoints: "<<std::endl;
+                for (int32_t i = 0; i < path.size(); i++){
+                    fout<<"("<<path[i][0] + utm_east<<", "<< path[i][1] + utm_north<<")"<<std::endl;
+                }
+                fout.close();
             }
             catch (tf::TransformException ex){
                 //ROS_ERROR("%s",ex.what());
@@ -94,8 +104,8 @@ int main(int argc, char **argv){
             ros_path.poses.clear();
             for (int32_t i = 0; i < path.size(); i++){
                 avt_341::msg::PoseStamped pose;
-                pose.pose.position.x = path[i][0] + transform.getOrigin().x();
-                pose.pose.position.y = path[i][1] + transform.getOrigin().y();
+                pose.pose.position.x = path[i][0] + utm_east;
+                pose.pose.position.y = path[i][1] + utm_north;
                 pose.pose.position.z = 0.0f;
                 pose.pose.orientation.w = 1.0f;
                 pose.pose.orientation.x = 0.0f;
