@@ -75,7 +75,7 @@
   </node>
 
 
-  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" >
+  <node name="pf_planner_node" pkg="avt_341" type="avt_341_pf_planner_node" output="screen" required="true" >
     <param name="use_global_path" value="false" />
     <param name="rate" value="50.0" />
     <param name="kp" value="5.0" />
