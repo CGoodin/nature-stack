@@ -55,13 +55,13 @@
   <arg name="throttle_coefficient" default="1.0" doc="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive" />
   <arg name="throttle_kp" default="0.1129" doc="Proportional coeff for the PID speed controller" />
   <arg name="throttle_ki" default="0.0" doc="Integral coeff for the PID speed controller" />
-  <arg name="throttle_kd" default="0.0435" doc="Derivative coeff for the PID speed controller" />
+  <arg name="throttle_kd" default="0.0" doc="Derivative coeff for the PID speed controller" />
   <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
   <arg name="time_to_max_throttle" default="3.0" doc="Time in seconds to go from 0 to maximum throttle" />
-  <arg name="use_feed_forward" default="true" doc="Set to true to use the feed-forward model in the PID throttle control" />
-  <arg name="ff_a0" default="0.2134" doc="0th order coeff in the feed-forward model" />
-  <arg name="ff_a1" default="0.0422" doc="1st order coeff in the feed-forward model"/>
-  <arg name="ff_a2" default="-0.0003" doc="2nd order coeff in the feed-forward model"/>
+  <arg name="use_feed_forward" default="false" doc="Set to true to use the feed-forward model in the PID throttle control" />
+  <arg name="ff_a0" default="0.2856" doc="0th order coeff in the feed-forward model" />
+  <arg name="ff_a1" default="0.0321" doc="1st order coeff in the feed-forward model"/>
+  <arg name="ff_a2" default="0.0" doc="2nd order coeff in the feed-forward model"/>
   <arg name="max_desired_lateral_g" default="0.75" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
 
   <rosparam file="$(arg waypoints_file)" />
