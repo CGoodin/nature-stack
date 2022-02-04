@@ -1,6 +1,9 @@
 <launch>
 
 
+<node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/cgoodin/Desktop/bag_files/marc_daniel_avt_hill_test_3ms_2022-01-19-13-44-56.bag" required="true"/>
+
+
   <rosparam file="$(find avt_341)/config/gps_waypoints_hilltop.yaml" />
 
   <!-- Lidar perception algorithms  -->
