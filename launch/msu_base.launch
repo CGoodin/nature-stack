@@ -64,8 +64,8 @@
   <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
   <arg name="time_to_max_throttle" default="3.0" doc="Time in seconds to go from 0 to maximum throttle" />
   <arg name="use_feed_forward" default="true" doc="Set to true to use the feed-forward model in the PID throttle control" />
-  <arg name="ff_a0" default="0.2799" doc="0th order coeff in the feed-forward model" />
-  <arg name="ff_a1" default="0.0327" doc="1st order coeff in the feed-forward model"/>
+  <arg name="ff_a0" default="0.2856" doc="0th order coeff in the feed-forward model" />
+  <arg name="ff_a1" default="0.0321" doc="1st order coeff in the feed-forward model"/>
   <arg name="ff_a2" default="0.0" doc="2nd order coeff in the feed-forward model"/>
   <arg name="max_desired_lateral_g" default="0.75" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
 
