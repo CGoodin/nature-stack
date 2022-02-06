@@ -71,6 +71,13 @@ target_link_libraries(gps_to_enu_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(gps_spoof_node
+  src/planning/global/gps_spoof_node.cpp
+)
+target_link_libraries(gps_spoof_node
+  ${catkin_LIBRARIES}
+)
+
 add_executable(avt_341_perception_node 
 src/perception/avt_341_perception_node.cpp 
 src/perception/elevation_grid.cpp
@@ -188,6 +195,7 @@ avt_341_pf_planner_node
 avt_341_global_path_node
 avt_341_sim_test_node
 gps_to_enu_node
+gps_spoof_node
 path_manager_node
 avt_bot_state_publisher_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
