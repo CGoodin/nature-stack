@@ -22,6 +22,7 @@ int current_run_state = -1;   // startup state
 bool shutdown_condition = false;
 double mrzr_speedometer = 0.0;
 bool speedometer_rcvd = false;
+double mrzr_steering = 0.0;
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
@@ -30,6 +31,11 @@ void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 void SpeedCallback(avt_341::msg::Float64Ptr rcv_speed) {
 	mrzr_speedometer = rcv_speed->data;
   speedometer_rcvd = true; 
+}
+
+void SteeringCallback(avt_341::msg::Float64Ptr rcv_steering) {
+	mrzr_steering = rcv_steering->data;
+  std::cout<<"Recived mrzr steering of "<<mrzr_steering<<std::endl;
 }
 
 void PathCallback(avt_341::msg::PathPtr rcv_control){
@@ -92,6 +98,8 @@ int main(int argc, char *argv[]){
 
   auto speed_sub = n->create_subscription<avt_341::msg::Float64>("mrzr_velocity",1,SpeedCallback);
 
+  auto steering_sub = n->create_subscription<avt_341::msg::Float64>("mrzr_steering",1,SteeringCallback);
+
 
   avt_341::control::PurePursuitController controller;
 
@@ -132,6 +140,8 @@ int main(int argc, char *argv[]){
   n->get_parameter("~skid_kl", skid_kl, 1.0f);
   n->get_parameter("~skid_kt", skid_kt, 1.0f);
   
+  // ctg 2/7/22 - need to make this an input param
+  float time_to_max_steering = 5.0f; // seconds
 
   if (skid_steered){
     controller.IsSkidSteered(true);
@@ -162,8 +172,10 @@ int main(int argc, char *argv[]){
   float dt = 1.0f/rate;
   float brake_step = dt/time_to_max_brake;
   float max_throttle_step = dt/time_to_max_throttle;
+  float max_steering_step = dt/time_to_max_steering;
   float current_brake_value = 0.0f;
   float current_throttle_value = 0.0f;
+  float current_steering_value = 0.0f;
   avt_341::node::Rate r(rate);
   avt_341::utils::vec2 goal;
 
@@ -175,6 +187,7 @@ int main(int argc, char *argv[]){
     float vel = 0.0f;
     if (speedometer_rcvd){
       vel = mrzr_speedometer;
+      current_steering_value = mrzr_steering;
     }
     else{
       vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
@@ -216,6 +229,7 @@ int main(int argc, char *argv[]){
       dc.angular.z = 0.0f;
       time_to_quit = true;
     }
+
     if (!skid_steered){
       // check braking and throttle
       if (dc.linear.y!=0.0){
@@ -232,12 +246,19 @@ int main(int argc, char *argv[]){
       if (dc.linear.x-current_throttle_value > max_throttle_step){
         dc.linear.x = current_throttle_value + max_throttle_step;
       }
+      std::cout<<"Adjusting steering "<<dc.angular.z<<" "<<current_steering_value<<" "<<max_steering_step<<std::endl;
+      // apply the steering ramp up
+      if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
+        dc.angular.z = dc.angular.z + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
+      }
+      std::cout<<"adjusted steering = "<<dc.angular.z<<std::endl;
     }
 
     // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;
     current_throttle_value = dc.linear.x;
+    current_steering_value = dc.angular.z; 
 
     // break the loop when an end state is reached
     if (time_to_quit)break;

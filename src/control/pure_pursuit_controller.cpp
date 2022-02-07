@@ -175,8 +175,9 @@ avt_341::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float loo
 
 	//Use the speed controller to get throttle/braking
 	//addjust the target speed so you back off during hard turns
-	float adj_speed = target_speed * exp(-0.69*pow(fabs(dc.angular.z), 4.0f));
-	speed_controller_.SetSetpoint(adj_speed);
+	//float adj_speed = target_speed * exp(-0.69*pow(fabs(dc.angular.z), 4.0f));
+	//speed_controller_.SetSetpoint(adj_speed);
+	speed_controller_.SetSetpoint(target_speed);
 	float vdot = vx_*curr_dir.x + vy_*curr_dir.y;
 	float throttle = speed_controller_.GetControlVariable(veh_speed_, 0.01f);
 	//float throttle = speed_controller_.GetControlVariable(vdot, 0.01f);

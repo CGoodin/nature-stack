@@ -24,8 +24,8 @@
   <arg name="grid_dilate_proportion" default="0.8" doc="Elevation grid - Proportion of original grid cell to dilate with."/>
   <arg name="cull_lidar" default="false" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
   <arg name="cull_lidar_dist" default="90.0" doc="Elevation grid - Distance used to cull lidar points"/>
-  <arg name="use_registered" default="true" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
-  <arg name="stitch_lidar_points" default="true" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
+  <arg name="use_registered" default="false" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
+  <arg name="stitch_lidar_points" default="false" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
   <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
 
   <!-- Global Planner  -->
@@ -162,7 +162,7 @@
     <param name="w_r" value="$(arg w_r)" />
     <param name="w_t" value="$(arg w_t)" />
     <param name="rate" value="50.0" />
-    <param name="trim_path" value="true" />
+    <param name="trim_path" value="false" />
     <param name="use_global_path" value="$(arg use_global_path)" />
     <param name="use_blend" value="$(arg use_blend)" />
     <param name="cost_vis" value="$(arg cost_vis)" />
