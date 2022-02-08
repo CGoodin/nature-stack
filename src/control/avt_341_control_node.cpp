@@ -109,7 +109,7 @@ int main(int argc, char *argv[]){
 	// Set controller parameters
   float ff_a0, ff_a1, ff_a2;
   bool use_feed_forward;
-	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake;
+	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake, time_to_max_steering;
   float throttle_kp, throttle_ki, throttle_kd, max_desired_lateral_g;
 	std::string display;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
@@ -119,6 +119,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
   n->get_parameter("~time_to_max_brake", time_to_max_brake, 4.0f);
   n->get_parameter("~time_to_max_throttle", time_to_max_throttle, 3.0f);
+  n->get_parameter("~time_to_max_steering", time_to_max_steering, 3.0f);
   n->get_parameter("~ff_a0", ff_a0, 0.0402f);
   n->get_parameter("~ff_a1", ff_a1, 0.0814f);
   n->get_parameter("~ff_a2", ff_a2, -0.0023f);
@@ -139,8 +140,6 @@ int main(int argc, char *argv[]){
   n->get_parameter("~skid_kl", skid_kl, 1.0f);
   n->get_parameter("~skid_kt", skid_kt, 1.0f);
   
-  // ctg 2/7/22 - need to make this an input param
-  float time_to_max_steering = 5.0f; // seconds
 
   if (skid_steered){
     controller.IsSkidSteered(true);
@@ -248,7 +247,7 @@ int main(int argc, char *argv[]){
       }
       // apply the steering ramp up
       if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
-        dc.angular.z = current_steering_value + max_steering_step*(current_steering_value-dc.angular.z)/fabs(dc.angular.z-current_steering_value);
+        dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
       }
     }
 
