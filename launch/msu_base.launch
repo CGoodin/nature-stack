@@ -36,7 +36,7 @@
   <arg name="path_look_ahead" default="30.0" doc="Local planner - Planning horizon."/>
   <arg name="vehicle_width" default="3.0" doc="Local planner - Vehicle width. Used during blending phase when re-weighting each path cost by adjacent paths."/>
   <arg name="max_steer_angle" default="0.5" doc="Local planner - Maximum steer angle in radians. Used to compute rho_max during local planning."/>
-  <arg name="dilation_factor" default="2" doc="Local planner - Dilation in number of grid cells to apply in local planner only."/>
+  <arg name="dilation_factor" default="1" doc="Local planner - Dilation in number of grid cells to apply in local planner only."/>
   <arg name="w_c" default="0.0" doc="Local planner - w_c conformability (minimize curvature) weighting factor"/>
   <arg name="w_s" default="0.4" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
   <arg name="w_d" default="0.0" doc="Local planner - w_d dynamic safety weighting factor"/>
