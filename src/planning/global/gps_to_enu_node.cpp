@@ -56,8 +56,6 @@ int main(int argc, char **argv){
     if (n.hasParam("gps_waypoints_lat")){
 		n.getParam("gps_waypoints_lat", gps_waypoints_lat);
 	}
-    //n->get_parameter("/gps_waypoints_lon", gps_waypoints_lon, std::vector<double>(0));
-    //n->get_parameter("/gps_waypoints_lat", gps_waypoints_lat, std::vector<double>(0));
 
     if (gps_waypoints_lat.size()!=gps_waypoints_lon.size()){
         std::cerr<<"ERROR! IN THE GPS TO ENU WP FILE, THE NUMBER OF LAT AND LON ENTRIES WAS NOT THE SAME. EXITING."<<std::endl;
@@ -80,55 +78,14 @@ int main(int argc, char **argv){
         path.push_back(point);
     }
 
-    //avt_341::msg::Path enu_path;
-
-    //tf::TransformListener listener;
-
-    //avt_341::node::Rate loop_rate(10);
     ros::Rate rate(10.0);
 
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
-    /*bool tf_rcvd = false;
 
-    tf::StampedTransform transform;
-    try {
-        listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
-        utm_east = transform.getOrigin().x();
-        utm_north = transform.getOrigin().y();
-        tf_rcvd = true;
-    }
-    catch (tf::TransformException ex){
-        //ROS_ERROR("%s",ex.what());
-        //ros::Duration(0.1).sleep();
-    }*/
-
-    //while(avt_341::node::ok()){
     while (ros::ok()){
 
-        /*if (!tf_rcvd){
-            try {
-                listener.lookupTransform("/odom", "/utm",  ros::Time(0), transform);
-                utm_east = transform.getOrigin().x();
-                utm_north = transform.getOrigin().y();
-                tf_rcvd = true;
-                std::ofstream fout;
-                fout.open("gps_convert_log.txt");
-                fout<<"UTM Origin: ("<<-utm_east<<", "<<-utm_north<<")"<<std::endl;
-                fout<<"Waypoints: "<<std::endl;
-                for (int32_t i = 0; i < path.size(); i++){
-                    fout<<"("<<path[i][0] + utm_east<<", "<< path[i][1] + utm_north<<")"<<std::endl;
-                }
-                fout.close();
-            }
-            catch (tf::TransformException ex){
-                //ROS_ERROR("%s",ex.what());
-                //ros::Duration(0.1).sleep();
-            }
-        }
-        else {
-        */
         if (fix_rcvd){
 
             if (count==0){
@@ -150,10 +107,19 @@ int main(int argc, char **argv){
                 fout.close();
             }
 
-            //avt_341::msg::Path ros_path;
             nav_msgs::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
+            // make the first waypoint be the initial pose
+            avt_341::msg::PoseStamped pose_origin;
+            pose_origin.pose.position.x = 0.0f;
+            pose_origin.pose.position.y = 0.0f;
+            pose_origin.pose.position.z = 0.0f;
+            pose_origin.pose.orientation.w = 1.0f;
+            pose_origin.pose.orientation.x = 0.0f;
+            pose_origin.pose.orientation.y = 0.0f;
+            pose_origin.pose.orientation.z = 0.0f;
+            ros_path.poses.push_back(pose_origin);
             for (int32_t i = 0; i < path.size(); i++){
                 avt_341::msg::PoseStamped pose;
                 pose.pose.position.x = path[i][0] - utm_east;
@@ -166,22 +132,17 @@ int main(int argc, char **argv){
                 ros_path.poses.push_back(pose);
             } 
 
-            ros_path.header.stamp =  ros::Time::now(); // n->get_stamp();
+            ros_path.header.stamp =  ros::Time::now();
             ros_path.header.seq = count;
-            //avt_341::node::set_seq(ros_path.header, count);
 
             for (int i = 0; i < ros_path.poses.size(); i++){
                 ros_path.poses[i].header = ros_path.header;
             }
-
-            //path_pub->publish(ros_path);
             path_pub.publish(ros_path);
             count++;
         }
 
         rate.sleep();
 		ros::spinOnce();
-        //n->spin_some();
-        //loop_rate.sleep();
     }
 }

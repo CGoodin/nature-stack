@@ -35,7 +35,6 @@ void SpeedCallback(avt_341::msg::Float64Ptr rcv_speed) {
 
 void SteeringCallback(avt_341::msg::Float64Ptr rcv_steering) {
 	mrzr_steering = rcv_steering->data;
-  std::cout<<"Recived mrzr steering of "<<mrzr_steering<<std::endl;
 }
 
 void PathCallback(avt_341::msg::PathPtr rcv_control){
@@ -207,7 +206,6 @@ int main(int argc, char *argv[]){
     }
     else if (current_run_state==0){    // active running state
       double max_curvature = GetMaxCurvature(control_msg);
-      
       double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
       float desired_velocity = vehicle_speed;
       if (lateral_g_force>max_desired_lateral_g){
@@ -215,12 +213,14 @@ int main(int argc, char *argv[]){
         if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
       }
       controller.SetDesiredSpeed(desired_velocity);
+      //controller.SetDesiredSpeed(vehicle_speed);
       dc = controller.GetDcFromTraj(control_msg, goal);
     }
     else if (current_run_state==-1 || current_run_state==1){
       // bring to a smooth stop and wait / idle
       controller.SetDesiredSpeed(0.0f);
       dc = controller.GetDcFromTraj(control_msg, goal);
+      if (current_run_state==-1)dc.linear.x = 0.0f;
     }
     else if (current_run_state==3){
       // bring to a hard stop and shut down
@@ -246,12 +246,10 @@ int main(int argc, char *argv[]){
       if (dc.linear.x-current_throttle_value > max_throttle_step){
         dc.linear.x = current_throttle_value + max_throttle_step;
       }
-      std::cout<<"Adjusting steering "<<dc.angular.z<<" "<<current_steering_value<<" "<<max_steering_step<<std::endl;
       // apply the steering ramp up
       if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
-        dc.angular.z = dc.angular.z + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
+        dc.angular.z = current_steering_value + max_steering_step*(current_steering_value-dc.angular.z)/fabs(dc.angular.z-current_steering_value);
       }
-      std::cout<<"adjusted steering = "<<dc.angular.z<<std::endl;
     }
 
     // publish the driving command

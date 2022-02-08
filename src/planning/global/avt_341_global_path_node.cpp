@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
       goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
       goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
       std::cout << "New waypoints! Updated goal " << goal[0] << ", " << goal[1] << std::endl;
-      waypoints_rcvd = false;
+      //waypoints_rcvd = false;
       state.data = 0;  // go active
       state_pub->publish(state);
     }
