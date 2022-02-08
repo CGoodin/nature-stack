@@ -27,6 +27,7 @@
   <arg name="use_registered" default="false" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
   <arg name="stitch_lidar_points" default="false" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
   <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
+  <arg name="persistent_obstacles" default="true" doc="Elevation grid - If true, obstacles will persist in the map once they are created. New updates from the point cloud will not be considered with the obstacle, whether point cloud stitching is turned on or not"/>
 
   <!-- Global Planner  -->
   <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
@@ -108,6 +109,7 @@
     <param name="cull_lidar_dist" value="$(arg cull_lidar_dist)" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="$(arg use_registered)"/>
+    <param name="persistent_obstacles" value="$(arg persistent_obstacles)"/>
     <param name="display" value="$(arg display_type)" />
     <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
     <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>

@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
     grid.SetSize(grid_width,grid_height);
 
     float grid_res, grid_llx, grid_lly, warmup_time, thresh, grid_dilate_x, grid_dilate_y, grid_dilate_proportion;
-    bool use_elevation, grid_dilate;
+    bool use_elevation, grid_dilate, persistent_obstacles;
     std::string display;
 
 	n->get_parameter("~grid_res", grid_res, 1.0f);
@@ -172,6 +172,7 @@ int main(int argc, char *argv[]) {
 	n->get_parameter("~warmup_time", warmup_time, 1.0f);
 	n->get_parameter("~slope_threshold", thresh, 1.0f);
 	n->get_parameter("~use_elevation", use_elevation, false);
+	n->get_parameter("~persistent_obstacles", persistent_obstacles, false);
 	n->get_parameter("~use_registered", use_registered, true);
 	n->get_parameter("~grid_dilate", grid_dilate, true);
 	n->get_parameter("~grid_dilate_x", grid_dilate_x, 2.0f);
@@ -204,6 +205,7 @@ int main(int argc, char *argv[]) {
 	grid.SetDilation(grid_dilate, grid_dilate_x, grid_dilate_y, grid_dilate_proportion);
 	grid.SetStitchPoints(stitch_points);
 	grid.SetFilterHighest(filter_highest_lidar);
+	grid.SetPersistentObstacles(persistent_obstacles);
 
 	double start_time = n->get_now_seconds();
 	avt_341::node::Rate rate(100.0);
