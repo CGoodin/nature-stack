@@ -22,12 +22,13 @@
   <arg name="grid_dilate_x" default="2.0" doc="Elevation grid - Amount of dilation in x direction."/>
   <arg name="grid_dilate_y" default="2.0" doc="Elevation grid - Amount of dilation in y direction."/>
   <arg name="grid_dilate_proportion" default="0.8" doc="Elevation grid - Proportion of original grid cell to dilate with."/>
-  <arg name="cull_lidar" default="false" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
-  <arg name="cull_lidar_dist" default="90.0" doc="Elevation grid - Distance used to cull lidar points"/>
-  <arg name="use_registered" default="true" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
+  <arg name="cull_lidar" default="true" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
+  <arg name="cull_lidar_dist" default="60.0" doc="Elevation grid - Distance used to cull lidar points"/>
+  <arg name="use_registered" default="false" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
   <arg name="stitch_lidar_points" default="false" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
   <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
   <arg name="persistent_obstacles" default="true" doc="Elevation grid - If true, obstacles will persist in the map once they are created. New updates from the point cloud will not be considered with the obstacle, whether point cloud stitching is turned on or not"/>
+  <arg name="blanking_distance" default="1.5" doc="Perception node - ignore points closer than this distance"/>
 
   <!-- Global Planner  -->
   <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
@@ -114,6 +115,7 @@
     <param name="display" value="$(arg display_type)" />
     <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
     <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>
+    <param name="blanking_distance" value="$(arg blanking_distance)"/>
     <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>
     <remap from="/avt_341/points" to="/os_cloud_node/points"/>-->
   </node>

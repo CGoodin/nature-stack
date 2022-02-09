@@ -246,9 +246,9 @@ int main(int argc, char *argv[]){
         dc.linear.x = current_throttle_value + max_throttle_step;
       }
       // apply the steering ramp up
-      if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
-        dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
-      }
+      //if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
+      //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
+      //}
     }
 
     // publish the driving command
