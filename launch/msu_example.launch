@@ -14,8 +14,8 @@
 <!--     <arg name="auto_launch_rviz" value="false" /> -->
   </include>
 
-  <!-- Use this node to test the build if no simulator is being used. -->
+  <!-- Use this node to test the build if no simulator is being used. 
   <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
-
+-->
 
 </launch>
