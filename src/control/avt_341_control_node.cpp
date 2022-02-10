@@ -201,7 +201,7 @@ int main(int argc, char *argv[]){
       dc = controller.GetDcFromTraj(control_msg, goal);
       dc.linear.x = 0.0f;
       dc.angular.z = 0.0f;
-
+      dc.linear.y = -1.0f;
     }
     else if (current_run_state==0){    // active running state
       double max_curvature = GetMaxCurvature(control_msg);
@@ -255,6 +255,7 @@ int main(int argc, char *argv[]){
     current_brake_value = dc.linear.y;
     current_throttle_value = dc.linear.x;
     current_steering_value = dc.angular.z; 
+
 
     // break the loop when an end state is reached
     if (time_to_quit)break;

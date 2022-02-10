@@ -87,13 +87,16 @@ int main(int argc, char **argv){
         point.push_back(utm_wp.y);
         path.push_back(point);
     }
-
+    if (path.size()<1){
+        std::cerr<<"ERROR: NO WAYPOINTS WERE GIVEN TO THE GPS TO ENU NODE. EXITING."<<std::endl;
+        exit(1);
+    }
     ros::Rate rate(10.0);
 
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
-    avt_341::msg::PoseStamped first_pose;
+    avt_341::msg::PoseStamped first_pose, second_pose;
     while (ros::ok()){
 
         if (fix_rcvd && odom_rcvd){
@@ -126,20 +129,30 @@ int main(int argc, char **argv){
                 float tvy = to_veh_y/tvm;
                 first_pose.pose.position.x = current_odom.pose.pose.position.x + tvx*3.0f;
                 first_pose.pose.position.y = current_odom.pose.pose.position.y + tvy*3.0f;
+                //first_pose.pose.position.x = current_odom.pose.pose.position.x - tvx*5.0f;
+                //first_pose.pose.position.y = current_odom.pose.pose.position.y - tvy*5.0f;
                 first_pose.pose.position.z = 0.0f;
                 first_pose.pose.orientation.w = 1.0f;
                 first_pose.pose.orientation.x = 0.0f;
                 first_pose.pose.orientation.y = 0.0f;
                 first_pose.pose.orientation.z = 0.0f;
+                second_pose = first_pose;
+                second_pose.pose.position.x = current_odom.pose.pose.position.x - tvx*5.0f;
+                second_pose.pose.position.y = current_odom.pose.pose.position.y - tvy*5.0f;
             }
 
             nav_msgs::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
             
-            ros_path.poses.push_back(first_pose);
+            if (path.size()==1){
+                ros_path.poses.push_back(first_pose);
+                ros_path.poses.push_back(second_pose);
+            }
+
             for (int32_t i = 0; i < path.size(); i++){
                 avt_341::msg::PoseStamped pose;
+                pose.header.stamp = ros::Time::now();
                 pose.pose.position.x = path[i][0] - utm_east;
                 pose.pose.position.y = path[i][1] - utm_north;
                 pose.pose.position.z = 0.0f;

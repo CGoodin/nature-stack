@@ -11,10 +11,10 @@
   <!-- Elevation Grid  -->
   <arg name="use_elevation" default="false" doc="Elevation grid - To use elevation or slope value when making occupancy grid based on heightmap."/>
   <arg name="slope_threshold" default="0.5" doc="Elevation grid - Threshold within which next waypoint selected."/>
-  <arg name="grid_height" default="200.0" doc="Elevation grid - Grid height."/>
-  <arg name="grid_width" default="200.0" doc="Elevation grid - Grid width."/>
-  <arg name="grid_llx" default="-100.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
-  <arg name="grid_lly" default="-100.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
+  <arg name="grid_height" default="500.0" doc="Elevation grid - Grid height."/>
+  <arg name="grid_width" default="500.0" doc="Elevation grid - Grid width."/>
+  <arg name="grid_llx" default="-250.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
+  <arg name="grid_lly" default="-250.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
   <arg name="grid_res" default="0.5" doc="Elevation grid - Grid resolution in meters."/>
   <arg name="grid_dilate" default="false" doc="Elevation grid - Apply dilation in occupancy grid."/>
   <arg name="grid_dilate_x" default="2.0" doc="Elevation grid - Amount of dilation in x direction."/>
@@ -120,7 +120,7 @@
     <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
   </node>
 
-  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
+  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="false" output="screen" >
     <param name="goal_dist" value="$(arg goal_dist)" />
     <param name="global_lookahead" value="75.0" />
     <param name="shutdown_behavior" value="2" />
