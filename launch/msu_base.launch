@@ -13,10 +13,10 @@
   <!-- Elevation Grid  -->
   <arg name="use_elevation" default="false" doc="Elevation grid - To use elevation or slope value when making occupancy grid based on heightmap."/>
   <arg name="slope_threshold" default="0.5" doc="Elevation grid - Threshold within which next waypoint selected."/>
-  <arg name="grid_height" default="200.0" doc="Elevation grid - Grid height."/>
-  <arg name="grid_width" default="200.0" doc="Elevation grid - Grid width."/>
-  <arg name="grid_llx" default="-100.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
-  <arg name="grid_lly" default="-100.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
+  <arg name="grid_height" default="400.0" doc="Elevation grid - Grid height."/>
+  <arg name="grid_width" default="400.0" doc="Elevation grid - Grid width."/>
+  <arg name="grid_llx" default="-200.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
+  <arg name="grid_lly" default="-200.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
   <arg name="grid_res" default="0.5" doc="Elevation grid - Grid resolution in meters."/>
   <arg name="grid_dilate" default="false" doc="Elevation grid - Apply dilation in occupancy grid."/>
   <arg name="grid_dilate_x" default="2.0" doc="Elevation grid - Amount of dilation in x direction."/>
@@ -27,7 +27,7 @@
   <arg name="use_registered" default="false" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
   <arg name="stitch_lidar_points" default="false" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
   <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
-  <arg name="persistent_obstacles" default="true" doc="Elevation grid - If true, obstacles will persist in the map once they are created. New updates from the point cloud will not be considered with the obstacle, whether point cloud stitching is turned on or not"/>
+  <arg name="persistent_obstacles" default="false" doc="Elevation grid - If true, obstacles will persist in the map once they are created. New updates from the point cloud will not be considered with the obstacle, whether point cloud stitching is turned on or not"/>
   <arg name="blanking_distance" default="1.5" doc="Perception node - ignore points closer than this distance"/>
 
   <!-- Global Planner  -->
@@ -153,7 +153,7 @@
 
    <!-- Lat-lon convert algorithm  -->
   <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
-
+    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
   </node>
 
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >

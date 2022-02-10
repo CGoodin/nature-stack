@@ -250,7 +250,6 @@ int main(int argc, char *argv[]){
       //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
       //}
     }
-
     // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;

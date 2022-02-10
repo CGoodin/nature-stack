@@ -14,6 +14,7 @@
 //#include <tf/transform_listener.h>
 #include "ros/ros.h"
 #include "nav_msgs/Path.h"
+#include "nav_msgs/Odometry.h"
 #include "sensor_msgs/NavSatFix.h"
 //#include "avt_341/node/ros_types.h"
 //#include "avt_341/node/node_proxy.h"
@@ -27,6 +28,8 @@ bool fix_rcvd = false;
 float lat_rcvd = 0.0f;
 float lon_rcvd = 0.0f;
 float alt_rcvd = 0.0f;
+nav_msgs::Odometry current_odom;
+bool odom_rcvd = false;
 
 void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
     if (!fix_rcvd){
@@ -35,6 +38,11 @@ void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
         alt_rcvd = rcv_fix->altitude;
     }
   fix_rcvd = true;
+}
+
+void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_odom){
+    current_odom = *rcv_odom;
+    odom_rcvd = true;
 }
 
 int main(int argc, char **argv){
@@ -47,6 +55,8 @@ int main(int argc, char **argv){
     ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/avt_341/enu_waypoints",10);
 
     ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
+
+    ros::Subscriber odometry_sub = n.subscribe("/avt_341/odometry", 10, OdometryCallback);
 
     std::vector<double> gps_waypoints_lat, gps_waypoints_lon;
 
@@ -83,10 +93,10 @@ int main(int argc, char **argv){
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
-
+    avt_341::msg::PoseStamped first_pose;
     while (ros::ok()){
 
-        if (fix_rcvd){
+        if (fix_rcvd && odom_rcvd){
 
             if (count==0){
                 // first time only 
@@ -105,21 +115,29 @@ int main(int argc, char **argv){
                     fout<<"("<<path[i][0] - utm_east<<", "<< path[i][1] - utm_north<<")"<<std::endl;
                 }
                 fout.close();
+
+                // make the first waypoint be the initial pose
+                float to_veh_x = current_odom.pose.pose.position.x - (path[0][0] - utm_east);
+                float to_veh_y = current_odom.pose.pose.position.y - (path[0][1] - utm_north); 
+                //float to_veh_x = -(path[0][0] - utm_east);
+                //float to_veh_y = -(path[0][1] - utm_north); 
+                float tvm = sqrtf(to_veh_x*to_veh_x  + to_veh_y*to_veh_y);
+                float tvx = to_veh_x/tvm;
+                float tvy = to_veh_y/tvm;
+                first_pose.pose.position.x = current_odom.pose.pose.position.x + tvx*3.0f;
+                first_pose.pose.position.y = current_odom.pose.pose.position.y + tvy*3.0f;
+                first_pose.pose.position.z = 0.0f;
+                first_pose.pose.orientation.w = 1.0f;
+                first_pose.pose.orientation.x = 0.0f;
+                first_pose.pose.orientation.y = 0.0f;
+                first_pose.pose.orientation.z = 0.0f;
             }
 
             nav_msgs::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
-            // make the first waypoint be the initial pose
-            avt_341::msg::PoseStamped pose_origin;
-            pose_origin.pose.position.x = 0.0f;
-            pose_origin.pose.position.y = 0.0f;
-            pose_origin.pose.position.z = 0.0f;
-            pose_origin.pose.orientation.w = 1.0f;
-            pose_origin.pose.orientation.x = 0.0f;
-            pose_origin.pose.orientation.y = 0.0f;
-            pose_origin.pose.orientation.z = 0.0f;
-            ros_path.poses.push_back(pose_origin);
+            
+            ros_path.poses.push_back(first_pose);
             for (int32_t i = 0; i < path.size(); i++){
                 avt_341::msg::PoseStamped pose;
                 pose.pose.position.x = path[i][0] - utm_east;
