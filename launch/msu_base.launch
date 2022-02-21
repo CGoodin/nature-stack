@@ -154,6 +154,7 @@
    <!-- Lat-lon convert algorithm  -->
   <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
     <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+    <param name="waypoint_spacing" value="35.0" />
   </node>
 
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >

@@ -67,6 +67,10 @@ int main(int argc, char **argv){
 		n.getParam("gps_waypoints_lat", gps_waypoints_lat);
 	}
 
+    float waypoint_spacing = 10.0f; // meters
+    if (n.hasParam("waypoint_spacing")){
+		n.getParam("waypoint_spacing", waypoint_spacing);
+	}
     if (gps_waypoints_lat.size()!=gps_waypoints_lon.size()){
         std::cerr<<"ERROR! IN THE GPS TO ENU WP FILE, THE NUMBER OF LAT AND LON ENTRIES WAS NOT THE SAME. EXITING."<<std::endl;
         return 1;
@@ -79,7 +83,7 @@ int main(int argc, char **argv){
         avt_341::coordinate_system::LLA gps_wp;
         gps_wp.latitude = gps_waypoints_lat[i];
         gps_wp.longitude = gps_waypoints_lon[i];
-        gps_wp.altitude = 100.0f; // approximate elevation for Starkville, MS
+        gps_wp.altitude = 80.0f; // approximate elevation for Starkville, MS
         avt_341::coordinate_system::UTM utm_wp = converter.LLA2UTM(gps_wp);
         utm_waypoints.push_back(utm_wp);
         std::vector<double> point;
@@ -96,11 +100,70 @@ int main(int argc, char **argv){
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
-    avt_341::msg::PoseStamped first_pose, second_pose;
+    //avt_341::msg::PoseStamped first_pose, second_pose;
+    nav_msgs::Path ros_path;
+    ros_path.header.frame_id = "odom";
+    ros_path.poses.clear();
     while (ros::ok()){
 
         if (fix_rcvd && odom_rcvd){
-
+            if (count==0){
+                // first put the path points in UTM
+                avt_341::coordinate_system::LLA gps_origin;
+                gps_origin.latitude = lat_rcvd;
+                gps_origin.longitude = lon_rcvd;
+                gps_origin.altitude = alt_rcvd; // approximate elevation for Starkville, MS
+                avt_341::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
+                utm_east = utm_origin.x;
+                utm_north = utm_origin.y;
+                std::ofstream fout;
+                fout.open("gps_convert_log.txt");
+                fout<<"UTM Origin: ("<<utm_east<<", "<<utm_north<<")"<<std::endl;
+                fout<<"Waypoints: "<<std::endl;
+                for (int32_t i = 0; i < path.size(); i++){
+                    path[i][0] -= utm_east;
+                    path[i][1] -= utm_north;
+                    fout<<"("<<path[i][0]<<", "<< path[i][1]<<")"<<std::endl;
+                }
+                fout.close();
+                float to_veh_x = current_odom.pose.pose.position.x - path[0][0];
+                float to_veh_y = current_odom.pose.pose.position.y - path[0][1]; 
+                float tvm = sqrtf(to_veh_x*to_veh_x  + to_veh_y*to_veh_y);
+                float tvx = to_veh_x/tvm;
+                float tvy = to_veh_y/tvm;   
+                float x = current_odom.pose.pose.position.x + tvx*3.0f;
+                float y = current_odom.pose.pose.position.y + tvy*3.0f;
+                int current_waypoint = 0;
+                //float wstep = waypoint_spacing;
+                bool finished = false;
+                int num_loops = 0;
+                while (!finished){
+                    if (current_waypoint>=path.size()) break;
+                    float tx = path[current_waypoint][0] - x;
+                    float ty = path[current_waypoint][1] - y;
+                    float normt = sqrtf(tx*tx + ty*ty);
+                    avt_341::msg::PoseStamped pose;
+                    pose.pose.position.x = x;
+                    pose.pose.position.y = y;
+                    pose.pose.position.z = 0.0f;
+                    pose.pose.orientation.w = 1.0f;
+                    pose.pose.orientation.x = 0.0f;
+                    pose.pose.orientation.y = 0.0f;
+                    pose.pose.orientation.z = 0.0f;
+                    ros_path.poses.push_back(pose);
+                    if (normt<1.25f*waypoint_spacing){
+                        current_waypoint += 1;
+                        if (current_waypoint>=path.size())finished = true;
+                    }
+                    x += waypoint_spacing*tx/normt;
+                    y += waypoint_spacing*ty/normt;
+                    if (num_loops>1000){
+                        finished = true;
+                    }
+                    num_loops++;
+                }
+            }
+/*
             if (count==0){
                 // first time only 
                 avt_341::coordinate_system::LLA gps_origin;
@@ -122,15 +185,11 @@ int main(int argc, char **argv){
                 // make the first waypoint be the initial pose
                 float to_veh_x = current_odom.pose.pose.position.x - (path[0][0] - utm_east);
                 float to_veh_y = current_odom.pose.pose.position.y - (path[0][1] - utm_north); 
-                //float to_veh_x = -(path[0][0] - utm_east);
-                //float to_veh_y = -(path[0][1] - utm_north); 
                 float tvm = sqrtf(to_veh_x*to_veh_x  + to_veh_y*to_veh_y);
                 float tvx = to_veh_x/tvm;
                 float tvy = to_veh_y/tvm;
                 first_pose.pose.position.x = current_odom.pose.pose.position.x + tvx*3.0f;
                 first_pose.pose.position.y = current_odom.pose.pose.position.y + tvy*3.0f;
-                //first_pose.pose.position.x = current_odom.pose.pose.position.x - tvx*5.0f;
-                //first_pose.pose.position.y = current_odom.pose.pose.position.y - tvy*5.0f;
                 first_pose.pose.position.z = 0.0f;
                 first_pose.pose.orientation.w = 1.0f;
                 first_pose.pose.orientation.x = 0.0f;
@@ -162,6 +221,8 @@ int main(int argc, char **argv){
                 pose.pose.orientation.z = 0.0f;
                 ros_path.poses.push_back(pose);
             } 
+
+            */
 
             ros_path.header.stamp =  ros::Time::now();
             ros_path.header.seq = count;

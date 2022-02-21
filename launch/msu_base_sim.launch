@@ -52,9 +52,11 @@
   <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
   <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/> -->
 
+  <!--
   <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
-  <!--republish the mrak speed message as a float64 -->
+  republish the mrak speed message as a float64 
   </node>
+  -->
 
   <!-- Pure Pursuit Control  -->
   <arg name="vehicle_wheelbase" default="2.72" doc="Pure pursuit controller - vehicle_wheelbase."/>
@@ -153,7 +155,7 @@
 
    <!-- Lat-lon convert algorithm  -->
   <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
-
+    <param name="waypoint_spacing" value="35.0" />
   </node>
 
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
