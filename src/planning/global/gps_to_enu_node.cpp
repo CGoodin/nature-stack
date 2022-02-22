@@ -68,9 +68,10 @@ int main(int argc, char **argv){
 	}
 
     float waypoint_spacing = 10.0f; // meters
-    if (n.hasParam("waypoint_spacing")){
-		n.getParam("waypoint_spacing", waypoint_spacing);
+    if (ros::param::has("~waypoint_spacing")){
+		ros::param::get("~waypoint_spacing", waypoint_spacing);
 	}
+
     if (gps_waypoints_lat.size()!=gps_waypoints_lon.size()){
         std::cerr<<"ERROR! IN THE GPS TO ENU WP FILE, THE NUMBER OF LAT AND LON ENTRIES WAS NOT THE SAME. EXITING."<<std::endl;
         return 1;
@@ -134,7 +135,6 @@ int main(int argc, char **argv){
                 float x = current_odom.pose.pose.position.x + tvx*3.0f;
                 float y = current_odom.pose.pose.position.y + tvy*3.0f;
                 int current_waypoint = 0;
-                //float wstep = waypoint_spacing;
                 bool finished = false;
                 int num_loops = 0;
                 while (!finished){
