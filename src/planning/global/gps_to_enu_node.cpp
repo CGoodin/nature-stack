@@ -162,6 +162,15 @@ int main(int argc, char **argv){
                     }
                     num_loops++;
                 }
+                avt_341::msg::PoseStamped pose;
+                pose.pose.position.x = path.back()[0];
+                pose.pose.position.y = path.back()[1];
+                pose.pose.position.z = 0.0f;
+                pose.pose.orientation.w = 1.0f;
+                pose.pose.orientation.x = 0.0f;
+                pose.pose.orientation.y = 0.0f;
+                pose.pose.orientation.z = 0.0f;
+                ros_path.poses.push_back(pose);
             }
 /*
             if (count==0){
