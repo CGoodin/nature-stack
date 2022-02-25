@@ -77,7 +77,7 @@ int main(int argc, char **argv){
     };
 	std::vector<double> veh_data = {0.0, -50.0, 1.8, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	avt_341::msg::Float64MultiArray mpc_data_msg;
-	mpc_data_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+	mpc_data_msg.layout.dim.push_back(avt_341::msg::MultiArrayDimension());
 	mpc_data_msg.layout.dim[0].size = veh_data.size();
 	mpc_data_msg.layout.dim[0].stride = 1;
 	mpc_data_msg.layout.dim[0].label = "x";

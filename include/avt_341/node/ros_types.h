@@ -26,6 +26,7 @@
 #include "tf2/LinearMath/Matrix3x3.h"
 
 #include "std_msgs/msg/float64.hpp"
+#include "std_msgs/msg/float64_multi_array.hpp"
 #include "std_msgs/msg/int32.hpp"
 
 namespace avt_341 {
@@ -81,6 +82,9 @@ namespace avt_341 {
     using Int32 = std_msgs::msg::Int32;
     using Int32Ptr = std_msgs::msg::Int32::SharedPtr;
 
+    using Float64MultiArray = std_msgs::msg::Float64MultiArray;
+    using Float64MultiArrayPtr = std_msgs::msg::Float64MultiArray::SharedPtr;
+    using MultiArrayDimension = std_msgs::msg::MultiArrayDimension;
   }
   namespace msg_tf{
     using Matrix3x3 = tf2::Matrix3x3;
