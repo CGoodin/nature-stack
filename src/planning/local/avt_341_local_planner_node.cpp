@@ -101,7 +101,7 @@ int main(int argc, char *argv[]){
   std::shared_ptr<avt_341::planning::Plotter> plotter = avt_341::visualization::create_local_path_plotter(display, cost_vis, n,
                                                                                                           planner.GetComfortabilityWeight(), planner.GetStaticSafetyWeight(),
                                                                                                           planner.GetPathAdherenceWeight(), planner.GetDynamicSafetyWeight(),
-                                                                                                          cost_vis_text_size);
+                                                                                                          planner.GetSegmentationWeight(), cost_vis_text_size);
 
   unsigned int loop_count = 0;
   float dt = 1.0f / rate;

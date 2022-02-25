@@ -111,9 +111,7 @@ public:
 	* Set the current vehicle speed in m/s
 	* \param speed The current vehicle speed 
 	*/
-	void SetVehicleSpeed(float speed) {
-		veh_speed_ = speed;
-	}
+	void SetVehicleSpeed(float speed);
 
 	/**
 	* Set the current vehicle heading in radians
@@ -129,9 +127,44 @@ public:
 	 */
 	void SetVehicleState(avt_341::msg::Odometry state);
 
+	/**
+	* A scale factor for the output throttle.
+	* Set to one by default. Shouldn't be changed under most circumstances.
+	* The PID parameters should control the speed effectively
+	*/
 	void SetThrottleCoeff(float tc){ throttle_coeff_ = tc; }
 
+	/**
+	* Call this to turn skid-steering controller on or off
+	* By default, skid_steered is false and ackerman steering is used
+	*/
+	void IsSkidSteered(bool skid_steered){ skid_steered_ = skid_steered; }
+
+	/**
+	* Set the parameters for the skid steering control model.
+	* Kx = Ky = Kl
+	* Ktheta = kt
+	* See "A Stable Tracking Control Method for a Non-Holonomic Mobile Robot"
+	*/
+	void SetSkidSteerParams(float kl, float kt){
+		kx_ = kl;
+		ky_ = kl;
+		k_theta_ = kt;
+	}
+
+	/// Get a pointer to the PID speed controller
+	PidController *GetPidSpeedController(){ return &speed_controller_; }
+
 private:
+	bool skid_steered_;
+	avt_341::msg::Twist GetDcAckermann(float alpha, float lookahead, utils::vec2 curr_dir, float target_speed);
+	avt_341::msg::Twist GetDcSkid(float dx, float dy, float dtheta);
+
+	// steering parameters for the skid steered model
+	float kx_;
+	float ky_;
+	float k_theta_;
+
 	float wheelbase_; //meters
 	float max_steering_angle_; //radians
 	float min_lookahead_; //meters
@@ -149,6 +182,7 @@ private:
 	float veh_speed_;
 	float vx_;
 	float vy_;
+	float current_angular_velocity_;
 };
 
 } // namespace control

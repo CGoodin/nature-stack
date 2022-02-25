@@ -20,6 +20,7 @@ int main(int argc, char **argv){
 
 	auto lidar_pub = n->create_publisher<avt_341::msg::PointCloud2>("avt_341/points",1);
 	auto odom_pub = n->create_publisher<avt_341::msg::Odometry>("avt_341/odometry",1);
+	auto mpc_state_pub = n->create_publisher<avt_341::msg::Float64MultiArray>("avt_341/veh",1);
 
 
 	// determine if sim time will be used
@@ -60,7 +61,7 @@ int main(int argc, char **argv){
     avt_341::utils::vec3(14.6, 8.2, 1.5),
     avt_341::utils::vec3(15.1, -7.8, 0.0),
     avt_341::utils::vec3(14.5, -8.5, 0.0),
-    avt_341::utils::vec3(14.6, -8.2, 0.5)
+    avt_341::utils::vec3(14.6, -8.2, 0.1)
 	};
     std::vector<int> seg_values = {
             0,
@@ -70,10 +71,17 @@ int main(int argc, char **argv){
             0,
             0,
             0,
-            10,
-            10,
-            10
+            1,
+            1,
+            1
     };
+	std::vector<double> veh_data = {0.0, -50.0, 1.8, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+	avt_341::msg::Float64MultiArray mpc_data_msg;
+	mpc_data_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+	mpc_data_msg.layout.dim[0].size = veh_data.size();
+	mpc_data_msg.layout.dim[0].stride = 1;
+	mpc_data_msg.layout.dim[0].label = "x";
+
   avt_341::perception::PointCloudGenerator::toROSMsg(points, seg_values,pc2);
   pc2.header.frame_id = "odom";
   avt_341::node::set_seq(pc2.header, 0);
@@ -94,14 +102,21 @@ int main(int argc, char **argv){
 		odom_msg.pose.pose.position.x += twist.linear.x*desired_speed*dt;
 		odom_msg.twist.twist.linear.x = desired_speed*twist.linear.x;
 		odom_pub->publish(odom_msg);
-    avt_341::node::inc_seq(odom_msg.header);
+		veh_data[1] = odom_msg.pose.pose.position.x;
+		veh_data[2] = odom_msg.pose.pose.position.y;
+		veh_data[3] = odom_msg.twist.twist.linear.x;
+		veh_data[4] = odom_msg.twist.twist.linear.y;
+		mpc_data_msg.data.clear();
+		mpc_data_msg.data.insert(mpc_data_msg.data.end(), veh_data.begin(), veh_data.end());
+		mpc_state_pub->publish(mpc_data_msg);
+		avt_341::node::inc_seq(odom_msg.header);
 
 		
 		if (nloops%10==0){
 			// publish the point cloud at 10 Hz
 			pc2.header.stamp = n->get_stamp();
 			lidar_pub->publish(pc2);
-      avt_341::node::inc_seq(pc2.header);
+			avt_341::node::inc_seq(pc2.header);
 		}
 			
 		// update and publish time if necessary

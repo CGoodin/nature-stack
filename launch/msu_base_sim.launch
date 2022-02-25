@@ -2,6 +2,8 @@
 
   <param name="/use_sim_time" value="false"/>
 
+  <rosparam file="$(find avt_341)/config/gps_waypoints_hilltop.yaml" />
+
   <!-- General  -->
   <arg name="display_type" default="rviz" doc="Type of visualization to use rviz | none"/>
   <arg name="auto_launch_rviz" default="true" doc="Open rviz automatically on launch. Only applies if display_type = rviz"/>
@@ -46,6 +48,11 @@
   <arg name="cost_vis_text_size" default="2.0" doc="Cost vis text size"/>
   <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
   <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
+  <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/> -->
+
+  <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
+  <!--republish the mrak speed message as a float64 -->
+  </node>
 
   <!-- Pure Pursuit Control  -->
   <arg name="vehicle_wheelbase" default="2.72" doc="Pure pursuit controller - vehicle_wheelbase."/>
@@ -58,7 +65,7 @@
   <arg name="throttle_kd" default="0.0" doc="Derivative coeff for the PID speed controller" />
   <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
   <arg name="time_to_max_throttle" default="3.0" doc="Time in seconds to go from 0 to maximum throttle" />
-  <arg name="use_feed_forward" default="false" doc="Set to true to use the feed-forward model in the PID throttle control" />
+  <arg name="use_feed_forward" default="true" doc="Set to true to use the feed-forward model in the PID throttle control" />
   <arg name="ff_a0" default="0.2856" doc="0th order coeff in the feed-forward model" />
   <arg name="ff_a1" default="0.0321" doc="1st order coeff in the feed-forward model"/>
   <arg name="ff_a2" default="0.0" doc="2nd order coeff in the feed-forward model"/>
@@ -104,6 +111,8 @@
     <param name="display" value="$(arg display_type)" />
     <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
     <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>
+    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>
+    <remap from="/avt_341/points" to="/os_cloud_node/points"/> -->
   </node>
 
   <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
@@ -116,15 +125,27 @@
     <param name="throttle_kp" value="$(arg throttle_kp)" />
     <param name="throttle_ki" value="$(arg throttle_ki)" />
     <param name="throttle_kd" value="$(arg throttle_kd)" />
+    <param name="ff_a0" value="$(arg ff_a0)" />
+    <param name="ff_a1" value="$(arg ff_a1)" />
+    <param name="ff_a2" value="$(arg ff_a2)" />
     <param name="time_to_max_brake" value="$(arg time_to_max_brake)" />
     <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
+    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>-->
   </node>
 
+  <!--
   <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
     <param name="goal_dist" value="$(arg goal_dist)" />
     <param name="global_lookahead" value="75.0" />
     <param name="shutdown_behavior" value="2" />
     <param name="display" value="$(arg display_type)" />
+    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+  </node>
+  -->
+
+   <!-- Lat-lon convert algorithm  -->
+  <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
+
   </node>
 
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
@@ -141,13 +162,15 @@
     <param name="w_r" value="$(arg w_r)" />
     <param name="w_t" value="$(arg w_t)" />
     <param name="rate" value="50.0" />
-    <param name="trim_path" value="true" />
+    <param name="trim_path" value="false" />
     <param name="use_global_path" value="$(arg use_global_path)" />
     <param name="use_blend" value="$(arg use_blend)" />
     <param name="cost_vis" value="$(arg cost_vis)" />
     <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
     <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
     <param name="display" value="$(arg display_type)" />
+    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>-->
+    <remap from="/avt_341/global_path" to="/avt_341/enu_waypoints"/>
   </node>
 
   <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->

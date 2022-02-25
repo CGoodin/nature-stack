@@ -60,7 +60,7 @@ public:
 	 * \param grid ROS occupancy grid.
 	 * \param odom ROS odometry of the current vehicle.
 	 */ 
-	bool CalculateCandidateCosts(const avt_341::msg::OccupancyGrid & grid, const avt_341::msg::OccupancyGrid & segmentation_grid, avt_341::msg::Odometry odom);
+	bool CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::OccupancyGrid segmentation_grid, avt_341::msg::Odometry odom);
 
 	/**
 	 * Dilate the map with a mask of given size.
@@ -132,6 +132,7 @@ public:
 	float GetStaticSafetyWeight() const { return w_s_; }
 	float GetDynamicSafetyWeight() const { return w_d_; }
 	float GetPathAdherenceWeight() const { return w_r_; }
+	float GetSegmentationWeight() const { return w_t_; }
 
 	/**
 	 * Set the weight on the consistency factor on the comfortability calculation. 

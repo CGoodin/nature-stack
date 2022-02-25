@@ -29,7 +29,7 @@ double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose
 	return dx*dx + dy*dy + dz*dz;
 }
 
-void GetPoseToUse(avt_341::msg::Odometry & pose_to_use, avt_341::msg::PointCloud2Ptr rcv_cloud){
+double GetPoseToUse(avt_341::msg::Odometry & pose_to_use, avt_341::msg::PointCloud2Ptr rcv_cloud){
   double dt = 1.0;
   for (int i=0;i<current_pose_list.size();i++){
     double dt_this = fabs(avt_341::node::seconds_from_header(current_pose_list[i].header) - avt_341::node::seconds_from_header(rcv_cloud->header));
@@ -38,6 +38,7 @@ void GetPoseToUse(avt_341::msg::Odometry & pose_to_use, avt_341::msg::PointCloud
       dt = dt_this;
     }
   }
+	return dt;
 }
 
 void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
@@ -88,9 +89,9 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 	avt_341::msg::PointCloud point_cloud;
 	
 	bool converted = sensor_msgs::convertPointCloud2ToPointCloud(*rcv_cloud,point_cloud);
-	double dt = 1.0;
+
 	avt_341::msg::Odometry pose_to_use;
-	GetPoseToUse(pose_to_use, rcv_cloud);
+	double dt = GetPoseToUse(pose_to_use, rcv_cloud);
 	std::vector<std::vector<float>> channel_values;
 	for(int c = 0; c < point_cloud.channels.size(); c++){
 		channel_values.push_back(std::vector<float>());
@@ -140,7 +141,6 @@ void PointCloudCallback(avt_341::msg::PointCloud2Ptr rcv_cloud){
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_odom){
 	current_pose = *rcv_odom;
-	//std::cout<<"Vehicle positoin = "<<current_pose.pose.pose.position.x<<" "<<current_pose.pose.pose.position.y<<" "<<current_pose.pose.pose.position.z<<std::endl;
 	odom_rcvd = true;
 	current_pose_list.push_back(current_pose);
 	if (current_pose_list.size()>50) current_pose_list.erase(current_pose_list.begin());
@@ -186,7 +186,6 @@ int main(int argc, char *argv[]) {
     float cull_lidar_points_dist;
     n->get_parameter("~cull_lidar", cull_lidar_points, false);
     n->get_parameter("~cull_lidar_dist", cull_lidar_points_dist, 100.0f);
-    std::cout << cull_lidar_points << " " << cull_lidar_points_dist << std::endl;
     cull_lidar_points_dist_sqr = cull_lidar_points_dist * cull_lidar_points_dist;
 
 

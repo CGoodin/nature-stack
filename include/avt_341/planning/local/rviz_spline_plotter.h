@@ -16,7 +16,7 @@ namespace avt_341 {
     class RVIZPlotter : public Plotter {
     public:
       RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, const std::string & cos_vis,
-                  std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float cost_vis_text_size_);
+                  std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float w_t, float cost_vis_text_size_);
       virtual void Display(bool save, const std::string & ofname, int nx, int ny) override;
 
     private:
@@ -29,6 +29,7 @@ namespace avt_341 {
       float w_d_;
       float w_r_;
       float w_s_;
+      float w_t_;
     };
   } // namespace planning
 } // namespace avt_341
