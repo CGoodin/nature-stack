@@ -132,6 +132,7 @@ public:
 	float GetStaticSafetyWeight() const { return w_s_; }
 	float GetDynamicSafetyWeight() const { return w_d_; }
 	float GetPathAdherenceWeight() const { return w_r_; }
+	float GetSegmentationWeight() const { return w_t_; }
 
 	/**
 	 * Set the weight on the consistency factor on the comfortability calculation. 

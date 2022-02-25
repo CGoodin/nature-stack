@@ -45,6 +45,7 @@ public:
 		max_curvature_ = 0.0f;
 		max_length_ = 100.0f;
 		s0_ = 0.0f;
+        segmentation_cost_ = 0.0f;
 	}
 
 	/**

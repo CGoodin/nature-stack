@@ -61,7 +61,7 @@ int main(int argc, char **argv){
     avt_341::utils::vec3(14.6, 8.2, 1.5),
     avt_341::utils::vec3(15.1, -7.8, 0.0),
     avt_341::utils::vec3(14.5, -8.5, 0.0),
-    avt_341::utils::vec3(14.6, -8.2, 0.5)
+    avt_341::utils::vec3(14.6, -8.2, 0.1)
 	};
     std::vector<int> seg_values = {
             0,
@@ -71,9 +71,9 @@ int main(int argc, char **argv){
             0,
             0,
             0,
-            10,
-            10,
-            10
+            1,
+            1,
+            1
     };
 	std::vector<double> veh_data = {0.0, -50.0, 1.8, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 	avt_341::msg::Float64MultiArray mpc_data_msg;

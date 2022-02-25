@@ -209,7 +209,7 @@ void Planner::CalculateRhoCost() {
 }
 
 float Planner::GetTotalCostOfCandidate(int i) {
-	float cost = w_c_ * candidates_[i].GetComfortability() + w_s_ * candidates_[i].GetStaticSafety() + w_r_ * candidates_[i].GetRhoCost() + w_d_*candidates_[i].GetDynamicSafety();
+	float cost = w_c_ * candidates_[i].GetComfortability() + w_s_ * candidates_[i].GetStaticSafety() + w_r_ * candidates_[i].GetRhoCost() + w_d_*candidates_[i].GetDynamicSafety() * w_t_*candidates_[i].GetSegmentationCost();
   	candidates_[i].SetCost(cost);
 	return cost;
 }
