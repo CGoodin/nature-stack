@@ -135,6 +135,7 @@ int main(int argc, char *argv[]){
       }
 
       path.FixBeginning(odom.pose.pose.position.x, odom.pose.pose.position.y);
+      path.FixEnd();
 
       std::vector<avt_341::utils::vec2> culled_points = path.GetPoints();
       float s_max = path.GetTotalLength();
