@@ -50,6 +50,7 @@
   <arg name="cost_vis_text_size" default="2.0" doc="Cost vis text size"/>
   <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
   <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
+  <arg name="keep_good_path" default="false" doc="If true, continue to use the last good path until it goes bad or you get halfway down it."/>
   <remap from="/avt_341/odometry" to="/odometry/filtered"/>
 
   <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
@@ -174,6 +175,7 @@
     <param name="trim_path" value="false" />
     <param name="use_global_path" value="$(arg use_global_path)" />
     <param name="use_blend" value="$(arg use_blend)" />
+    <param name="keep_good_path" value="$(arg keep_good_path)" />
     <param name="cost_vis" value="$(arg cost_vis)" />
     <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
     <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
