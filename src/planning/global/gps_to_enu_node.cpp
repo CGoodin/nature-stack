@@ -116,16 +116,20 @@ int main(int argc, char **argv){
     ros_path.poses.clear();
     while (ros::ok()){
 
-        // apply transform
-        // plop into path
+        // skip until transform available
 
-        if (fix_rcvd && odom_rcvd){
+     	if (!tfBuffer.canTransform("odom","utm",ros::Time::now(),ros::Duration(30))){
+     		ROS_WARN("No utm->odom transform!");
+     		continue;
+     	}
+
+        if (odom_rcvd){
             if (count==0){
 
                 // log waypoints to file
                 std::ofstream fout;
                 fout.open("gps_convert_log.txt");
-                geometry_msgs::TransformStamped transform = tfBuffer.lookupTransform("utm","odom",ros::Time(0));
+                geometry_msgs::TransformStamped transform = tfBuffer.lookupTransform("odom","utm",ros::Time(0));
                 fout<<"UTM Origin: (" << transform.transform.translation.x <<", "<< transform.transform.translation.y <<")"<<std::endl;
                 fout<<"Waypoints: "<<std::endl;
                 // waypoints are in UTM currently, need to be in odom for next step
@@ -139,10 +143,10 @@ int main(int argc, char **argv){
                     utm_pose.pose.position.y = utm_wp[1]; // UTM
                     utm_pose.pose.position.z = 0; // assume 2D waypoints for now
                     // apply transform
-                    tfBuffer.transform(utm_pose, &odom_pose, "odom", ros::Duration(600)); // 10 minute timeout to apply the transform
+                    tfBuffer.transform(utm_pose, &odom_pose, "odom", ros::Duration(60)); // 1 minute timeout to apply the transform
                     // this is a repulsive hack, but it minimizes code changes for now
-                    utm_wp[0] = utm_pose.pose.position.x;
-                    utm_wp[1] = utm_pose.pose.position.y;
+                    utm_wp[0] = odom_pose.pose.position.x;
+                    utm_wp[1] = odom_pose.pose.position.y;
                     // logging
                     fout<<"(" << utm_wp[0] <<", "<< utm_wp[1] << ")" << std::endl;
                 } // end for
