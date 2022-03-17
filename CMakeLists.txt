@@ -16,14 +16,22 @@ if($ENV{ROS_DISTRO} STREQUAL "noetic")
     rospy
     pcl_ros
     std_msgs
+    geometry_msgs
+    navs_msgs
     tf
+    tf2
+    tf2_ros
   )
 else()
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
-    tf  
+    geometry_msgs
+    navs_msgs
+    tf
+    tf2
+    tf2_ros
   )
 endif()
 
