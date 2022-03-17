@@ -143,7 +143,7 @@ int main(int argc, char **argv){
                     utm_pose.pose.position.y = utm_wp[1]; // UTM
                     utm_pose.pose.position.z = 0; // assume 2D waypoints for now
                     // apply transform
-                    tfBuffer.transform(utm_pose, &odom_pose, "odom", ros::Duration(60)); // 1 minute timeout to apply the transform
+                    tfBuffer.transform(utm_pose, odom_pose, "odom", ros::Duration(60)); // 1 minute timeout to apply the transform
                     // this is a repulsive hack, but it minimizes code changes for now
                     utm_wp[0] = odom_pose.pose.position.x;
                     utm_wp[1] = odom_pose.pose.position.y;
