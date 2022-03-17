@@ -17,7 +17,7 @@ if($ENV{ROS_DISTRO} STREQUAL "noetic")
     pcl_ros
     std_msgs
     geometry_msgs
-    navs_msgs
+    nav_msgs
     tf
     tf2
     tf2_ros
@@ -28,7 +28,7 @@ else()
     rospy
     std_msgs
     geometry_msgs
-    navs_msgs
+    nav_msgs
     tf
     tf2
     tf2_ros

@@ -19,6 +19,7 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/TransformStamped.h"
 #include "tf2_ros/transform_listener.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 //#include "avt_341/node/ros_types.h"
 //#include "avt_341/node/node_proxy.h"
 // local includes
@@ -132,13 +133,13 @@ int main(int argc, char **argv){
                     // pack into ROS Pose msg
                     geometry_msgs::PoseStamped utm_pose, odom_pose;
                     // metadata so TF can transform correctly
-                    utm_pose.header.frame = "utm";
+                    utm_pose.header.frame_id = "utm";
                     utm_pose.header.stamp = ros::Time::now();
                     utm_pose.pose.position.x = utm_wp[0]; // UTM
                     utm_pose.pose.position.y = utm_wp[1]; // UTM
                     utm_pose.pose.position.z = 0; // assume 2D waypoints for now
                     // apply transform
-                    tfBuffer.transform(utm_pose, &odom_pose, "odom", ros::Duration(600)) // 10 minute timeout to apply the transform
+                    tfBuffer.transform(utm_pose, &odom_pose, "odom", ros::Duration(600)); // 10 minute timeout to apply the transform
                     // this is a repulsive hack, but it minimizes code changes for now
                     utm_wp[0] = utm_pose.pose.position.x;
                     utm_wp[1] = utm_pose.pose.position.y;
