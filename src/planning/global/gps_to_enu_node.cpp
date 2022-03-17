@@ -17,6 +17,7 @@
 #include "nav_msgs/Odometry.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/TransformStamped.h"
 #include "tf2_ros/transform_listener.h"
 //#include "avt_341/node/ros_types.h"
 //#include "avt_341/node/node_proxy.h"
