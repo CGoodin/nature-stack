@@ -54,9 +54,13 @@ int main(int argc, char **argv){
     //auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/enu_waypoints", 10);
     ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/avt_341/enu_waypoints",10);
 
-    ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
+    //ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
 
     ros::Subscriber odometry_sub = n.subscribe("/avt_341/odometry", 10, OdometryCallback);
+
+    // tf2 transform utm->odom needed
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
 
     std::vector<double> gps_waypoints_lat, gps_waypoints_lon;
 
@@ -98,6 +102,7 @@ int main(int argc, char **argv){
     }
     ros::Rate rate(10.0);
 
+
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
@@ -107,56 +112,81 @@ int main(int argc, char **argv){
     ros_path.poses.clear();
     while (ros::ok()){
 
+        // apply transform
+        // plop into path
+
         if (fix_rcvd && odom_rcvd){
             if (count==0){
-                // first put the path points in UTM
-                avt_341::coordinate_system::LLA gps_origin;
-                gps_origin.latitude = lat_rcvd;
-                gps_origin.longitude = lon_rcvd;
-                gps_origin.altitude = alt_rcvd; // approximate elevation for Starkville, MS
-                avt_341::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
-                utm_east = utm_origin.x;
-                utm_north = utm_origin.y;
+
+                // log waypoints to file
                 std::ofstream fout;
                 fout.open("gps_convert_log.txt");
-                fout<<"UTM Origin: ("<<utm_east<<", "<<utm_north<<")"<<std::endl;
+                geometry_msgs::TransformStamped transform = tfBuffer.lookupTransform("utm","odom",ros::Time(0));
+                fout<<"UTM Origin: (" << transform.transform.translation.x <<", "<< transform.transform.translation.y <<")"<<std::endl;
                 fout<<"Waypoints: "<<std::endl;
-                for (int32_t i = 0; i < path.size(); i++){
-                    path[i][0] -= utm_east;
-                    path[i][1] -= utm_north;
-                    fout<<"("<<path[i][0]<<", "<< path[i][1]<<")"<<std::endl;
-                }
-                fout.close();
+                // waypoints are in UTM currently, need to be in odom for next step
+                for (auto& utm_wp : path ){
+                    // pack into ROS Pose msg
+                    geometry_msgs::PoseStamped utm_pose, odom_pose;
+                    // metadata so TF can transform correctly
+                    utm_pose.header.frame = "utm";
+                    utm_pose.header.stamp = ros::Time::now();
+                    utm_pose.pose.position.x = utm_wp[0]; // UTM
+                    utm_pose.pose.position.y = utm_wp[1]; // UTM
+                    utm_pose.pose.position.z = 0; // assume 2D waypoints for now
+                    // apply transform
+                    tfBuffer.transform(utm_pose, &odom_pose, "odom", ros::Duration(600)) // 10 minute timeout to apply the transform
+                    // this is a repulsive hack, but it minimizes code changes for now
+                    utm_wp[0] = utm_pose.pose.position.x;
+                    utm_wp[1] = utm_pose.pose.position.y;
+                    // logging
+                    fout<<"(" << utm_wp[0] <<", "<< utm_wp[1] << ")" << std::endl;
+                } // end for
+
+                // translations of transform
                 float to_veh_x = current_odom.pose.pose.position.x - path[0][0];
-                float to_veh_y = current_odom.pose.pose.position.y - path[0][1]; 
+                float to_veh_y = current_odom.pose.pose.position.y - path[0][1];
+                // distance to first waypoint
                 float tvm = sqrtf(to_veh_x*to_veh_x  + to_veh_y*to_veh_y);
+                // normalized components
                 float tvx = to_veh_x/tvm;
-                float tvy = to_veh_y/tvm;   
+                float tvy = to_veh_y/tvm;
+                // initialize x,y to 3 meters away along path to first waypoint   
                 float x = current_odom.pose.pose.position.x + tvx*3.0f;
                 float y = current_odom.pose.pose.position.y + tvy*3.0f;
+
+                // ensure waypoints are close enough together
                 int current_waypoint = 0;
                 bool finished = false;
                 int num_loops = 0;
                 while (!finished){
-                    if (current_waypoint>=path.size()) break;
+                    if (current_waypoint>=path.size()) break; // end condition
+                    
+                    // distance to next waypoint from current limit
                     float tx = path[current_waypoint][0] - x;
                     float ty = path[current_waypoint][1] - y;
                     float normt = sqrtf(tx*tx + ty*ty);
+
+                    // add waypoint                    
                     avt_341::msg::PoseStamped pose;
                     pose.pose.position.x = x;
                     pose.pose.position.y = y;
                     pose.pose.position.z = 0.0f;
+                    // orientation doesn't matter for waypoints, so leave default orientation
                     pose.pose.orientation.w = 1.0f;
                     pose.pose.orientation.x = 0.0f;
                     pose.pose.orientation.y = 0.0f;
                     pose.pose.orientation.z = 0.0f;
                     ros_path.poses.push_back(pose);
+                    // if next waypoint is close enough, skip it
                     if (normt<1.25f*waypoint_spacing){
                         current_waypoint += 1;
                         if (current_waypoint>=path.size())finished = true;
                     }
+                    // walk towards next waypoint
                     x += waypoint_spacing*tx/normt;
                     y += waypoint_spacing*ty/normt;
+                    // cap waypoints to 1000 tops
                     if (num_loops>1000){
                         finished = true;
                     }
