@@ -68,6 +68,7 @@
   <arg name="throttle_kp" default="0.1129" doc="Proportional coeff for the PID speed controller" />
   <arg name="throttle_ki" default="0.0" doc="Integral coeff for the PID speed controller" />
   <arg name="throttle_kd" default="0.0" doc="Derivative coeff for the PID speed controller" />
+  <arg name="request_approval" default="true" doc="If true, the planner will request user input to continue the experiment after the first path is planned."/>
   <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
   <arg name="time_to_max_throttle" default="3.0" doc="Time in seconds to go from 0 to maximum throttle" />
   <arg name="time_to_max_steering" default="3.0" doc="Time in seconds to go from 0 to maximum steering" />
@@ -130,6 +131,7 @@
     <param name="vehicle_speed" value="$(arg vehicle_speed)" />
     <param name="display" value="$(arg display_type)" />
     <param name="throttle_coefficient" value="$(arg throttle_coefficient)" />
+    <param name="request_approval" value="$(arg request_approval)" />
     <param name="throttle_kp" value="$(arg throttle_kp)" />
     <param name="throttle_ki" value="$(arg throttle_ki)" />
     <param name="throttle_kd" value="$(arg throttle_kd)" />

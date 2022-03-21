@@ -107,6 +107,7 @@ add_executable(avt_341_control_node
   src/control/avt_341_control_node.cpp 
   src/control/pure_pursuit_controller.cpp
   src/control/pid_controller.cpp
+  src/control/tinyfiledialogs.c
   src/node/node_proxy.cpp
 )
 
