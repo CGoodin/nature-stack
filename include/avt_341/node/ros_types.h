@@ -5,6 +5,8 @@
 #ifndef AVT_341_ROS_TYPES_H
 #define AVT_341_ROS_TYPES_H
 
+#include <cstring>
+
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "sensor_msgs/msg/point_cloud.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"

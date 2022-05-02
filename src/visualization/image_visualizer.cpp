@@ -1,4 +1,5 @@
-#include <cv.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/imgproc.hpp>
 #include "avt_341/visualization/image_visualizer.h"
 
 namespace avt_341 {
