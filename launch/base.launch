@@ -1,6 +1,6 @@
 <launch>
 
-  <param name="/use_sim_time" value="false"/>
+  <arg name="use_sim_time" default="false" doc="Use sim time instead of wall time."/>  
 
   <!-- General  -->
   <arg name="display_type" default="rviz" doc="Type of visualization to use rviz | none"/>
@@ -64,6 +64,7 @@
   <arg name="ff_a2" default="0.0" doc="2nd order coeff in the feed-forward model"/>
   <arg name="max_desired_lateral_g" default="0.75" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
 
+  <param name="/use_sim_time" value="$(arg use_sim_time)"/>
   <rosparam file="$(arg waypoints_file)" />
   <param name="robot_description" command="cat $(arg robot_description_file)" />
 
