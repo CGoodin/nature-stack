@@ -1,5 +1,7 @@
-# AVT-341
-ROS package with autonomy algorithms for the NATO AVT-341.
+# NATURE-stack
+The NATURE (Navigating All Terrains Using Robotic Exploration) autonomy stack is an full stack for autonomous off-road navigation. It features modules for perception, path planning, and vehicle control, with options for Ackermann and and skid-steered vehicles.
+
+For more information about the modules and their capabilities and options, check out [the wiki](https://github.com/CGoodin/nature-stack/wiki).
 
 ## Requirements
 Ubuntu 16.04 with [ROS-Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) and a functioning [catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) are required to build and run this code. It **may** work with more recent releases of Ubuntu but has not been tested.
@@ -7,7 +9,7 @@ Ubuntu 16.04 with [ROS-Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu)
 ## Installation
 Clone the repo into your catkin_ws/src directory with the following command.
 ```bash
-$git clone https://github.com/CGoodin/avt_341.git
+$git clone https://github.com/CGoodin/nature-stack.git
 ```
 From the top level catkin_ws directory, type
 ```bash
