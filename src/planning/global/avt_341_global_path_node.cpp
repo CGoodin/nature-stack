@@ -41,7 +41,7 @@ void SegmentationMapCallback(avt_341::msg::OccupancyGridPtr rcv_grid){
 
 void WaypointCallback(avt_341::msg::PathPtr rcv_waypoints)
 {
-  std::cout << "Waypoints received!" << std::endl;
+  //std::cout << "Waypoints received!" << std::endl;
   // Brute force - overwrite the current global waypoints
   current_waypoints = *rcv_waypoints;
   waypoints_rcvd = true;
@@ -134,17 +134,19 @@ int main(int argc, char *argv[])
   int nl = 0;
   int current_waypoint = 0;
   int shutdown_count = 0;
+  bool waypoints_change_once = true;
   //while (avt_341::node::ok() && !goal_reached){
   while (avt_341::node::ok()){
     state_pub->publish(state);
-    if (waypoints_rcvd) {
+    if (waypoints_rcvd && waypoints_change_once) {
       // process a new set of waypoints
       // TODO: find closest point along path -  we probably don't want to reverse back to start point if we're past it.
       current_waypoint = 0;
       goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
       goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
       std::cout << "New waypoints! Updated goal " << goal[0] << ", " << goal[1] << std::endl;
-      waypoints_rcvd = false;
+      //waypoints_rcvd = false;
+      waypoints_change_once = false;
       state.data = 0;  // go active
       state_pub->publish(state);
     }

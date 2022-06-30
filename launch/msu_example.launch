@@ -1,0 +1,21 @@
+<launch>
+
+  <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
+
+  <include file="$(find avt_341)/launch/msu_base.launch">
+    <arg name="waypoints_file" value="$(find avt_341)/config/waypoints.yaml" />
+    <arg name="robot_description_file" value="$(find avt_341)/config/avt_bot.urdf" />
+    <arg name="cost_vis" value="final" />
+    <arg name="use_mpc" value="$(arg use_mpc)" />
+<!--     <arg name="grid_dilate" value="true" /> -->
+<!--     <arg name="grid_dilate_x" value="3.0" /> -->
+<!--     <arg name="grid_dilate_y" value="1.0" /> -->
+<!--     <arg name="dilation_factor" value="0" /> -->
+<!--     <arg name="auto_launch_rviz" value="false" /> -->
+  </include>
+
+  <!-- Use this node to test the build if no simulator is being used. 
+  <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
+-->
+
+</launch>

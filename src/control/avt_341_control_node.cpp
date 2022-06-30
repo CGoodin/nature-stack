@@ -10,11 +10,12 @@
  * 
  * \date 7/13/2018
  */
-
+#include <iostream>
 #include "avt_341/node/ros_types.h"
 #include "avt_341/node/node_proxy.h"
 //avt_341 includes
 #include "avt_341/control/pure_pursuit_controller.h"
+#include "avt_341/control/tinyfiledialogs.h"
 
 avt_341::msg::Path control_msg;
 avt_341::msg::Odometry state;
@@ -22,6 +23,8 @@ int current_run_state = -1;   // startup state
 bool shutdown_condition = false;
 double mrzr_speedometer = 0.0;
 bool speedometer_rcvd = false;
+double mrzr_steering = 0.0;
+bool path_rcvd = false;
 
 void OdometryCallback(avt_341::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
@@ -32,9 +35,14 @@ void SpeedCallback(avt_341::msg::Float64Ptr rcv_speed) {
   speedometer_rcvd = true; 
 }
 
+void SteeringCallback(avt_341::msg::Float64Ptr rcv_steering) {
+	mrzr_steering = rcv_steering->data;
+}
+
 void PathCallback(avt_341::msg::PathPtr rcv_control){
   control_msg.poses = rcv_control->poses;
   control_msg.header = rcv_control->header;
+  path_rcvd = true;
 }
 
 void StateCallback(avt_341::msg::Int32Ptr rcv_state){
@@ -92,6 +100,8 @@ int main(int argc, char *argv[]){
 
   auto speed_sub = n->create_subscription<avt_341::msg::Float64>("mrzr_velocity",1,SpeedCallback);
 
+  auto steering_sub = n->create_subscription<avt_341::msg::Float64>("mrzr_steering",1,SteeringCallback);
+
 
   avt_341::control::PurePursuitController controller;
 
@@ -102,16 +112,19 @@ int main(int argc, char *argv[]){
 	// Set controller parameters
   float ff_a0, ff_a1, ff_a2;
   bool use_feed_forward;
-	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake;
+	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake, time_to_max_steering;
   float throttle_kp, throttle_ki, throttle_kd, max_desired_lateral_g;
 	std::string display;
+  bool request_approval;
 	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
   n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
   n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
+  n->get_parameter("~request_approval", request_approval, false);
   n->get_parameter("~steering_coefficient", steering_coeff, 2.0f);
   n->get_parameter("~throttle_coefficient", throttle_coeff, 1.0f);
   n->get_parameter("~time_to_max_brake", time_to_max_brake, 4.0f);
   n->get_parameter("~time_to_max_throttle", time_to_max_throttle, 3.0f);
+  n->get_parameter("~time_to_max_steering", time_to_max_steering, 3.0f);
   n->get_parameter("~ff_a0", ff_a0, 0.0402f);
   n->get_parameter("~ff_a1", ff_a1, 0.0814f);
   n->get_parameter("~ff_a2", ff_a2, -0.0023f);
@@ -162,8 +175,11 @@ int main(int argc, char *argv[]){
   float dt = 1.0f/rate;
   float brake_step = dt/time_to_max_brake;
   float max_throttle_step = dt/time_to_max_throttle;
+  float max_steering_step = dt/time_to_max_steering;
   float current_brake_value = 0.0f;
   float current_throttle_value = 0.0f;
+  float current_steering_value = 0.0f;
+  bool user_approved = false;
   avt_341::node::Rate r(rate);
   avt_341::utils::vec2 goal;
 
@@ -175,6 +191,7 @@ int main(int argc, char *argv[]){
     float vel = 0.0f;
     if (speedometer_rcvd){
       vel = mrzr_speedometer;
+      current_steering_value = mrzr_steering;
     }
     else{
       vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
@@ -190,11 +207,10 @@ int main(int argc, char *argv[]){
       dc = controller.GetDcFromTraj(control_msg, goal);
       dc.linear.x = 0.0f;
       dc.angular.z = 0.0f;
-
+      dc.linear.y = -1.0f;
     }
     else if (current_run_state==0){    // active running state
       double max_curvature = GetMaxCurvature(control_msg);
-      
       double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
       float desired_velocity = vehicle_speed;
       if (lateral_g_force>max_desired_lateral_g){
@@ -202,12 +218,14 @@ int main(int argc, char *argv[]){
         if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
       }
       controller.SetDesiredSpeed(desired_velocity);
+      //controller.SetDesiredSpeed(vehicle_speed);
       dc = controller.GetDcFromTraj(control_msg, goal);
     }
     else if (current_run_state==-1 || current_run_state==1){
       // bring to a smooth stop and wait / idle
       controller.SetDesiredSpeed(0.0f);
       dc = controller.GetDcFromTraj(control_msg, goal);
+      if (current_run_state==-1)dc.linear.x = 0.0f;
     }
     else if (current_run_state==3){
       // bring to a hard stop and shut down
@@ -216,6 +234,7 @@ int main(int argc, char *argv[]){
       dc.angular.z = 0.0f;
       time_to_quit = true;
     }
+
     if (!skid_steered){
       // check braking and throttle
       if (dc.linear.y!=0.0){
@@ -232,12 +251,17 @@ int main(int argc, char *argv[]){
       if (dc.linear.x-current_throttle_value > max_throttle_step){
         dc.linear.x = current_throttle_value + max_throttle_step;
       }
+      // apply the steering ramp up
+      //if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
+      //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
+      //}
     }
-
     // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;
     current_throttle_value = dc.linear.x;
+    current_steering_value = dc.angular.z; 
+
 
     // break the loop when an end state is reached
     if (time_to_quit)break;
@@ -251,6 +275,19 @@ int main(int argc, char *argv[]){
       next_waypoint_msg.header.stamp = n->get_stamp();
       next_waypoint_pub->publish(next_waypoint_msg);
     }
+
+    // ask the user if the path looks good and they would like to continue
+    if (!user_approved && current_run_state==0 && path_rcvd && request_approval){
+      std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
+		  bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
+      if (approved){
+        user_approved = true;
+      }
+      else{
+        break;
+      }
+    }
+
 
     n->spin_some();
 

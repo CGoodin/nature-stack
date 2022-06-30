@@ -20,13 +20,14 @@ float overhead_clearance = 100.0f;
 double time_register_window = 0.02;
 bool cull_lidar_points = false;
 float cull_lidar_points_dist_sqr = 10000.0f;
+float blanking_distance = 0.0f;
+float blanking_distance_sqr = 0.0f;
 
-double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose, const avt_341::msg::Point32& point)
-{
+double CalcLidarPointToRobotDistanceSquared(const avt_341::msg::Point& odom_pose, const avt_341::msg::Point32& point){
 	double dx = odom_pose.x - point.x;
 	double dy = odom_pose.y - point.y;
 	double dz = odom_pose.z - point.z;
-	return dx*dx + dy*dy + dz*dz;
+	return (dx*dx + dy*dy + dz*dz);
 }
 
 double GetPoseToUse(avt_341::msg::Odometry & pose_to_use, avt_341::msg::PointCloud2Ptr rcv_cloud){
@@ -60,13 +61,13 @@ void PointCloudCallbackRegistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 			if ( !(tp.x==0.0 && tp.y==0.0) && !std::isnan(tp.x) && (tp.z-current_pose.pose.pose.position.z)<overhead_clearance ){
 
 				bool add_point = true;
-				if (cull_lidar_points)
-				{
-					avt_341::msg::Odometry pose_to_use;
-					GetPoseToUse(pose_to_use, rcv_cloud);
-					add_point = CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr;
+				avt_341::msg::Odometry pose_to_use;
+				GetPoseToUse(pose_to_use, rcv_cloud);
+				double dr2 = CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp); 
+				if (cull_lidar_points){
+					add_point = dr2 < cull_lidar_points_dist_sqr;
 				}
-				if(add_point){
+				if(add_point && dr2> blanking_distance_sqr){
 					points.push_back(tp);
 					for(int c = 0; c < point_cloud.channels.size(); c++){
 						channel_values[c].push_back(point_cloud.channels[c].values[p]);
@@ -104,15 +105,17 @@ void PointCloudCallbackUnregistered(avt_341::msg::PointCloud2Ptr rcv_cloud){
 		for (int p=0;p<point_cloud.points.size();p++){
       avt_341::msg_tf::Vector3 v;
 			v = avt_341::msg_tf::Vector3(point_cloud.points[p].x, point_cloud.points[p].y,point_cloud.points[p].z);
-			double r = sqrt( pow(v.x()-origin.x(), 2)+pow(v.y()-origin.y(), 2)+pow(v.z()-origin.z(), 2));
+			//double r = sqrt( pow(v.x()-origin.x(), 2)+pow(v.y()-origin.y(), 2)+pow(v.z()-origin.z(), 2));
 			if (v.x()!=0.0 && v.y()!=0.0 &&!std::isnan(v.x())){
         avt_341::msg_tf::Vector3 vp = (R*v) + origin;
 				avt_341::msg::Point32 tp;
 				tp.x = vp.x();
 				tp.y = vp.y();
 				tp.z = vp.z();
+				float dr2 = CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp);
 				if ( (tp.z-current_pose.pose.pose.position.z)<overhead_clearance &&
-             		(!cull_lidar_points || CalcLidarPointToRobotDistanceSquared(pose_to_use.pose.pose.position, tp) < cull_lidar_points_dist_sqr)){
+             		(!cull_lidar_points || dr2 < cull_lidar_points_dist_sqr)
+								 && dr2 > blanking_distance_sqr){
 					points.push_back(tp);
 					for(int c = 0; c < point_cloud.channels.size(); c++){
 						channel_values[c].push_back(point_cloud.channels[c].values[p]);
@@ -162,9 +165,12 @@ int main(int argc, char *argv[]) {
     grid.SetSize(grid_width,grid_height);
 
     float grid_res, grid_llx, grid_lly, warmup_time, thresh, grid_dilate_x, grid_dilate_y, grid_dilate_proportion;
-    bool use_elevation, grid_dilate;
+    bool use_elevation, grid_dilate, persistent_obstacles;
     std::string display;
 
+
+	n->get_parameter("~blanking_distance", blanking_distance, 0.0f);
+	blanking_distance_sqr = blanking_distance*blanking_distance;
 	n->get_parameter("~grid_res", grid_res, 1.0f);
 	n->get_parameter("~grid_llx", grid_llx, -100.0f);
 	n->get_parameter("~grid_lly", grid_lly, -100.0f);
@@ -172,6 +178,7 @@ int main(int argc, char *argv[]) {
 	n->get_parameter("~warmup_time", warmup_time, 1.0f);
 	n->get_parameter("~slope_threshold", thresh, 1.0f);
 	n->get_parameter("~use_elevation", use_elevation, false);
+	n->get_parameter("~persistent_obstacles", persistent_obstacles, false);
 	n->get_parameter("~use_registered", use_registered, true);
 	n->get_parameter("~grid_dilate", grid_dilate, true);
 	n->get_parameter("~grid_dilate_x", grid_dilate_x, 2.0f);
@@ -204,6 +211,7 @@ int main(int argc, char *argv[]) {
 	grid.SetDilation(grid_dilate, grid_dilate_x, grid_dilate_y, grid_dilate_proportion);
 	grid.SetStitchPoints(stitch_points);
 	grid.SetFilterHighest(filter_highest_lidar);
+	grid.SetPersistentObstacles(persistent_obstacles);
 
 	double start_time = n->get_now_seconds();
 	avt_341::node::Rate rate(100.0);

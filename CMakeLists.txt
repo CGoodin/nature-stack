@@ -16,14 +16,22 @@ if($ENV{ROS_DISTRO} STREQUAL "noetic")
     rospy
     pcl_ros
     std_msgs
+    geometry_msgs
+    nav_msgs
     tf
+    tf2
+    tf2_ros
   )
 else()
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
-    tf  
+    geometry_msgs
+    nav_msgs
+    tf
+    tf2
+    tf2_ros
   )
 endif()
 
@@ -99,6 +107,7 @@ add_executable(avt_341_control_node
   src/control/avt_341_control_node.cpp 
   src/control/pure_pursuit_controller.cpp
   src/control/pid_controller.cpp
+  src/control/tinyfiledialogs.c
   src/node/node_proxy.cpp
 )
 

@@ -127,7 +127,17 @@ public:
 	 */
 	float GetTheta(float s);
 
+	/**
+	* Extend the road centerline behind the vehicle start position
+	* \param x Vehicle start X in local ENU
+	* \param y Vehicle start Y in local ENU
+	*/
 	void FixBeginning(float x, float y);
+
+	/**
+	* Extend the road centerline beyond the final waypoint
+	*/
+	void FixEnd();
 
 private:
 	std::vector<utils::vec2> points_;

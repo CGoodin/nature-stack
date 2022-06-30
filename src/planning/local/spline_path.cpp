@@ -186,8 +186,21 @@ void Path::FixBeginning(float x, float y){
 		Init(points_);
 		utils::vec2 sr0 = ToSRho(x,y);
 		s = sr0.x;
-		//std::cout<<"New point = "<<s<<" "<<new_point.x<<" "<<new_point.y<<std::endl;
 	}
+}
+
+void Path::FixEnd(){
+	int np = (int)(points_.size());
+	utils::vec2 extend_direction = points_[np-1] - points_[np-2];
+	float wp_dist = utils::length(extend_direction);
+	extend_direction = extend_direction/wp_dist;
+	int num_to_add = (int)(200.0f/wp_dist);
+	if (num_to_add<1)num_to_add = 1;
+	for (int i=1;i<num_to_add+1; i++){
+		utils::vec2 new_point = points_[np-1] + extend_direction * i*wp_dist;
+		points_.push_back(new_point);
+	}
+	Init(points_);
 }
 
 

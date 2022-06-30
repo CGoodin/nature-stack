@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
   float w_c, w_d, w_s, w_r, w_t, cost_vis_text_size, ignore_coll_before_dist;
   bool trim_path, use_global_path, use_blend;
   std::string display, cost_vis;
-
+  bool keep_good_path;
   n->get_parameter("~path_look_ahead", path_look_ahead, 15.0f);
   n->get_parameter("~vehicle_width", vehicle_width, 3.0f);
   n->get_parameter("~num_paths", num_paths, 31);
@@ -84,6 +84,7 @@ int main(int argc, char *argv[]){
   n->get_parameter("~ignore_coll_before_dist", ignore_coll_before_dist, 0.0f);
   n->get_parameter("~trim_path", trim_path, false);
   n->get_parameter("~use_global_path", use_global_path, false);
+  n->get_parameter("~keep_good_path", keep_good_path, false);
   n->get_parameter("~use_blend", use_blend, true);
   n->get_parameter("~cost_vis", cost_vis, std::string("final"));
   n->get_parameter("~cost_vis_text_size", cost_vis_text_size, 2.0f);
@@ -107,6 +108,9 @@ int main(int argc, char *argv[]){
   float dt = 1.0f / rate;
   float elapsed_time = 0.0f;
   avt_341::node::Rate rosrate(rate);
+  float path_age = 0.0f;
+  float s_old = 0.0f;
+  bool old_path_still_good = false;
   while (avt_341::node::ok()){
     double start_secs = n->get_now_seconds();
     if (global_path.poses.size() > 0 && odom_rcvd && grid.data.size() > 0){
@@ -123,8 +127,8 @@ int main(int argc, char *argv[]){
           avt_341::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
           path_points.push_back(point);
         }
-        
       }
+
       avt_341::planning::Path path;
       if (trim_path && use_global_path ){
         avt_341::utils::vec2 current_pos(odom.pose.pose.position.x, odom.pose.pose.position.y);
@@ -133,8 +137,10 @@ int main(int argc, char *argv[]){
       else{
         path.Init(path_points);
       }
+      
 
       path.FixBeginning(odom.pose.pose.position.x, odom.pose.pose.position.y);
+      path.FixEnd();
 
       std::vector<avt_341::utils::vec2> culled_points = path.GetPoints();
       float s_max = path.GetTotalLength();
@@ -145,9 +151,15 @@ int main(int argc, char *argv[]){
       float s_lookahead = std::min(path_look_ahead, s_max - s);
       float theta = avt_341::utils::GetHeadingFromOrientation(odom.pose.pose.orientation);
       avt_341::planning::CurveInfo ci = path.GetCurvatureAndAngle(s);
+      path_age += dt;
 
-      planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
-      planner.SetCenterline(path);
+      float ds = s-s_old;
+      if (path_age>1.0f || ds>0.5f*path_look_ahead || !old_path_still_good || !keep_good_path){
+        planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
+        planner.SetCenterline(path);
+        path_age = 0.0f;
+        s_old = s;
+      }
   
       // calculate bounds around the vehicle to limit grid dilation to space 10m behind and path_look_ahead distance in front of the vehicle
       float veh_heading_x = cos(theta);
@@ -175,6 +187,13 @@ int main(int argc, char *argv[]){
 
       // most of the calculation time spent on this function call
       bool path_found = planner.CalculateCandidateCosts(grid, segmentation_grid, odom);
+      if (!path_found){
+        old_path_still_good = false;
+      }
+      else{
+        old_path_still_good = true;
+      }
+
       if (display != "none"){
         plotter->AddMap(grid);
         plotter->SetPath(culled_points);
@@ -236,7 +255,7 @@ int main(int argc, char *argv[]){
     if ((end_secs - start_secs) > 2.5 * dt){
       //std::cout << "WARNING: TANG PLANNER TOOK " << (end_secs - start_secs) << " TO COMPLETE. REQUESTED UPDATE SPEED IS " << dt << std::endl;
     }
-
+    elapsed_time += dt;
     n->spin_some();
     rosrate.sleep();
   }

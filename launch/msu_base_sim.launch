@@ -13,46 +13,51 @@
   <!-- Elevation Grid  -->
   <arg name="use_elevation" default="false" doc="Elevation grid - To use elevation or slope value when making occupancy grid based on heightmap."/>
   <arg name="slope_threshold" default="0.5" doc="Elevation grid - Threshold within which next waypoint selected."/>
-  <arg name="grid_height" default="200.0" doc="Elevation grid - Grid height."/>
-  <arg name="grid_width" default="200.0" doc="Elevation grid - Grid width."/>
-  <arg name="grid_llx" default="-100.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
-  <arg name="grid_lly" default="-100.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
+  <arg name="grid_height" default="500.0" doc="Elevation grid - Grid height."/>
+  <arg name="grid_width" default="500.0" doc="Elevation grid - Grid width."/>
+  <arg name="grid_llx" default="-250.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
+  <arg name="grid_lly" default="-250.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
   <arg name="grid_res" default="0.5" doc="Elevation grid - Grid resolution in meters."/>
   <arg name="grid_dilate" default="false" doc="Elevation grid - Apply dilation in occupancy grid."/>
   <arg name="grid_dilate_x" default="2.0" doc="Elevation grid - Amount of dilation in x direction."/>
   <arg name="grid_dilate_y" default="2.0" doc="Elevation grid - Amount of dilation in y direction."/>
   <arg name="grid_dilate_proportion" default="0.8" doc="Elevation grid - Proportion of original grid cell to dilate with."/>
-  <arg name="cull_lidar" default="false" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
-  <arg name="cull_lidar_dist" default="90.0" doc="Elevation grid - Distance used to cull lidar points"/>
-  <arg name="use_registered" default="true" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
-  <arg name="stitch_lidar_points" default="true" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
+  <arg name="cull_lidar" default="true" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
+  <arg name="cull_lidar_dist" default="60.0" doc="Elevation grid - Distance used to cull lidar points"/>
+  <arg name="use_registered" default="false" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
+  <arg name="stitch_lidar_points" default="false" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
   <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
+  <arg name="persistent_obstacles" default="false" doc="Elevation grid - If true, obstacles will persist in the map once they are created. New updates from the point cloud will not be considered with the obstacle, whether point cloud stitching is turned on or not"/>
+  <arg name="blanking_distance" default="1.5" doc="Perception node - ignore points closer than this distance"/>
 
   <!-- Global Planner  -->
   <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
 
   <!-- Local Planner  -->
-  <arg name="num_paths" default="21" doc="Local planner - Number of candidate paths to be generated."/>
+  <arg name="num_paths" default="31" doc="Local planner - Number of candidate paths to be generated."/>
   <arg name="path_look_ahead" default="30.0" doc="Local planner - Planning horizon."/>
   <arg name="vehicle_width" default="3.0" doc="Local planner - Vehicle width. Used during blending phase when re-weighting each path cost by adjacent paths."/>
   <arg name="max_steer_angle" default="0.5" doc="Local planner - Maximum steer angle in radians. Used to compute rho_max during local planning."/>
   <arg name="dilation_factor" default="1" doc="Local planner - Dilation in number of grid cells to apply in local planner only."/>
-  <arg name="w_c" default="0.0" doc="Local planner - w_c conformability (minimize curvature) weighting factor"/>
-  <arg name="w_s" default="0.4" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
+  <arg name="w_c" default="0.1" doc="Local planner - w_c conformability (minimize curvature) weighting factor"/>
+  <arg name="w_s" default="0.3" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
   <arg name="w_d" default="0.0" doc="Local planner - w_d dynamic safety weighting factor"/>
-  <arg name="w_r" default="0.2" doc="Local planner - w_r rho (minimize rho offset) weighting factor"/>
+  <arg name="w_r" default="0.3" doc="Local planner - w_r rho (minimize rho offset) weighting factor"/>
   <arg name="w_t" default="0.0" doc="Local planner - w_t segmentation cost weight"/>
-  <arg name="use_global_path" default="true" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints."/>
+  <arg name="use_global_path" default="false" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints."/>
   <arg name="use_blend" default="true" doc="Local planner - Whether to do blending of path costs based on vehicle width to adjacent paths."/>
   <arg name="cost_vis" default="final" doc="Local planner - What type of cost to display on candidate paths: none | final | components | all"/>
   <arg name="cost_vis_text_size" default="2.0" doc="Cost vis text size"/>
   <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
   <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
+  <arg name="keep_good_path" default="false" doc="If true, continue to use the last good path until it goes bad or you get halfway down it."/>
   <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/> -->
 
+  <!--
   <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
-  <!--republish the mrak speed message as a float64 -->
+  republish the mrak speed message as a float64 
   </node>
+  -->
 
   <!-- Pure Pursuit Control  -->
   <arg name="vehicle_wheelbase" default="2.72" doc="Pure pursuit controller - vehicle_wheelbase."/>
@@ -63,13 +68,15 @@
   <arg name="throttle_kp" default="0.1129" doc="Proportional coeff for the PID speed controller" />
   <arg name="throttle_ki" default="0.0" doc="Integral coeff for the PID speed controller" />
   <arg name="throttle_kd" default="0.0" doc="Derivative coeff for the PID speed controller" />
+  <arg name="request_approval" default="true" doc="If true, the planner will request user input to continue the experiment after the first path is planned."/>
   <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
   <arg name="time_to_max_throttle" default="3.0" doc="Time in seconds to go from 0 to maximum throttle" />
+  <arg name="time_to_max_steering" default="3.0" doc="Time in seconds to go from 0 to maximum steering" />
   <arg name="use_feed_forward" default="true" doc="Set to true to use the feed-forward model in the PID throttle control" />
   <arg name="ff_a0" default="0.2856" doc="0th order coeff in the feed-forward model" />
   <arg name="ff_a1" default="0.0321" doc="1st order coeff in the feed-forward model"/>
   <arg name="ff_a2" default="0.0" doc="2nd order coeff in the feed-forward model"/>
-  <arg name="max_desired_lateral_g" default="0.75" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
+  <arg name="max_desired_lateral_g" default="2.5" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
 
   <rosparam file="$(arg waypoints_file)" />
   <param name="robot_description" command="cat $(arg robot_description_file)" />
@@ -108,11 +115,13 @@
     <param name="cull_lidar_dist" value="$(arg cull_lidar_dist)" />
     <param name="warmup_time" value="5.0" />
     <param name="use_registered" value="$(arg use_registered)"/>
+    <param name="persistent_obstacles" value="$(arg persistent_obstacles)"/>
     <param name="display" value="$(arg display_type)" />
     <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
     <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>
+    <param name="blanking_distance" value="$(arg blanking_distance)"/>
     <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>
-    <remap from="/avt_341/points" to="/os_cloud_node/points"/> -->
+    <remap from="/avt_341/points" to="/os_cloud_node/points"/>-->
   </node>
 
   <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
@@ -122,6 +131,7 @@
     <param name="vehicle_speed" value="$(arg vehicle_speed)" />
     <param name="display" value="$(arg display_type)" />
     <param name="throttle_coefficient" value="$(arg throttle_coefficient)" />
+    <param name="request_approval" value="$(arg request_approval)" />
     <param name="throttle_kp" value="$(arg throttle_kp)" />
     <param name="throttle_ki" value="$(arg throttle_ki)" />
     <param name="throttle_kd" value="$(arg throttle_kd)" />
@@ -129,23 +139,26 @@
     <param name="ff_a1" value="$(arg ff_a1)" />
     <param name="ff_a2" value="$(arg ff_a2)" />
     <param name="time_to_max_brake" value="$(arg time_to_max_brake)" />
+    <param name="time_to_max_steering" value="$(arg time_to_max_steering)" />
+    <param name="time_to_max_throttle" value="$(arg time_to_max_throttle)" />
     <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
-    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>-->
+    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/> -->
   </node>
 
-  <!--
-  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
+  <!-- -->
+  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="false" output="screen" >
     <param name="goal_dist" value="$(arg goal_dist)" />
     <param name="global_lookahead" value="75.0" />
     <param name="shutdown_behavior" value="2" />
     <param name="display" value="$(arg display_type)" />
-    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/> -->
+    <remap from="/avt_341/new_waypoints" to="/avt_341/enu_waypoints"/>
   </node>
-  -->
+  
 
    <!-- Lat-lon convert algorithm  -->
   <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
-
+    <param name="waypoint_spacing" value="35.0" />
   </node>
 
   <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
@@ -165,12 +178,12 @@
     <param name="trim_path" value="false" />
     <param name="use_global_path" value="$(arg use_global_path)" />
     <param name="use_blend" value="$(arg use_blend)" />
+    <param name="keep_good_path" value="$(arg keep_good_path)" />
     <param name="cost_vis" value="$(arg cost_vis)" />
     <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
     <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
     <param name="display" value="$(arg display_type)" />
-    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/>-->
-    <remap from="/avt_341/global_path" to="/avt_341/enu_waypoints"/>
+    <!--<remap from="/avt_341/odometry" to="/odometry/filtered"/> -->
   </node>
 
   <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->

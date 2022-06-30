@@ -20,6 +20,7 @@ ElevationGrid::ElevationGrid(){
   use_elevation_ = false;
   stitch_points_ = true;
   filter_highest_ = false;
+  persistent_obstacles_ = false;
 }
     
 ElevationGrid::~ElevationGrid(){
@@ -40,7 +41,15 @@ void ElevationGrid::ClearGrid(){
   Cell empty_cell;
  for (int i=0;i<(nx_);i++){
     for (int j=0;j<(ny_);j++){ 
-      cells_[i][j] = empty_cell;
+      if (persistent_obstacles_){
+        uint8_t cellval = GetGridCellValue(cells_[i][j]);
+        if (cellval<=0){
+          cells_[i][j] = empty_cell;  
+        }
+      }
+      else{
+        cells_[i][j] = empty_cell;
+      }
     }
  }
 }
@@ -57,28 +66,35 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
       int xi = (int)floor((point_cloud.points[i].x - llx_)/res_);
       int yi = (int)floor((point_cloud.points[i].y - lly_)/res_);
       if (xi>=0 && xi<nx_ && yi>=0 &&yi<ny_){
-        float h = point_cloud.points[i].z;
-        cells_[xi][yi].filled = true;
-        if (filter_highest_){
-          if (h > cells_[xi][yi].highest ){
-            cells_[xi][yi].second_highest = cells_[xi][yi].highest;
-            cells_[xi][yi].highest = h;
-            cells_[xi][yi].high = cells_[xi][yi].second_highest;
-          }
-          else if (h  > cells_[xi][yi].second_highest){
-            cells_[xi][yi].second_highest = h;
-            cells_[xi][yi].high = cells_[xi][yi].second_highest;
-          }
-        }
-        else{
-          if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
-        }
-        if (h < cells_[xi][yi].low ) cells_[xi][yi].low = h;
 
-        if (has_segmentation_local){
-          float terr_val = point_cloud.channels[0].values[i];
-          cells_[xi][yi].terrain = fmax(cells_[xi][yi].terrain, terr_val);
-         }
+        uint8_t current_val = GetGridCellValue(cells_[xi][yi]);
+        if (!(persistent_obstacles_ && current_val>0)) {
+
+          float h = point_cloud.points[i].z;
+          cells_[xi][yi].filled = true;
+          if (filter_highest_){
+            if (h > cells_[xi][yi].highest ){
+              cells_[xi][yi].second_highest = cells_[xi][yi].highest;
+              cells_[xi][yi].highest = h;
+              cells_[xi][yi].high = cells_[xi][yi].second_highest;
+            }
+            else if (h  > cells_[xi][yi].second_highest){
+              cells_[xi][yi].second_highest = h;
+              cells_[xi][yi].high = cells_[xi][yi].second_highest;
+            }
+          }
+          else{
+            if (h > cells_[xi][yi].high ) cells_[xi][yi].high = h;
+          }
+          if (h < cells_[xi][yi].low ) cells_[xi][yi].low = h;
+
+          if (has_segmentation_local){
+            float terr_val = point_cloud.channels[0].values[i];
+            cells_[xi][yi].terrain = fmax(cells_[xi][yi].terrain, terr_val);
+          }
+
+        }
+
       }
     }
   }
