@@ -25,6 +25,7 @@
   <arg name="use_registered" default="true" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
   <arg name="stitch_lidar_points" default="true" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
   <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
+  <arg name="points_topic" default="/avt_341/points" doc="The name of the points topic the perception node listens to."/>
 
   <!-- Global Planner  -->
   <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
@@ -86,6 +87,7 @@
 
   <!-- Lidar perception algorithms  -->
   <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
+    <remap from="/avt_341/points" to="$(arg points_topic)"/>
     <param name="use_elevation" value="$(arg use_elevation)" />
     <param name="slope_threshold" value="$(arg slope_threshold)" />
     <param name="grid_height" value="$(arg grid_height)" />
