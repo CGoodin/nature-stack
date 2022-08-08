@@ -2,7 +2,7 @@
 
   <param name="/use_sim_time" value="false"/>
 
-  <rosparam file="$(find avt_341)/config/gps_waypoints_hilltop.yaml" />
+  <rosparam file="$(find nature)/config/gps_waypoints_hilltop.yaml" />
 
   <!-- General  -->
   <arg name="display_type" default="rviz" doc="Type of visualization to use rviz | none"/>
@@ -51,7 +51,7 @@
   <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
   <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
   <arg name="keep_good_path" default="false" doc="If true, continue to use the last good path until it goes bad or you get halfway down it."/>
-  <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+  <remap from="/nature/odometry" to="/odometry/filtered"/>
 
   <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
   <!--republish the mrak speed message as a float64 -->
@@ -93,10 +93,10 @@
   </group>
 
   <node pkg="tf" name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
-  <node name="state_publisher" pkg="avt_341" type="avt_bot_state_publisher_node" />
+  <node name="state_publisher" pkg="nature" type="nature_bot_state_publisher_node" />
 
   <!-- Lidar perception algorithms  -->
-  <node name="perception_node" pkg="avt_341" type="avt_341_perception_node" required="true" output="screen">
+  <node name="perception_node" pkg="nature" type="nature_perception_node" required="true" output="screen">
     <param name="use_elevation" value="$(arg use_elevation)" />
     <param name="slope_threshold" value="$(arg slope_threshold)" />
     <param name="grid_height" value="$(arg grid_height)" />
@@ -118,11 +118,11 @@
     <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
     <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>
     <param name="blanking_distance" value="$(arg blanking_distance)"/>
-    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
-    <remap from="/avt_341/points" to="/os_cloud_node/points"/>
+    <remap from="/nature/odometry" to="/odometry/filtered"/>
+    <remap from="/nature/points" to="/os_cloud_node/points"/>
   </node>
 
-  <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
+  <node name="vehicle_control_node" pkg="nature" type="nature_control_node" required="true" output="screen" >
     <param name="vehicle_wheelbase" value="$(arg vehicle_wheelbase)" />
     <param name="vehicle_max_steer_angle_degrees" value="$(arg vehicle_max_steer_angle_degrees)" />
     <param name="steering_coefficient" value="$(arg steering_coefficient)" />
@@ -140,27 +140,27 @@
     <param name="time_to_max_throttle" value="$(arg time_to_max_throttle)" />
     <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
     <param name="request_approval" value="$(arg request_approval)" />
-    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+    <remap from="/nature/odometry" to="/odometry/filtered"/>
   </node>
 
   <!-- -->
-  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
+  <node name="global_path_node" pkg="nature" type="nature_global_path_node" required="true" output="screen" >
     <param name="goal_dist" value="$(arg goal_dist)" />
     <param name="global_lookahead" value="75.0" />
     <param name="shutdown_behavior" value="2" />
     <param name="display" value="$(arg display_type)" />
-    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
-    <remap from="/avt_341/new_waypoints" to="/avt_341/enu_waypoints"/>
+    <remap from="/nature/odometry" to="/odometry/filtered"/>
+    <remap from="/nature/new_waypoints" to="/nature/enu_waypoints"/>
   </node>
   
 
    <!-- Lat-lon convert algorithm  -->
-  <node name="gps_to_enu_node" pkg="avt_341" type="gps_to_enu_node" required="true" output="screen">
-    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+  <node name="gps_to_enu_node" pkg="nature" type="gps_to_enu_node" required="true" output="screen">
+    <remap from="/nature/odometry" to="/odometry/filtered"/>
     <param name="waypoint_spacing" value="35.0" />
   </node>
 
-  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
+  <node name="local_planner_node" pkg="nature" type="nature_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
     <param name="path_look_ahead" value="$(arg path_look_ahead)" />
     <param name="vehicle_width" value="$(arg vehicle_width)" />
     <param name="num_paths" value="$(arg num_paths)" />
@@ -182,12 +182,12 @@
     <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
     <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
     <param name="display" value="$(arg display_type)" />
-    <remap from="/avt_341/odometry" to="/odometry/filtered"/>
+    <remap from="/nature/odometry" to="/odometry/filtered"/>
   </node>
 
-  <!-- rosrun rviz rviz -d $(rospack find avt_341)/rviz/avt_341.rviz -->
+  <!-- rosrun rviz rviz -d $(rospack find nature)/rviz/nature.rviz -->
   <group if="$(eval arg('display_type') == 'rviz' and arg('auto_launch_rviz'))">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find avt_341)/rviz/avt_341.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nature)/rviz/nature.rviz" />
   </group>
 
   <!-- Uncomment this section to use the MAVS simlator.
@@ -195,9 +195,9 @@
        mavs_avt_example catkin package built. -->
   <!--
   <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
-    <arg name="cmd_vel_topic_arg" default="avt_341/cmd_vel" />
-    <arg name="point_cloud_topic_arg" default="avt_341/points" />
-    <arg name="odometry_topic_arg" default="avt_341/odometry" />
+    <arg name="cmd_vel_topic_arg" default="nature/cmd_vel" />
+    <arg name="point_cloud_topic_arg" default="nature/points" />
+    <arg name="odometry_topic_arg" default="nature/odometry" />
   </include>
   -->
 

@@ -10,25 +10,25 @@
   <arg name="display" default="rviz"/>
   <arg name="auto_launch_rviz" default="true"/>
 
-  <rosparam file="$(find avt_341)/config/wh_waypoints.yaml" />
+  <rosparam file="$(find nature)/config/wh_waypoints.yaml" />
 
-  <rosparam file="$(find avt_341)/config/wh_map_obstacles.yaml" />
+  <rosparam file="$(find nature)/config/wh_map_obstacles.yaml" />
 
 
   <node pkg="tf"  name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
 
   <!-- Lidar perception algorithms  -->
-  <node name="perception_node" pkg="avt_341" type="avt_341_map_publisher_node" required="true" output="screen">
+  <node name="perception_node" pkg="nature" type="nature_map_publisher_node" required="true" output="screen">
     <param name="grid_height" value="120.0" />
     <param name="grid_width" value="120.0" />
     <param name="grid_llx" value="-60.0" />
     <param name="grid_lly" value="-60.0" />
     <param name="grid_res" value="0.25" />
     <param name="display" value="$(arg display)" />
-    <remap from="avt_341/odometry" to="warthog_velocity_controller/odom"/>
+    <remap from="nature/odometry" to="warthog_velocity_controller/odom"/>
   </node>
 
-  <node name="vehicle_control_node" pkg="avt_341" type="avt_341_control_node" required="true" output="screen" >
+  <node name="vehicle_control_node" pkg="nature" type="nature_control_node" required="true" output="screen" >
     <param name="vehicle_max_steer_angle_degrees" value="85.0" />
     <param name="steering_coefficient" value="4.5" />
     <param name="vehicle_speed" value="5.0" />
@@ -36,19 +36,19 @@
     <param name="skid_steered" value="true" />
     <param name="skid_kl" value="1.0" />
     <param name="skid_kt" value="0.5" />
-    <remap from="avt_341/cmd_vel" to="warthog_velocity_controller/cmd_vel"/>
-    <remap from="avt_341/odometry" to="warthog_velocity_controller/odom"/>
+    <remap from="nature/cmd_vel" to="warthog_velocity_controller/cmd_vel"/>
+    <remap from="nature/odometry" to="warthog_velocity_controller/odom"/>
   </node>
 
-  <node name="global_path_node" pkg="avt_341" type="avt_341_global_path_node" required="true" output="screen" >
+  <node name="global_path_node" pkg="nature" type="nature_global_path_node" required="true" output="screen" >
     <param name="goal_dist" value="8.0" />
     <param name="global_lookahead" value="75.0" />
     <param name="shutdown_behavior" value="2" />
     <param name="display" value="$(arg display)" />
-    <remap from="avt_341/odometry" to="warthog_velocity_controller/odom"/>
+    <remap from="nature/odometry" to="warthog_velocity_controller/odom"/>
   </node>
 
-  <node name="local_planner_node" pkg="avt_341" type="avt_341_local_planner_node" output="screen" required="true" >
+  <node name="local_planner_node" pkg="nature" type="nature_local_planner_node" output="screen" required="true" >
     <param name="path_look_ahead" value="20.0" /> 
     <param name="vehicle_width" value="3.0" />
     <param name="use_global_path" value="false" />
@@ -64,14 +64,14 @@
     <param name="rate" value="50.0" />
     <param name="trim_path" value="true" />
     <param name="display" value="$(arg display)" />
-    <remap from="avt_341/odometry" to="warthog_velocity_controller/odom"/>
+    <remap from="nature/odometry" to="warthog_velocity_controller/odom"/>
   </node>
 
   <include file="$(find warthog_gazebo)/launch/empty_world.launch">
   </include>
 
   <group if="$(eval arg('display') == 'rviz' and arg('auto_launch_rviz'))">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find avt_341)/rviz/avt_341.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nature)/rviz/nature.rviz" />
   </group>
 
 </launch>

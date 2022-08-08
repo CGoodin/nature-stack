@@ -1,6 +1,6 @@
-#include <avt_341/planning/global/coord_conversions/ellipsoid.h>
+#include <nature/planning/global/coord_conversions/ellipsoid.h>
 
-namespace avt_341{
+namespace nature{
 namespace coordinate_system{
 
 static std::vector<Ellipsoid> ellipsoid_;
@@ -60,4 +60,4 @@ double Ellipsoid::GetEccentrictySquared(int refnum){
 }
 
 } //namespace environment
-} //namespace avt_341
+} //namespace nature

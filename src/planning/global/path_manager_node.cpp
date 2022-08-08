@@ -11,40 +11,40 @@
  */
 
 // ros includes
-#include "avt_341/node/ros_types.h"
-#include "avt_341/node/node_proxy.h"
+#include "nature/node/ros_types.h"
+#include "nature/node/node_proxy.h"
 // local includes
-#include "avt_341/avt_341_utils.h"
+#include "nature/nature_utils.h"
 
-avt_341::msg::Path new_path;
+nature::msg::Path new_path;
 
 int main(int argc, char **argv)
 {
-    auto n = avt_341::node::init_node(argc,argv,"path_manager");
+    auto n = nature::node::init_node(argc,argv,"path_manager");
 
-    auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/new_waypoints", 10);
+    auto path_pub = n->create_publisher<nature::msg::Path>("nature/new_waypoints", 10);
     
-    avt_341::node::Rate loop_rate(10);
+    nature::node::Rate loop_rate(10);
 
     float wait_period;
     n->get_parameter("~wait_period", wait_period, 30.0f);
 
     auto start_time = n->get_stamp();
-    avt_341::node::Duration wait_duration = avt_341::node::make_duration(wait_period);
+    nature::node::Duration wait_duration = nature::node::make_duration(wait_period);
 
     int count = 0;
     int msg_sent = 0;
-    while(avt_341::node::ok())
+    while(nature::node::ok())
     {
         if(!msg_sent && n->get_stamp() > start_time + wait_duration)
         {
             std::vector<std::vector<float>> path = {{0, 10}, {10, 20}, {10, 50}};
 
-            avt_341::msg::Path ros_path;
+            nature::msg::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
             for (int32_t i = 0; i < path.size(); i++){
-                avt_341::msg::PoseStamped pose;
+                nature::msg::PoseStamped pose;
                 pose.pose.position.x = static_cast<float>(path[i][0]);
                 pose.pose.position.y = static_cast<float>(path[i][1]);
                 pose.pose.position.z = 0.0f;
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
             } 
 
             ros_path.header.stamp = n->get_stamp();
-            avt_341::node::set_seq(ros_path.header, count);
+            nature::node::set_seq(ros_path.header, count);
 
             for (int i = 0; i < ros_path.poses.size(); i++){
                 ros_path.poses[i].header = ros_path.header;

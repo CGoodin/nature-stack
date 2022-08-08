@@ -1,7 +1,7 @@
-#include "avt_341/planning/local/spline_planner.h"
+#include "nature/planning/local/spline_planner.h"
 #include <algorithm>
 
-namespace avt_341 {
+namespace nature {
 namespace planning{
 Planner::Planner() {
 	// planner coefficients and tuneable parameters
@@ -101,7 +101,7 @@ void Planner::CalculateComfortability() {
 	}
 }
 
-void Planner::CalculateDynamicSafety(avt_341::msg::Odometry odom) {
+void Planner::CalculateDynamicSafety(nature::msg::Odometry odom) {
 	for (int i = 0; i < candidates_.size(); i++) {
 		float km = candidates_[i].GetMaxCurvature();
 		float vk = (float)sqrt(alpha_max_ / km);
@@ -112,7 +112,7 @@ void Planner::CalculateDynamicSafety(avt_341::msg::Odometry odom) {
 	}
 }
 
-void Planner::DilateGrid(avt_341::msg::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury){
+void Planner::DilateGrid(nature::msg::OccupancyGrid &grid, int x, float llx, float lly, float urx, float ury){
 	//std::cerr << "Grid Size: " << grid.info.width << ", " << grid.info.height << std::endl;
 	//std::cerr << "Grid Origin: " << grid.info.origin.position.x << ", " << grid.info.origin.position.y << std::endl;
 	//std::cerr << "Grid Resolution: " << grid.info.resolution << std::endl;
@@ -144,7 +144,7 @@ void Planner::DilateGrid(avt_341::msg::OccupancyGrid &grid, int x, float llx, fl
 	grid.data = new_data;
 }
 
-void Planner::CalculateStaticSafetyAndSegCost(const avt_341::msg::OccupancyGrid & grid, const avt_341::msg::OccupancyGrid & grid_seg) {
+void Planner::CalculateStaticSafetyAndSegCost(const nature::msg::OccupancyGrid & grid, const nature::msg::OccupancyGrid & grid_seg) {
 	bool has_segmentation = grid_seg.info.height>0 && grid_seg.info.width>0;
 	for (int i = 0; i < candidates_.size(); i++) {
 		float s = s_no_coll_before_;
@@ -214,7 +214,7 @@ float Planner::GetTotalCostOfCandidate(int i) {
 	return cost;
 }
 
-bool Planner::CalculateCandidateCosts(avt_341::msg::OccupancyGrid grid, avt_341::msg::OccupancyGrid segmentation_grid, avt_341::msg::Odometry odom) {
+bool Planner::CalculateCandidateCosts(nature::msg::OccupancyGrid grid, nature::msg::OccupancyGrid segmentation_grid, nature::msg::Odometry odom) {
 
 	CalculateStaticSafetyAndSegCost(grid, segmentation_grid);
 	CalculateComfortability();
@@ -269,4 +269,4 @@ float Planner::GetAngleAt(float s) {
 }
 
 } // namespace planning
-} // namespace avt_341
+} // namespace nature

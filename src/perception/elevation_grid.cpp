@@ -1,8 +1,8 @@
-#include "avt_341/perception/elevation_grid.h"
+#include "nature/perception/elevation_grid.h"
 #include <iostream>
 #include <math.h>
 
-namespace avt_341{
+namespace nature{
 namespace perception{
 
 ElevationGrid::ElevationGrid(){
@@ -54,7 +54,7 @@ void ElevationGrid::ClearGrid(){
  }
 }
 
-std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointCloud &point_cloud){
+std::vector<nature::msg::Point32> ElevationGrid::AddPoints(nature::msg::PointCloud &point_cloud){
 
   bool has_segmentation_local = !point_cloud.channels.empty() && point_cloud.channels[0].name == "segmentation";
   has_segmentation_ = has_segmentation_local || has_segmentation_;
@@ -149,8 +149,8 @@ std::vector<avt_341::msg::Point32> ElevationGrid::AddPoints(avt_341::msg::PointC
 
 
   //loop back through the points and remove ground points
-  std::vector<avt_341::msg::Point32> points;
-  std::vector<avt_341::msg::Point32> surface_points;
+  std::vector<nature::msg::Point32> points;
+  std::vector<nature::msg::Point32> surface_points;
   float hscale = 0.2f;
   for (int i=0;i<point_cloud.points.size();i++){
     if (!(point_cloud.points[i].x==0.0 && point_cloud.points[i].y==0.0)){
@@ -194,8 +194,8 @@ uint8_t ElevationGrid::GetGridCellValue(const Cell & cell) const{
   return 0;
 }
 
-avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major, bool is_segmentation){
-  avt_341::msg::OccupancyGrid grid;
+nature::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major, bool is_segmentation){
+  nature::msg::OccupancyGrid grid;
   grid.header.frame_id = "map";
   grid.info.resolution = res_;
   grid.info.width = nx_;
@@ -226,4 +226,4 @@ avt_341::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major, bool is_segme
 }
 
 } // namespace perception
-} //namespace avt_341
+} //namespace nature

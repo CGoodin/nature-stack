@@ -16,8 +16,8 @@
 //#include "nav_msgs/Path.h"
 #include "sensor_msgs/NavSatFix.h"
 // local includes
-#include "avt_341/avt_341_utils.h"
-#include "avt_341/planning/global/coord_conversions/coord_conversions.h"
+#include "nature/nature_utils.h"
+#include "nature/planning/global/coord_conversions/coord_conversions.h"
 // c++ includes
 #include <fstream>
 
@@ -37,11 +37,11 @@ void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
 
 int main(int argc, char **argv){
 
-    //auto n = avt_341::node::init_node(argc,argv,"gps_to_enu_node");
+    //auto n = nature::node::init_node(argc,argv,"gps_to_enu_node");
     ros::init(argc, argv, "gps_spoof_node");
 	ros::NodeHandle n;
 
-    //auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/enu_waypoints", 10);
+    //auto path_pub = n->create_publisher<nature::msg::Path>("nature/enu_waypoints", 10);
     ros::Publisher navsat_pub = n.advertise<sensor_msgs::NavSatFix>("/piksi_imu/navsatfix_best_fix",10);
 
     /*ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
@@ -63,14 +63,14 @@ int main(int argc, char **argv){
     }
 
     std::vector< std::vector<double> > path;
-    avt_341::coordinate_system::CoordinateConverter converter;
-    std::vector<avt_341::coordinate_system::UTM> utm_waypoints;
+    nature::coordinate_system::CoordinateConverter converter;
+    std::vector<nature::coordinate_system::UTM> utm_waypoints;
     for (int i=0;i<gps_waypoints_lat.size();i++){
-        avt_341::coordinate_system::LLA gps_wp;
+        nature::coordinate_system::LLA gps_wp;
         gps_wp.latitude = gps_waypoints_lat[i];
         gps_wp.longitude = gps_waypoints_lon[i];
         gps_wp.altitude = 100.0f; // approximate elevation for Starkville, MS
-        avt_341::coordinate_system::UTM utm_wp = converter.LLA2UTM(gps_wp);
+        nature::coordinate_system::UTM utm_wp = converter.LLA2UTM(gps_wp);
         utm_waypoints.push_back(utm_wp);
         std::vector<double> point;
         point.push_back(utm_wp.x);
@@ -78,11 +78,11 @@ int main(int argc, char **argv){
         path.push_back(point);
     }
 
-    //avt_341::msg::Path enu_path;
+    //nature::msg::Path enu_path;
 
     //tf::TransformListener listener;
 */
-    //avt_341::node::Rate loop_rate(10);
+    //nature::node::Rate loop_rate(10);
     ros::Rate rate(10.0);
 
     int count = 0;
@@ -102,7 +102,7 @@ int main(int argc, char **argv){
         //ros::Duration(0.1).sleep();
     }*/
 
-    //while(avt_341::node::ok()){
+    //while(nature::node::ok()){
     while (ros::ok()){
 
         /*if (!tf_rcvd){
@@ -131,11 +131,11 @@ int main(int argc, char **argv){
 
             if (count==0){
                 // first time only 
-                avt_341::coordinate_system::LLA gps_origin;
+                nature::coordinate_system::LLA gps_origin;
                 gps_origin.latitude = lat_rcvd;
                 gps_origin.longitude = lon_rcvd;
                 gps_origin.altitude = alt_rcvd; // approximate elevation for Starkville, MS
-                avt_341::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
+                nature::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
                 utm_east = utm_origin.x;
                 utm_north = utm_origin.y;
                 std::ofstream fout;
@@ -148,7 +148,7 @@ int main(int argc, char **argv){
                 fout.close();
             }
 
-            //avt_341::msg::Path ros_path;*/
+            //nature::msg::Path ros_path;*/
             sensor_msgs::NavSatFix fix;
             fix.latitude = 33.47045;
             fix.longitude = -88.78649;
@@ -157,7 +157,7 @@ int main(int argc, char **argv){
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
             for (int32_t i = 0; i < path.size(); i++){
-                avt_341::msg::PoseStamped pose;
+                nature::msg::PoseStamped pose;
                 pose.pose.position.x = path[i][0] - utm_east;
                 pose.pose.position.y = path[i][1] - utm_north;
                 pose.pose.position.z = 0.0f;
@@ -170,7 +170,7 @@ int main(int argc, char **argv){
 */
             fix.header.stamp =  ros::Time::now(); // n->get_stamp();
             fix.header.seq = count;
-            //avt_341::node::set_seq(ros_path.header, count);
+            //nature::node::set_seq(ros_path.header, count);
 
             //for (int i = 0; i < ros_path.poses.size(); i++){
             //    ros_path.poses[i].header = ros_path.header;

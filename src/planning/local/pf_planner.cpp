@@ -1,7 +1,7 @@
-#include "avt_341/planning/local/pf_planner.h"
+#include "nature/planning/local/pf_planner.h"
 #include <algorithm>
 
-namespace avt_341 {
+namespace nature {
 namespace planning{
 PfPlanner::PfPlanner() {
 	kp_ = 5.0f;
@@ -9,7 +9,7 @@ PfPlanner::PfPlanner() {
 	obs_cutoff_dist_ = 20.0f;
 }
 
-avt_341::msg::Path PfPlanner::Plan(avt_341::msg::OccupancyGrid grid, avt_341::msg::Odometry odom){
+nature::msg::Path PfPlanner::Plan(nature::msg::OccupancyGrid grid, nature::msg::Odometry odom){
 	
 	float sx = odom.pose.pose.position.x;
 	float sy = odom.pose.pose.position.y;
@@ -39,9 +39,9 @@ avt_341::msg::Path PfPlanner::Plan(avt_341::msg::OccupancyGrid grid, avt_341::ms
 	PotentialFieldPlanning(grid.info.origin.position.x,  grid.info.origin.position.y, grid.info.resolution, sx, sy, gx, gy, ox, oy);
 
 	// copy the result to a path message
-	avt_341::msg::Path path;
+	nature::msg::Path path;
   for (int i=0;i<(int)rx_.size();i++){
-		avt_341::msg::PoseStamped pose;
+		nature::msg::PoseStamped pose;
     pose.pose.position.x = rx_[i]; 
     pose.pose.position.y = ry_[i];
     path.poses.push_back(pose);
@@ -149,4 +149,4 @@ void PfPlanner::PotentialFieldPlanning(float minx, float miny, float reso, float
 }
 
 } // namespace planning
-} // namespace avt_341
+} // namespace nature

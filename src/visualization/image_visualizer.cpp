@@ -1,6 +1,6 @@
-#include "avt_341/visualization/image_visualizer.h"
+#include "nature/visualization/image_visualizer.h"
 
-namespace avt_341 {
+namespace nature {
   namespace visualization {
 
 
@@ -11,12 +11,12 @@ namespace avt_341 {
       return true;
     }
 
-    void ImageVisualizer::draw_point(const int x0, const int y0, const avt_341::utils::vec3 &color) {
+    void ImageVisualizer::draw_point(const int x0, const int y0, const nature::utils::vec3 &color) {
       image_.draw_point(x0,y0, (float *)&color);
     }
 
     void ImageVisualizer::draw_line(const int x0, const int y0, const int x1, const int y1,
-                                    const avt_341::utils::vec3 &color) {
+                                    const nature::utils::vec3 &color) {
       image_.draw_line(x0, y0, x1, y1, (float *)&color);
     }
 
@@ -34,7 +34,7 @@ namespace avt_341 {
       img.save(file_name.c_str());
     }
 
-    void ImageVisualizer::draw_circle(const int x0, const int y0, int radius, const avt_341::utils::vec3 &color) {
+    void ImageVisualizer::draw_circle(const int x0, const int y0, int radius, const nature::utils::vec3 &color) {
       image_.draw_circle(x0, y0, radius, (float *)&color);
     }
   }

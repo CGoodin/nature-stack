@@ -1,6 +1,6 @@
-#include "avt_341/node/node_proxy.h"
+#include "nature/node/node_proxy.h"
 
-namespace avt_341 {
+namespace nature {
 namespace node {
 
 Rate::Rate(double hz) : rate_(hz) {

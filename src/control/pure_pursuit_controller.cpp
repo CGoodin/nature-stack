@@ -1,6 +1,6 @@
-#include "avt_341/control/pure_pursuit_controller.h"
+#include "nature/control/pure_pursuit_controller.h"
 
-namespace avt_341 {
+namespace nature {
 namespace control{
 
 PurePursuitController::PurePursuitController() {
@@ -30,7 +30,7 @@ PurePursuitController::PurePursuitController() {
 	ky_ = 1.0f;
 }
 
-void PurePursuitController::SetVehicleState(avt_341::msg::Odometry state){
+void PurePursuitController::SetVehicleState(nature::msg::Odometry state){
 // Set the current state of the vehicle, which should be the first pose in the path
 	veh_x_ = state.pose.pose.position.x;
 	veh_y_ = state.pose.pose.position.y;
@@ -47,9 +47,9 @@ void PurePursuitController::SetVehicleSpeed(float speed){
 	vy_ = sinf(veh_heading_)*veh_speed_;
 }
 
-avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj, utils::vec2 & goal) {
+nature::msg::Twist PurePursuitController::GetDcFromTraj(nature::msg::Path traj, utils::vec2 & goal) {
 	//initialize the driving command
-  avt_341::msg::Twist dc;
+  nature::msg::Twist dc;
 
 	//make sure the path contains some points
 	int np = traj.poses.size();
@@ -128,7 +128,7 @@ avt_341::msg::Twist PurePursuitController::GetDcFromTraj(avt_341::msg::Path traj
 	return dc;
 }
 
-avt_341::msg::Twist PurePursuitController::GetDcSkid(float dx, float dy, float dtheta){
+nature::msg::Twist PurePursuitController::GetDcSkid(float dx, float dy, float dtheta){
 	// The skid steer algorithm is taken from 
 	// A Stable Tracking Control Method for a Non-Holonomic Mobile Robot
 	// Yutaka Kanayam, 1991
@@ -136,7 +136,7 @@ avt_341::msg::Twist PurePursuitController::GetDcSkid(float dx, float dy, float d
 	// NOTE: The output is the typical cmd_vel message for a mobile robot where
 	// the velocities are true velocities, not throttle-steering-brake commands like 
 	// the controller for the Ackerman vehicle
-	avt_341::msg::Twist dc;
+	nature::msg::Twist dc;
 	dc.linear.x = 0.0;
 	dc.linear.y = 0.0;
 	dc.linear.z = 0.0;
@@ -160,8 +160,8 @@ avt_341::msg::Twist PurePursuitController::GetDcSkid(float dx, float dy, float d
 	return dc;
 }
 
-avt_341::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float lookahead, utils::vec2 curr_dir, float target_speed){
-	avt_341::msg::Twist dc;
+nature::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float lookahead, utils::vec2 curr_dir, float target_speed){
+	nature::msg::Twist dc;
 	dc.linear.x = 0.0;
 	dc.angular.z = 0.0;
 	dc.linear.y = 0.0;
@@ -196,4 +196,4 @@ avt_341::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float loo
 } // GetDcAcerman
 
 } // namespace control
-} // namespace avt_341
+} // namespace nature

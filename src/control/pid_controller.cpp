@@ -1,9 +1,9 @@
 
-#include "avt_341/control/pid_controller.h"
+#include "nature/control/pid_controller.h"
 
 #include <ctime>
 
-namespace avt_341 {
+namespace nature {
 namespace control{
   
 PidController::PidController(){
@@ -78,4 +78,4 @@ double PidController::GetControlVariable(double measured_value, double dt){
 }
 
 } // namespace control
-} // namespace avt_341
+} // namespace nature

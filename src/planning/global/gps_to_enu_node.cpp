@@ -20,11 +20,11 @@
 #include "geometry_msgs/TransformStamped.h"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-//#include "avt_341/node/ros_types.h"
-//#include "avt_341/node/node_proxy.h"
+//#include "nature/node/ros_types.h"
+//#include "nature/node/node_proxy.h"
 // local includes
-#include "avt_341/avt_341_utils.h"
-#include "avt_341/planning/global/coord_conversions/coord_conversions.h"
+#include "nature/nature_utils.h"
+#include "nature/planning/global/coord_conversions/coord_conversions.h"
 // c++ includes
 #include <fstream>
 
@@ -51,16 +51,16 @@ void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_odom){
 
 int main(int argc, char **argv){
 
-    //auto n = avt_341::node::init_node(argc,argv,"gps_to_enu_node");
+    //auto n = nature::node::init_node(argc,argv,"gps_to_enu_node");
     ros::init(argc, argv, "gps_to_enu_node");
 	ros::NodeHandle n;
 
-    //auto path_pub = n->create_publisher<avt_341::msg::Path>("avt_341/enu_waypoints", 10);
-    ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/avt_341/enu_waypoints",10);
+    //auto path_pub = n->create_publisher<nature::msg::Path>("nature/enu_waypoints", 10);
+    ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/nature/enu_waypoints",10);
 
     //ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
 
-    ros::Subscriber odometry_sub = n.subscribe("/avt_341/odometry", 10, OdometryCallback);
+    ros::Subscriber odometry_sub = n.subscribe("/nature/odometry", 10, OdometryCallback);
 
     // tf2 transform utm->odom needed
     tf2_ros::Buffer tfBuffer;
@@ -86,14 +86,14 @@ int main(int argc, char **argv){
     }
 
     std::vector< std::vector<double> > path;
-    avt_341::coordinate_system::CoordinateConverter converter;
-    std::vector<avt_341::coordinate_system::UTM> utm_waypoints;
+    nature::coordinate_system::CoordinateConverter converter;
+    std::vector<nature::coordinate_system::UTM> utm_waypoints;
     for (int i=0;i<gps_waypoints_lat.size();i++){
-        avt_341::coordinate_system::LLA gps_wp;
+        nature::coordinate_system::LLA gps_wp;
         gps_wp.latitude = gps_waypoints_lat[i];
         gps_wp.longitude = gps_waypoints_lon[i];
         gps_wp.altitude = 80.0f; // approximate elevation for Starkville, MS
-        avt_341::coordinate_system::UTM utm_wp = converter.LLA2UTM(gps_wp);
+        nature::coordinate_system::UTM utm_wp = converter.LLA2UTM(gps_wp);
         utm_waypoints.push_back(utm_wp);
         std::vector<double> point;
         point.push_back(utm_wp.x);
@@ -110,7 +110,7 @@ int main(int argc, char **argv){
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
-    //avt_341::msg::PoseStamped first_pose, second_pose;
+    //nature::msg::PoseStamped first_pose, second_pose;
     nav_msgs::Path ros_path;
     ros_path.header.frame_id = "odom";
     ros_path.poses.clear();
@@ -176,7 +176,7 @@ int main(int argc, char **argv){
                     float normt = sqrtf(tx*tx + ty*ty);
 
                     // add waypoint                    
-                    avt_341::msg::PoseStamped pose;
+                    nature::msg::PoseStamped pose;
                     pose.pose.position.x = x;
                     pose.pose.position.y = y;
                     pose.pose.position.z = 0.0f;
@@ -200,7 +200,7 @@ int main(int argc, char **argv){
                     }
                     num_loops++;
                 }
-                avt_341::msg::PoseStamped pose;
+                nature::msg::PoseStamped pose;
                 pose.pose.position.x = path.back()[0];
                 pose.pose.position.y = path.back()[1];
                 pose.pose.position.z = 0.0f;
@@ -213,11 +213,11 @@ int main(int argc, char **argv){
 /*
             if (count==0){
                 // first time only 
-                avt_341::coordinate_system::LLA gps_origin;
+                nature::coordinate_system::LLA gps_origin;
                 gps_origin.latitude = lat_rcvd;
                 gps_origin.longitude = lon_rcvd;
                 gps_origin.altitude = alt_rcvd; // approximate elevation for Starkville, MS
-                avt_341::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
+                nature::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
                 utm_east = utm_origin.x;
                 utm_north = utm_origin.y;
                 std::ofstream fout;
@@ -257,7 +257,7 @@ int main(int argc, char **argv){
             }
 
             for (int32_t i = 0; i < path.size(); i++){
-                avt_341::msg::PoseStamped pose;
+                nature::msg::PoseStamped pose;
                 pose.header.stamp = ros::Time::now();
                 pose.pose.position.x = path[i][0] - utm_east;
                 pose.pose.position.y = path[i][1] - utm_north;

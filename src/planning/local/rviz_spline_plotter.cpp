@@ -1,26 +1,26 @@
 #include <limits>
-#include "avt_341/planning/local/rviz_spline_plotter.h"
-#include <avt_341/planning/local/spline_path.h>
+#include "nature/planning/local/rviz_spline_plotter.h"
+#include <nature/planning/local/spline_path.h>
 #include <sstream>
 
-namespace avt_341 {
+namespace nature {
   namespace planning{
 
-    RVIZPlotter::RVIZPlotter(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer, const std::string & cost_vis,
-                             std::shared_ptr<avt_341::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float w_t, float cost_vis_text_size_) : Plotter(visualizer), cost_vis_(cost_vis), node_(node),
+    RVIZPlotter::RVIZPlotter(std::shared_ptr<nature::visualization::VisualizerBase> visualizer, const std::string & cost_vis,
+                             std::shared_ptr<nature::node::NodeProxy> node, float w_c, float w_s, float w_r, float w_d, float w_t, float cost_vis_text_size_) : Plotter(visualizer), cost_vis_(cost_vis), node_(node),
                                                                                                                                                       w_c_(w_c), w_s_(w_s), w_r_(w_r), w_d_(w_d), w_t_(w_t), cost_vis_text_size_(cost_vis_text_size_) {
-      candidate_paths_publisher = node->create_publisher<avt_341::msg::MarkerArray>("avt_341/candidate_paths", 1);
+      candidate_paths_publisher = node->create_publisher<nature::msg::MarkerArray>("nature/candidate_paths", 1);
     }
 
-    avt_341::msg::Marker RVIZPlotter::get_marker_msg(int type, int id, bool is_blocked) const{
-      avt_341::msg::Marker marker;
+    nature::msg::Marker RVIZPlotter::get_marker_msg(int type, int id, bool is_blocked) const{
+      nature::msg::Marker marker;
       marker.header.frame_id = "map";
       marker.header.stamp = node_->get_stamp();
       marker.id = id;
       marker.type = type;
-      marker.action = avt_341::msg::Marker::MODIFY;
+      marker.action = nature::msg::Marker::MODIFY;
       marker.color.a = 1.0;
-      if(type == avt_341::msg::Marker::LINE_LIST){
+      if(type == nature::msg::Marker::LINE_LIST){
         marker.scale.x = 0.15;
       }else{
         marker.scale.z = cost_vis_text_size_;
@@ -40,30 +40,30 @@ namespace avt_341 {
     void RVIZPlotter::Display(bool save, const std::string & ofname, int nx, int ny) {
       if (!map_set_)return;
 
-      avt_341::msg::Marker candidate_paths_marker = get_marker_msg(avt_341::msg::Marker::LINE_LIST, 0, false);
-      avt_341::msg::Marker blocked_paths_marker = get_marker_msg(avt_341::msg::Marker::LINE_LIST, 1, true);
+      nature::msg::Marker candidate_paths_marker = get_marker_msg(nature::msg::Marker::LINE_LIST, 0, false);
+      nature::msg::Marker blocked_paths_marker = get_marker_msg(nature::msg::Marker::LINE_LIST, 1, true);
 
       float ds = pixdim_;
       Path wp_path(path_);
-      std::vector<avt_341::utils::vec2> paths_last_points;
+      std::vector<nature::utils::vec2> paths_last_points;
 
       for (int i = 0; i < curves_.size(); i++) {
         float s0 = curves_[i].GetS0() + ds;
         float s_max = s0 + curves_[i].GetMaxLength() - ds;
         bool hits_obstacle = curves_[i].HitsObstacle();
-        avt_341::utils::vec2 pc1;
+        nature::utils::vec2 pc1;
 
         while (s0 < s_max){
           float rho0 = curves_[i].At(s0- curves_[i].GetS0());
           float s1 = s0 + pixdim_;
           float rho1 = curves_[i].At(s1- curves_[i].GetS0());
-          avt_341::utils::vec2 pc0 = wp_path.ToCartesian(s0, rho0);
+          nature::utils::vec2 pc0 = wp_path.ToCartesian(s0, rho0);
           pc1 = wp_path.ToCartesian(s1, rho1);
           if (std::isnan(pc0.x) || std::isnan(pc0.y) || std::isnan(pc1.x) || std::isnan(pc1.y)){
             break;
           }
-          avt_341::msg::Point p0;
-          avt_341::msg::Point p1;
+          nature::msg::Point p0;
+          nature::msg::Point p1;
           p0.x = pc0.x;
           p0.y = pc0.y;
           p0.z = 0.0;
@@ -82,15 +82,15 @@ namespace avt_341 {
         paths_last_points.push_back(pc1);
       }
 
-      candidate_paths_marker.action = candidate_paths_marker.points.empty() > 0 ? avt_341::msg::Marker::DELETE : avt_341::msg::Marker::MODIFY;
-      blocked_paths_marker.action = blocked_paths_marker.points.empty() ? avt_341::msg::Marker::DELETE : avt_341::msg::Marker::MODIFY;
-      avt_341::msg::MarkerArray marker_array;
+      candidate_paths_marker.action = candidate_paths_marker.points.empty() > 0 ? nature::msg::Marker::DELETE : nature::msg::Marker::MODIFY;
+      blocked_paths_marker.action = blocked_paths_marker.points.empty() ? nature::msg::Marker::DELETE : nature::msg::Marker::MODIFY;
+      nature::msg::MarkerArray marker_array;
       marker_array.markers.push_back(candidate_paths_marker);
       marker_array.markers.push_back(blocked_paths_marker);
 
       if(cost_vis_ != "none"){
         for(int j = 0; j < curves_.size(); j++){
-          avt_341::msg::Marker text_marker = get_marker_msg(avt_341::msg::Marker::TEXT_VIEW_FACING, marker_array.markers.size()+1);
+          nature::msg::Marker text_marker = get_marker_msg(nature::msg::Marker::TEXT_VIEW_FACING, marker_array.markers.size()+1);
 
           std::ostringstream out;
           out.precision(2);
@@ -127,4 +127,4 @@ namespace avt_341 {
     }
 
   } // namespace planning
-} // namespace avt_341
+} // namespace nature

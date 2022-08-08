@@ -6,13 +6,13 @@
 #include <iostream>
 #include <algorithm>
 // project includes
-#include "avt_341/planning/global/astar.h"
-#include "avt_341/planning/global/astar_cell.h"
+#include "nature/planning/global/astar.h"
+#include "nature/planning/global/astar_cell.h"
 
-namespace avt_341 {
+namespace nature {
 namespace planning{
 
-Astar::Astar(std::shared_ptr<avt_341::visualization::VisualizerBase> visualizer){
+Astar::Astar(std::shared_ptr<nature::visualization::VisualizerBase> visualizer){
   dfac_ = 0;
   visualizer_ = visualizer;
 }
@@ -292,9 +292,9 @@ void Astar::Display(){
 	if(!visualizer_->initialize_display(nx, ny)){
 	  return;
 	}
-  avt_341::utils::vec3 red(255.0f, 0.0f, 0.0f);
-  avt_341::utils::vec3 green(0.0f, 255.0f, 0.0f);
-  avt_341::utils::vec3 yellow(255.0f, 255.0f, 0.0f);
+  nature::utils::vec3 red(255.0f, 0.0f, 0.0f);
+  nature::utils::vec3 green(0.0f, 255.0f, 0.0f);
+  nature::utils::vec3 yellow(255.0f, 255.0f, 0.0f);
   for (int i=0;i<nx;i++){
     for (int j=0;j<ny;j++){
       if (map_[i][j]>0) visualizer_->draw_point(i,j,red);
@@ -316,7 +316,7 @@ void Astar::Display(){
   visualizer_->display();
 }
 
-std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *grid, avt_341::msg::OccupancyGrid *grid_segmentation, std::vector<float> goal, std::vector<float> position) {
+std::vector<std::vector<float> > Astar::PlanPath(nature::msg::OccupancyGrid *grid, nature::msg::OccupancyGrid *grid_segmentation, std::vector<float> goal, std::vector<float> position) {
 	if (grid->info.height<=0 || grid->info.width<=0) return path_world_;
 
     bool has_segmentation = grid_segmentation->info.height>0 && grid_segmentation->info.width>0;
@@ -380,4 +380,4 @@ std::vector<std::vector<float> > Astar::PlanPath(avt_341::msg::OccupancyGrid *gr
   return path_world_;
 }
 } // namespace planning
-} // namespace avt_341
+} // namespace nature

@@ -1,9 +1,9 @@
 // class definition
-#include <avt_341/planning/global/coord_conversions/matrix.h>
+#include <nature/planning/global/coord_conversions/matrix.h>
 // c++ include
 #include <iostream>
 
-namespace avt_341{
+namespace nature{
 namespace math{
 
 Matrix::Matrix(){};
@@ -144,4 +144,4 @@ int Matrix::PermuteSign(int i){
 }
 
 } //namespace math
-} //namespace avt_341
+} //namespace nature

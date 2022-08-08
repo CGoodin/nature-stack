@@ -16,7 +16,7 @@ From the top level catkin_ws directory, type
 $catkin_make install
 
 # Or to build only this package: 
-$catkin_make --only-pkg-with-deps avt_341
+$catkin_make --only-pkg-with-deps nature
 ```
 
 __If user-defined workspace with default install spaces:__ Make sure that ```setup.bash``` has been sourced in either the workspace's ```devel``` or ```install``` folder depending on if ```catkin_make``` or ```catkin_make install``` has been used respectively. Though typically this command is added to ```~/.bashrc``` so that it is called on opening a command prompt instead of being issued manually.  
@@ -31,7 +31,7 @@ source ~/catkin_ws/devel/setup.bash
 
 To test the installation, type
 ```bash
-$roslaunch avt_341 example.launch
+$roslaunch nature example.launch
 ```
 
 ##  Troubleshooting
@@ -58,9 +58,9 @@ to match the path to the MAVS "src" and "lib" directories on your system. Then, 
 $catkin_make install
 ```
 
-To use the MAVS example with the AVT-341 autonomy, uncomment lines 58-62 of "example.launch" and comment out line 52. Then, run the example as before.
+To use the MAVS example with the Nature autonomy, uncomment lines 58-62 of "example.launch" and comment out line 52. Then, run the example as before.
 ```bash
-$roslaunch avt_341 example.launch
+$roslaunch nature example.launch
 ```
 
 This project is made possible by technical and financial support of the Mississippi State University Center for Advanced Vehicular Systems as well as the Automotive Research Center (ARC) in accordance with Cooperative Agreement W56HZV 14 2 0001 U.S. Army CCDC Ground Vehicle Systems Center (GVSC) Warren, MI.

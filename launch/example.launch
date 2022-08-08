@@ -2,9 +2,9 @@
 
   <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
 
-  <include file="$(find avt_341)/launch/base.launch">
-    <arg name="waypoints_file" value="$(find avt_341)/config/waypoints.yaml" />
-    <arg name="robot_description_file" value="$(find avt_341)/config/avt_bot.urdf" />
+  <include file="$(find nature)/launch/base.launch">
+    <arg name="waypoints_file" value="$(find nature)/config/waypoints.yaml" />
+    <arg name="robot_description_file" value="$(find nature)/config/example_bot.urdf" />
     <arg name="cost_vis" value="final" />
     <arg name="use_mpc" value="$(arg use_mpc)" />
 <!--     <arg name="grid_dilate" value="true" /> -->
@@ -15,7 +15,7 @@
   </include>
 
   <!-- Use this node to test the build if no simulator is being used. -->
-  <node name="sim_test_node" pkg="avt_341" type="avt_341_sim_test_node" required="true" output="screen" />
+  <node name="sim_test_node" pkg="nature" type="nature_sim_test_node" required="true" output="screen" />
 
 
 </launch>
