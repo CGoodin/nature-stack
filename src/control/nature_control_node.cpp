@@ -158,7 +158,7 @@ int main(int argc, char *argv[]){
     controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
   }
 
-  if (use_feed_forward){
+  if (use_feed_forward && !skid_steered){
     controller.GetPidSpeedController()->SetUseFeedForward(true);
     controller.GetPidSpeedController()->SetForwardModelParams(ff_a0, ff_a1, ff_a2);
   }
@@ -256,6 +256,11 @@ int main(int argc, char *argv[]){
       //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
       //}
     }
+    else{
+      dc.linear.x = std::max(std::min(dc.linear.x, 1.0),0.0);
+      if (dc.linear.x>0.0f)dc.linear.y = 0.0f;
+    }
+
     // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;
