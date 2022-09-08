@@ -60,29 +60,29 @@ link_directories(
   ${PCL_LIBRARY_DIRS} 
 )
 
-add_executable(path_manager_node
+add_executable(nature_path_manager_node
   src/planning/global/path_manager_node.cpp
   src/node/node_proxy.cpp
 )
-target_link_libraries(path_manager_node
+target_link_libraries(nature_path_manager_node
   ${catkin_LIBRARIES}
 )
 
-add_executable(gps_to_enu_node
+add_executable(nature_gps_to_enu_node
   src/planning/global/gps_to_enu_node.cpp
   src/node/node_proxy.cpp
   src/planning/global/coord_conversions/coord_conversions.cpp
   src/planning/global/coord_conversions/ellipsoid.cpp
   src/planning/global/coord_conversions/matrix.cpp
 )
-target_link_libraries(gps_to_enu_node
+target_link_libraries(nature_gps_to_enu_node
   ${catkin_LIBRARIES}
 )
 
-add_executable(gps_spoof_node
+add_executable(nature_gps_spoof_node
   src/planning/global/gps_spoof_node.cpp
 )
-target_link_libraries(gps_spoof_node
+target_link_libraries(nature_gps_spoof_node
   ${catkin_LIBRARIES}
 )
 
@@ -203,9 +203,9 @@ nature_local_planner_node
 nature_pf_planner_node
 nature_global_path_node
 nature_sim_test_node
-gps_to_enu_node
-gps_spoof_node
-path_manager_node
+nature_gps_to_enu_node
+nature_gps_spoof_node
+nature_path_manager_node
 nature_bot_state_publisher_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

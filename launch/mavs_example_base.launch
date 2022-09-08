@@ -14,7 +14,7 @@
 <!--     <arg name="auto_launch_rviz" value="false" /> -->
   </include>
 
-<node name="gps_spoof_node" pkg="nature" type="gps_spoof_node" required="true" output="screen">
+<node name="nature_gps_spoof_node" pkg="nature" type="nature_gps_spoof_node" required="true" output="screen">
 
   </node>
 

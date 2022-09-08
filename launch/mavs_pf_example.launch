@@ -62,7 +62,7 @@
   </node>
 
 <!--
-  <node name="path_manager_node" pkg="nature" type="path_manager_node" required="true" output="screen">
+  <node name="nature_path_manager_node" pkg="nature" type="nature_path_manager_node" required="true" output="screen">
     <param name="wait_period" value="30.0" />
   </node>
   -->

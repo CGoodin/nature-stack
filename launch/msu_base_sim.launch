@@ -157,7 +157,7 @@
   
 
    <!-- Lat-lon convert algorithm  -->
-  <node name="gps_to_enu_node" pkg="nature" type="gps_to_enu_node" required="true" output="screen">
+  <node name="nature_gps_to_enu_node" pkg="nature" type="nature_gps_to_enu_node" required="true" output="screen">
     <param name="waypoint_spacing" value="35.0" />
   </node>
 
