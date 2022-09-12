@@ -40,20 +40,29 @@ public:
 	 */ 
 	nature::msg::Path Plan(nature::msg::OccupancyGrid grid, nature::msg::Odometry odom);
 
+	/// Set the segmentation grid to use
+	void SetSegGrid(nature::msg::OccupancyGrid seg_grid){ seg_grid_ = seg_grid; seg_grid_set_ = true; }
+
 	/**
 	 * Set the goal point in the local ENU coordinate frame
 	 */
 	void SetGoal(float gx, float gy);
 
-	/// Set the Eta parameter
+	/// Set the strength of the repulsive potential
 	void SetEta(float eta){eta_ = eta;}
 
-	/// Set the Kp parameter
+	/// Set the strength of the attractive potential
 	void SetKp(float kp){kp_ = kp;}
 
 	/// Set the cutoff distance
 	void SetCutoffDistance(float cutoff_dist){ obs_cutoff_dist_ = cutoff_dist; }
 
+	/// obstacles closer than this range will be ignored
+	void SetInnerCutoff(float inner_cutoff){ inner_cutoff_dist_ = inner_cutoff; }
+
+	/// Set the threshold over which something would be considered an obstacle. Ranges from 0-100
+	void SetObstacleCostThreshold(int oct){ obs_cost_thresh_ = oct; }
+	
 private:
 	float Hypot(float x, float y);
     
@@ -70,8 +79,14 @@ private:
 	float kp_;
 	float eta_;
 	float obs_cutoff_dist_;
+	float inner_cutoff_dist_;
 	std::vector<float> rx_;
 	std::vector<float> ry_;
+	std::vector<float> old_rx_;
+	std::vector<float> old_ry_;
+	nature::msg::OccupancyGrid seg_grid_;
+	bool seg_grid_set_;
+	int obs_cost_thresh_;
 };
 
 } // namespace planning

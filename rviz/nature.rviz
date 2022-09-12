@@ -71,7 +71,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /avt_341/global_path
+      Topic: /nature/global_path
       Unreliable: false
       Value: true
     - Alpha: 0
@@ -94,12 +94,12 @@ Visualization Manager:
       Radius: 10
       Shaft Diameter: 2
       Shaft Length: 2
-      Topic: /avt_341/waypoints
+      Topic: /nature/waypoints
       Unreliable: false
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /avt_341/candidate_paths
+      Marker Topic: /nature/candidate_paths
       Name: CandidatePaths
       Namespaces:
         "": true
@@ -111,7 +111,7 @@ Visualization Manager:
       Draw Behind: true
       Enabled: true
       Name: OccupancyGrid
-      Topic: /avt_341/occupancy_grid_vis
+      Topic: /nature/occupancy_grid_vis
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -135,7 +135,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /avt_341/local_path
+      Topic: /nature/local_path
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -163,7 +163,7 @@ Visualization Manager:
       Size (Pixels): 6
       Size (m): 1
       Style: Points
-      Topic: /avt_341/points
+      Topic: /nature/points
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -201,7 +201,7 @@ Visualization Manager:
       History Length: 1
       Name: ControlNextWaypoint
       Radius: 1
-      Topic: /avt_341/control_next_waypoint
+      Topic: /nature/control_next_waypoint
       Unreliable: false
       Value: true
   Enabled: true

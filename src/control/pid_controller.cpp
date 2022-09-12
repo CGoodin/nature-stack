@@ -51,7 +51,7 @@ double PidController::GetControlVariable(double measured_value, double dt){
   double kp = kp_;
   if ((!crossed_setpoint_) && overshoot_limiter_){
     ki = 0.0;
-    kp = 0.0;
+    //kp = 0.0;
   }
   else{
     integral_ += error*dt;
