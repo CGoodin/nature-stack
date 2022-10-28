@@ -86,7 +86,7 @@
     <param name="inner_cutoff_dist" value="1.5" /> <!-- obstacles closer than this are ignored -->
   </node>
 
-  <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
+  <include file="$(find mavs_ros)/launch/mavs_sim.launch">
     <arg name="cmd_vel_topic_arg" default="nature/cmd_vel" />
     <arg name="point_cloud_topic_arg" default="nature/points" />
     <arg name="odometry_topic_arg" default="nature/odometry" />

@@ -21,7 +21,7 @@
   <!-- Use this node to test the build if no simulator is being used. 
   <node name="sim_test_node" pkg="nature" type="nature_sim_test_node" required="true" output="screen" />
 -->
-  <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
+  <include file="$(find mavs_ros)/launch/mavs_sim.launch">
     <arg name="cmd_vel_topic_arg" default="nature/cmd_vel" />
     <arg name="point_cloud_topic_arg" default="nature/points" />
     <arg name="odometry_topic_arg" default="nature/odometry" />

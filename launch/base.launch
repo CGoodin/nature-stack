@@ -160,9 +160,9 @@
 
   <!-- Uncomment this section to use the MAVS simlator.
        Must have MAVS built and installed and the 
-       mavs_avt_example catkin package built. -->
+       mavs_ros catkin package built. -->
   <!--
-  <include file="$(find mavs_avt_example)/launch/mavs_sim.launch">
+  <include file="$(find mavs_ros)/launch/mavs_sim.launch">
     <arg name="cmd_vel_topic_arg" default="nature/cmd_vel" />
     <arg name="point_cloud_topic_arg" default="nature/points" />
     <arg name="odometry_topic_arg" default="nature/odometry" />
