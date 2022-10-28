@@ -4,7 +4,10 @@ The NATURE (Navigating All Terrains Using Robotic Exploration) autonomy stack is
 For more information about the modules and their capabilities and options, check out [the wiki](https://github.com/CGoodin/nature-stack/wiki).
 
 ## Requirements
-Ubuntu 16.04 with [ROS-Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) and a functioning [catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) are required to build and run this code. It **may** work with more recent releases of Ubuntu but has not been tested.
+Ubuntu 16.04 with [ROS-Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) and a functioning [catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) are required to build and run this code. 
+
+
+To run the NATURE stack with ROS-2, you must clone the repo then check out the "ros2" branch.
 
 ## Installation
 Clone the repo into your catkin_ws/src directory with the following command.
@@ -43,24 +46,21 @@ $sudo apt-get install ros-kinetic-pcl-ros
 ## Running with MAVS
 To run an example simulation with MAVS, first [install and build MAVS](https://gitlab.com/cgoodin/msu-autonomous-vehicle-simulator/-/wikis/MavsBuildInstructions).
 
-Next, clone the example MAVS simulation package.
+You will also need the package to interface MAVS to ROS, either the [mavs_ros]() package for ROS 1 or the [mavs-ros2]() package for ROS2. The instructions below are for ROS1, but the process is similar for the mavs-ros2 package.
+
+Clone the MAVS-ROS interface package into your catkin_ws/src directory
 ```bash
-$git clone https://github.com/CGoodin/mavs_avt_example.git
+$git clone https://github.com/CGoodin/mavs_ros
 ```
 
-In order to build the repo, you will need to modify the CMakeLists.txt file in the mavs_avt_example to find your MAVS installation. In lines 8-9, change the following lines 
-```
-SET(mavs_INCLUDE_DIR  "/home/msucavs/mavs/src/")
-SET(mavs_LIB_DIR  "/home/msucavs/mavs/build/lib")
-```
-to match the path to the MAVS "src" and "lib" directories on your system. Then, from the top level catkin_ws directory, type
+Then, from the top level catkin_ws directory, type
 ```bash
 $catkin_make install
 ```
-
-To use the MAVS example with the Nature autonomy, uncomment lines 58-62 of "example.launch" and comment out line 52. Then, run the example as before.
+Then, from the "launch" directory of the "nature" folder, run
 ```bash
-$roslaunch nature example.launch
+$roslaunch nature mavs_example.launch
 ```
 
+## Funding Acknowledgement
 This project is made possible by technical and financial support of the Mississippi State University Center for Advanced Vehicular Systems as well as the Automotive Research Center (ARC) in accordance with Cooperative Agreement W56HZV 14 2 0001 U.S. Army CCDC Ground Vehicle Systems Center (GVSC) Warren, MI.
