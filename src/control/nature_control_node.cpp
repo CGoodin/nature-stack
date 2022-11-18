@@ -15,6 +15,7 @@
 #include "nature/node/node_proxy.h"
 //nature includes
 #include "nature/control/pure_pursuit_controller.h"
+#include "nature/control/keyboard_controller.h"
 #include "nature/control/tinyfiledialogs.h"
 
 nature::msg::Path control_msg;
@@ -86,7 +87,6 @@ double GetMaxCurvature(nature::msg::Path path){
   return max_curvature;
 }
 
-
 int main(int argc, char *argv[]){
   auto n = nature::node::init_node(argc,argv,"nature_control_node");
 
@@ -104,6 +104,7 @@ int main(int argc, char *argv[]){
 
 
   nature::control::PurePursuitController controller;
+  nature::control::KeyboardController kb_controller;
 
   // added by CTG, 1/26/22
   // The PID params are tuned with this value in mind
@@ -134,6 +135,9 @@ int main(int argc, char *argv[]){
   n->get_parameter("~throttle_kd", throttle_kd, 0.24f);
   n->get_parameter("~display", display, std::string("none"));
   n->get_parameter("~max_desired_lateral_g", max_desired_lateral_g, 0.75f);
+
+  bool use_keyboard_driver = false;
+  n->get_parameter("~use_keyboard_driver", use_keyboard_driver, false);
 
   bool turn_off_velocity_overshoot_corrector;
   n->get_parameter("~turn_off_velocity_overshoot_corrector", turn_off_velocity_overshoot_corrector, false);
@@ -184,115 +188,124 @@ int main(int argc, char *argv[]){
   nature::utils::vec2 goal;
 
   while (nature::node::ok()){
-    nature::msg::Twist dc;
-    bool time_to_quit = false;
 
-    // tell the controller the current vehicle state
-    float vel = 0.0f;
-    if (speedometer_rcvd){
-      vel = mrzr_speedometer;
-      current_steering_value = mrzr_steering;
+    if (use_keyboard_driver){
+
     }
     else{
-      vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
-    }
-    
-    controller.SetVehicleState(state);
-    controller.SetVehicleSpeed(vel);
+      nature::msg::Twist dc;
+      bool time_to_quit = false;
 
-    if (shutdown_condition){  // current_run_state = 2 
-      // bring to a smooth stop and shut down
-      controller.SetDesiredSpeed(0.0f);
-      if (vel<0.5f)time_to_quit = true;
-      dc = controller.GetDcFromTraj(control_msg, goal);
-      dc.linear.x = 0.0f;
-      dc.angular.z = 0.0f;
-      dc.linear.y = -1.0f;
-    }
-    else if (current_run_state==0){    // active running state
-      double max_curvature = GetMaxCurvature(control_msg);
-      double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
-      float desired_velocity = vehicle_speed;
-      if (lateral_g_force>max_desired_lateral_g){
-        desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
-        if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
-      }
-      controller.SetDesiredSpeed(desired_velocity);
-      //controller.SetDesiredSpeed(vehicle_speed);
-      dc = controller.GetDcFromTraj(control_msg, goal);
-    }
-    else if (current_run_state==-1 || current_run_state==1){
-      // bring to a smooth stop and wait / idle
-      controller.SetDesiredSpeed(0.0f);
-      dc = controller.GetDcFromTraj(control_msg, goal);
-      if (current_run_state==-1)dc.linear.x = 0.0f;
-    }
-    else if (current_run_state==3){
-      // bring to a hard stop and shut down
-      dc.linear.x = 0.0f;
-      dc.linear.y = 1.0f;
-      dc.angular.z = 0.0f;
-      time_to_quit = true;
-    }
-
-    if (!skid_steered){
-      // check braking and throttle
-      if (dc.linear.y!=0.0){
-        // apply the ramp up to the brake
-        if (current_brake_value>dc.linear.y){
-          dc.linear.y = current_brake_value - brake_step;
-          if (dc.linear.y<-1.0)dc.linear.y = -1.0;
-          if (dc.linear.y>0.0)dc.linear.y = 0.0;
-        }
-        // make sure the throttle is zero when braking
-        dc.linear.x = 0.0f;
-      }
-      // apply the throttle ramp up
-      if (dc.linear.x-current_throttle_value > max_throttle_step){
-        dc.linear.x = current_throttle_value + max_throttle_step;
-      }
-      // apply the steering ramp up
-      //if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
-      //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
-      //}
-    }
-    else{
-      dc.linear.x = std::max(std::min(dc.linear.x, 1.0),0.0);
-      if (dc.linear.x>0.0f)dc.linear.y = 0.0f;
-    }
-
-    // publish the driving command
-    dc_pub->publish(dc);
-    current_brake_value = dc.linear.y;
-    current_throttle_value = dc.linear.x;
-    current_steering_value = dc.angular.z; 
-
-
-    // break the loop when an end state is reached
-    if (time_to_quit)break;
-    
-    if(display_rviz){
-      nature::msg::PointStamped next_waypoint_msg;
-      next_waypoint_msg.point.x = goal.x;
-      next_waypoint_msg.point.y = goal.y;
-      next_waypoint_msg.point.z = state.pose.pose.position.z;
-      next_waypoint_msg.header.frame_id = "map";
-      next_waypoint_msg.header.stamp = n->get_stamp();
-      next_waypoint_pub->publish(next_waypoint_msg);
-    }
-
-    // ask the user if the path looks good and they would like to continue
-    if (!user_approved && current_run_state==0 && path_rcvd && request_approval){
-      std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
-		  bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
-      if (approved){
-        user_approved = true;
+      // tell the controller the current vehicle state
+      float vel = 0.0f;
+      if (speedometer_rcvd){
+        vel = mrzr_speedometer;
+        current_steering_value = mrzr_steering;
       }
       else{
-        break;
+        vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
       }
-    }
+      
+      controller.SetVehicleState(state);
+      controller.SetVehicleSpeed(vel);
 
+      if (shutdown_condition){  // current_run_state = 2 
+        // bring to a smooth stop and shut down
+        controller.SetDesiredSpeed(0.0f);
+        if (vel<0.5f)time_to_quit = true;
+        dc = controller.GetDcFromTraj(control_msg, goal);
+        dc.linear.x = 0.0f;
+        dc.angular.z = 0.0f;
+        dc.linear.y = -1.0f;
+      }
+      else if (current_run_state==0){    // active running state
+        double max_curvature = GetMaxCurvature(control_msg);
+        double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
+        float desired_velocity = vehicle_speed;
+        if (lateral_g_force>max_desired_lateral_g){
+          desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
+          if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
+        }
+        controller.SetDesiredSpeed(desired_velocity);
+        //controller.SetDesiredSpeed(vehicle_speed);
+        dc = controller.GetDcFromTraj(control_msg, goal);
+      }
+      else if (current_run_state==-1 || current_run_state==1){
+        // bring to a smooth stop and wait / idle
+        controller.SetDesiredSpeed(0.0f);
+        dc = controller.GetDcFromTraj(control_msg, goal);
+        if (current_run_state==-1)dc.linear.x = 0.0f;
+      }
+      else if (current_run_state==3){
+        // bring to a hard stop and shut down
+        dc.linear.x = 0.0f;
+        dc.linear.y = 1.0f;
+        dc.angular.z = 0.0f;
+        time_to_quit = true;
+      }
+
+      if (!skid_steered){
+        // check braking and throttle
+        if (dc.linear.y!=0.0){
+          // apply the ramp up to the brake
+          if (current_brake_value>dc.linear.y){
+            dc.linear.y = current_brake_value - brake_step;
+            if (dc.linear.y<-1.0)dc.linear.y = -1.0;
+            if (dc.linear.y>0.0)dc.linear.y = 0.0;
+          }
+          // make sure the throttle is zero when braking
+          dc.linear.x = 0.0f;
+        }
+        // apply the throttle ramp up
+        if (dc.linear.x-current_throttle_value > max_throttle_step){
+          dc.linear.x = current_throttle_value + max_throttle_step;
+        }
+        // apply the steering ramp up
+        if (dc.angular.z>current_steering_value)dc.angular.z=current_steering_value+max_steering_step;
+        if (dc.angular.z<current_steering_value)dc.angular.z=current_steering_value-max_steering_step;
+        if (dc.angular.z>1.0)dc.angular.z=1.0;
+        if (dc.angular.z<-1.0)dc.angular.z=-1.0;
+        //if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
+        //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
+        //}
+      }
+      else{
+        dc.linear.x = std::max(std::min(dc.linear.x, 1.0),0.0);
+        if (dc.linear.x>0.0f)dc.linear.y = 0.0f;
+      }
+
+      // publish the driving command
+      dc_pub->publish(dc);
+      current_brake_value = dc.linear.y;
+      current_throttle_value = dc.linear.x;
+      current_steering_value = dc.angular.z; 
+
+
+      // break the loop when an end state is reached
+      if (time_to_quit)break;
+      
+      if(display_rviz){
+        nature::msg::PointStamped next_waypoint_msg;
+        next_waypoint_msg.point.x = goal.x;
+        next_waypoint_msg.point.y = goal.y;
+        next_waypoint_msg.point.z = state.pose.pose.position.z;
+        next_waypoint_msg.header.frame_id = "map";
+        next_waypoint_msg.header.stamp = n->get_stamp();
+        next_waypoint_pub->publish(next_waypoint_msg);
+      }
+
+      // ask the user if the path looks good and they would like to continue
+      if (!user_approved && current_run_state==0 && path_rcvd && request_approval){
+        std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
+        bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
+        if (approved){
+          user_approved = true;
+        }
+        else{
+          break;
+        }
+      }
+    } // ! use_keybard_driver
 
     n->spin_some();
 
