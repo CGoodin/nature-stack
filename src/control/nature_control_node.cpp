@@ -190,7 +190,7 @@ int main(int argc, char *argv[]){
   while (nature::node::ok()){
 
     if (use_keyboard_driver){
-
+      kb_controller.Update();
     }
     else{
       nature::msg::Twist dc;

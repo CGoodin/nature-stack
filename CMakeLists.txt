@@ -114,6 +114,7 @@ add_executable(nature_control_node
 
 target_link_libraries(nature_control_node
   ${catkin_LIBRARIES}
+  X11
 )
 
 add_executable(nature_local_planner_node 
