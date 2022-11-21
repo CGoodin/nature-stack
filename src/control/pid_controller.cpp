@@ -22,11 +22,11 @@ PidController::PidController(){
   std::time_t t = std::time(0);   // get time now
   std::tm* now = std::localtime(&t);
   std::string t_string = std::to_string((now->tm_mon+1))+"_"+std::to_string(now->tm_mday)+"_"+std::to_string(now->tm_hour)+"_"+std::to_string(now->tm_min)+"_pid_log.txt";
-  fout_.open(t_string.c_str(), std::ofstream::out | std::ofstream::trunc);
+  //fout_.open(t_string.c_str(), std::ofstream::out | std::ofstream::trunc);
 }
 
 PidController::~PidController(){
-  fout_.close();
+  //fout_.close();
 }
 
 // see: https://en.wikipedia.org/wiki/PID_controller
@@ -64,15 +64,15 @@ double PidController::GetControlVariable(double measured_value, double dt){
   if (stay_positive_){
     output = 0.5f*(1.0f+output);
   }
-  fout_<<crossed_setpoint_<<" "
-       <<setpoint_<<" "
-       <<measured_value<<" "
-       <<(ff_a2_*setpoint_*setpoint_ + ff_a1_*setpoint_ + ff_a0_)<<" "
-       << error <<" "
-       <<ki<<" "<<
-       integral_<<" "
-       <<derivative<<" "
-       <<output<<std::endl;
+  //fout_<<crossed_setpoint_<<" "
+  //     <<setpoint_<<" "
+  //     <<measured_value<<" "
+  //     <<(ff_a2_*setpoint_*setpoint_ + ff_a1_*setpoint_ + ff_a0_)<<" "
+  //     << error <<" "
+  //     <<ki<<" "<<
+  //     integral_<<" "
+  //     <<derivative<<" "
+  //     <<output<<std::endl;
   previous_error_ = error;
   return output;
 }

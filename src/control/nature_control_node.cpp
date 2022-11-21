@@ -136,8 +136,8 @@ int main(int argc, char *argv[]){
   n->get_parameter("~display", display, std::string("none"));
   n->get_parameter("~max_desired_lateral_g", max_desired_lateral_g, 0.75f);
 
-  bool use_keyboard_driver = false;
-  n->get_parameter("~use_keyboard_driver", use_keyboard_driver, false);
+  bool use_keyboard_driver = true;
+  n->get_parameter("~use_keyboard_driver", use_keyboard_driver, true);
 
   bool turn_off_velocity_overshoot_corrector;
   n->get_parameter("~turn_off_velocity_overshoot_corrector", turn_off_velocity_overshoot_corrector, false);

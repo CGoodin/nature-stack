@@ -52,6 +52,7 @@
     <param name="display" value="$(arg display)" />
   </node>
 
+<!--
   <node name="vehicle_control_node" pkg="nature" type="nature_control_node" required="true" output="screen" >
     <param name="vehicle_wheelbase" value="2.72" />
     <param name="vehicle_max_steer_angle_degrees" value="35.0" />
@@ -69,12 +70,8 @@
     <param name="ff_a1" value="0.0422" />
     <param name="ff_a2" value="-0.0003" />
     <param name="use_keyboard_driver" value="true" />
-    <!-- skid steer parameters for the jackal
-    <param name="skid_steered" value="true" />
-    <param name="skid_kl" value="0.1" />
-    <param name="skid_kt" value="0.1" />
-    -->
   </node>
+  -->
 
 <!--
   <node name="nature_path_manager_node" pkg="nature" type="nature_path_manager_node" required="true" output="screen">

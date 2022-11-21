@@ -2,31 +2,67 @@
 #include "nature/control/keyboard_controller.h"
 // c++ includes
 #include <iostream>
+#include <cstdlib>
+// system includes
+#include <ncurses.h>
 
 namespace nature {
 namespace control{
 
-static const float green[3] = {0.0f, 255.0f, 0.0f};
+int KeyboardController::kbhit(void){
+    int ch = getch();
+    if (ch != ERR) {
+        ungetch(ch);
+        return 1;
+    } 
+    else {
+        return 0;
+    }
+}
 
 KeyboardController::KeyboardController(){
-    image_.assign(512, 512, 1, 3, 0.);
     throttle_ = 0.0f;
     steering_ = 0.0f;
     braking_ = 0.0f;
     d_throt_ = 0.005f;
     d_steer_ = 0.005f;
     d_brake_ = 0.01f;
-    
+    initscr(); //Start curses mode
+    clear();
+    noecho();
+    cbreak();
+    nodelay(stdscr, TRUE);
+    scrollok(stdscr, TRUE);
+}
+
+KeyboardController::~KeyboardController(){
+    endwin(); //End curses mode	
 }
 
 void KeyboardController::Update(){
-    disp_.set_title("Keyboard Controller");
-    disp_ = image_;
 
-    bool throt = disp_.is_keyARROWUP();
-    bool brake = disp_.is_keyARROWDOWN();
-    bool left = disp_.is_keyARROWLEFT();
-    bool right = disp_.is_keyARROWRIGHT();
+    bool throt = false; 
+    bool brake = false; 
+    bool left = false; 
+    bool right = false; 
+
+    // w = 119
+    // a = 97
+    // s = 115
+    // d = 100
+    if (kbhit()) {
+        int pressed = getch();
+        if (pressed == 119 ) throt = true;
+        if (pressed == 115 ) brake = true;
+        if (pressed == 97 ) left = true;
+        if (pressed == 100 ) right = true;
+        std::string status_str = "Throttle="+std::to_string(throttle_)+", braking="+std::to_string(braking_)+", throttle="+std::to_string(steering_)+"\n";
+        printw(status_str.c_str());
+        refresh();
+    } 
+    else {
+        refresh();
+    }  
 
     if (brake){
         braking_ += d_brake_;
@@ -43,12 +79,9 @@ void KeyboardController::Update(){
         steering_ -= d_steer_;
     }
 
-
     throttle_ = std::max(0.0f,std::min(1.0f, throttle_));
     braking_ = std::max(0.0f,std::min(1.0f, braking_));
     steering_ = std::max(-1.0f,std::min(1.0f, steering_));
-
-    std::cout<<throttle_<<" "<<steering_<<" "<<braking_<<std::endl;
 }
 
 } // namespace control
