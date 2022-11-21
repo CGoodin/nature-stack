@@ -52,26 +52,9 @@
     <param name="display" value="$(arg display)" />
   </node>
 
-<!--
-  <node name="vehicle_control_node" pkg="nature" type="nature_control_node" required="true" output="screen" >
-    <param name="vehicle_wheelbase" value="2.72" />
-    <param name="vehicle_max_steer_angle_degrees" value="35.0" />
-    <param name="steering_coefficient" value="4.5" />
-    <param name="throttle_coefficient" value="1.0" />
-    <param name="vehicle_speed" value="5.0" />
-    <param name="throttle_kp" value="0.1129" />
-    <param name="throttle_ki" value="0.0" />
-    <param name="throttle_kd" value="0.0435" />
-    <param name="max_desired_lateral_g" value="0.25" />
-    <param name="time_to_max_brake" value="4.0" />
-    <param name="time_to_max_throttle" value="3.0" />
-    <param name="use_feed_forward" value="true" />
-    <param name="ff_a0" value="0.2134" />
-    <param name="ff_a1" value="0.0422" />
-    <param name="ff_a2" value="-0.0003" />
-    <param name="use_keyboard_driver" value="true" />
-  </node>
-  -->
+<!-- In order to use keyboard control, launch the vehicle control node in a separate terminal with the following command:
+rosrun nature nature_control_node _use_keyboard_driver:=true
+-->
 
 <!--
   <node name="nature_path_manager_node" pkg="nature" type="nature_path_manager_node" required="true" output="screen">

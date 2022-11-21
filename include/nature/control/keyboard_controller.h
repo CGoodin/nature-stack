@@ -21,6 +21,18 @@ public:
 
     void Update();
 
+    float GetThrottle(){ return throttle_; }
+
+    float GetBraking(){ return braking_; }
+
+    float GetSteering(){ return steering_; }
+
+    void SetCurrentThrottle(float throt){ throttle_ = throt; }
+
+    void SetCurrentBraking(float brake){ braking_ = brake; }
+
+    void SetCurrentSteering(float steer){ steering_ = steer; }
+
 private:
     int kbhit(void);
     float throttle_;
@@ -29,6 +41,7 @@ private:
     float d_throt_;
     float d_steer_;
     float d_brake_;
+    float steering_decay_rate_;
 };
 
 } // namespace nature

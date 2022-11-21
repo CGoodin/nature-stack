@@ -136,8 +136,8 @@ int main(int argc, char *argv[]){
   n->get_parameter("~display", display, std::string("none"));
   n->get_parameter("~max_desired_lateral_g", max_desired_lateral_g, 0.75f);
 
-  bool use_keyboard_driver = true;
-  n->get_parameter("~use_keyboard_driver", use_keyboard_driver, true);
+  bool use_keyboard_driver = false;
+  n->get_parameter("~use_keyboard_driver", use_keyboard_driver, false);
 
   bool turn_off_velocity_overshoot_corrector;
   n->get_parameter("~turn_off_velocity_overshoot_corrector", turn_off_velocity_overshoot_corrector, false);
@@ -188,14 +188,19 @@ int main(int argc, char *argv[]){
   nature::utils::vec2 goal;
 
   while (nature::node::ok()){
+    nature::msg::Twist dc;
+    bool time_to_quit = false;
 
     if (use_keyboard_driver){
+      kb_controller.SetCurrentThrottle(current_throttle_value);
+      kb_controller.SetCurrentBraking(-current_brake_value);
+      kb_controller.SetCurrentSteering(current_steering_value);
       kb_controller.Update();
+      dc.linear.x = kb_controller.GetThrottle();
+      dc.angular.z = kb_controller.GetSteering();
+      dc.linear.y = -kb_controller.GetBraking();
     }
     else{
-      nature::msg::Twist dc;
-      bool time_to_quit = false;
-
       // tell the controller the current vehicle state
       float vel = 0.0f;
       if (speedometer_rcvd){
@@ -274,38 +279,39 @@ int main(int argc, char *argv[]){
         if (dc.linear.x>0.0f)dc.linear.y = 0.0f;
       }
 
-      // publish the driving command
-      dc_pub->publish(dc);
-      current_brake_value = dc.linear.y;
-      current_throttle_value = dc.linear.x;
-      current_steering_value = dc.angular.z; 
+    } // ! use_keyboard_driver
+    // publish the driving command
+    dc_pub->publish(dc);
+    current_brake_value = dc.linear.y;
+    current_throttle_value = dc.linear.x;
+    current_steering_value = dc.angular.z; 
 
 
-      // break the loop when an end state is reached
-      if (time_to_quit)break;
-      
-      if(display_rviz){
-        nature::msg::PointStamped next_waypoint_msg;
-        next_waypoint_msg.point.x = goal.x;
-        next_waypoint_msg.point.y = goal.y;
-        next_waypoint_msg.point.z = state.pose.pose.position.z;
-        next_waypoint_msg.header.frame_id = "map";
-        next_waypoint_msg.header.stamp = n->get_stamp();
-        next_waypoint_pub->publish(next_waypoint_msg);
+    // break the loop when an end state is reached
+    if (time_to_quit)break;
+    
+    if(display_rviz){
+      nature::msg::PointStamped next_waypoint_msg;
+      next_waypoint_msg.point.x = goal.x;
+      next_waypoint_msg.point.y = goal.y;
+      next_waypoint_msg.point.z = state.pose.pose.position.z;
+      next_waypoint_msg.header.frame_id = "map";
+      next_waypoint_msg.header.stamp = n->get_stamp();
+      next_waypoint_pub->publish(next_waypoint_msg);
+    }
+
+    // ask the user if the path looks good and they would like to continue
+    if (!user_approved && current_run_state==0 && path_rcvd && request_approval && ! use_keyboard_driver){
+      std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
+      bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
+      if (approved){
+        user_approved = true;
       }
-
-      // ask the user if the path looks good and they would like to continue
-      if (!user_approved && current_run_state==0 && path_rcvd && request_approval){
-        std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
-        bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
-        if (approved){
-          user_approved = true;
-        }
-        else{
-          break;
-        }
+      else{
+        break;
       }
-    } // ! use_keybard_driver
+    }
+    
 
     n->spin_some();
 
