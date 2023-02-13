@@ -1,5 +1,5 @@
 # NATURE-stack
-The NATURE (Navigating All Terrains Using Robotic Exploration) autonomy stack is an full stack for autonomous off-road navigation. It features modules for perception, path planning, and vehicle control, with options for Ackermann and and skid-steered vehicles.
+The NATURE (Navigating All Terrains Using Robotic Exploration) autonomy stack is an full stack for autonomous off-road navigation. It features modules for perception, path planning, and vehicle control, with options for Ackermann and skid-steered vehicles.
 
 For more information about the modules and their capabilities and options, check out [the wiki](https://github.com/CGoodin/nature-stack/wiki).
 
