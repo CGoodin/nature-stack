@@ -46,25 +46,25 @@ include_directories(
         ${OpenCV_INCLUDE_DIRS}
 )
 
-# add_executable(nature_path_manager_node
-#   src/planning/global/path_manager_node.cpp
-#   src/node/node_proxy.cpp
-# )
-# ament_target_dependencies(nature_path_manager_node ${dependencies})
+add_executable(nature_path_manager_node
+   src/planning/global/path_manager_node.cpp
+   src/node/node_proxy.cpp
+ )
+ ament_target_dependencies(nature_path_manager_node ${dependencies})
 
-# add_executable(nature_gps_to_enu_node
-#   src/planning/global/gps_to_enu_node.cpp
-#   src/node/node_proxy.cpp
-#   src/planning/global/coord_conversions/coord_conversions.cpp
-#   src/planning/global/coord_conversions/ellipsoid.cpp
-#   src/planning/global/coord_conversions/matrix.cpp
-# )
-# ament_target_dependencies(nature_gps_to_enu_node ${dependencies})
+add_executable(nature_gps_to_enu_node
+  src/planning/global/gps_to_enu_node.cpp
+  src/node/node_proxy.cpp
+  src/planning/global/coord_conversions/coord_conversions.cpp
+  src/planning/global/coord_conversions/ellipsoid.cpp
+  src/planning/global/coord_conversions/matrix.cpp
+)
+ament_target_dependencies(nature_gps_to_enu_node ${dependencies})
 
-# add_executable(nature_gps_spoof_node
-#   src/planning/global/gps_spoof_node.cpp
-# )
-# ament_target_dependencies(nature_gps_spoof_node ${dependencies})
+add_executable(nature_gps_spoof_node
+  src/planning/global/gps_spoof_node.cpp
+)
+ament_target_dependencies(nature_gps_spoof_node ${dependencies})
 
 add_executable(nature_perception_node 
 src/perception/nature_perception_node.cpp 

@@ -141,6 +141,19 @@ namespace nature {
 
 namespace nature {
   namespace node {
+
+    using Duration = rclcpp::Duration;
+
+        inline Duration make_duration(float period){
+            float sec;
+            float fraction = std::modf(period, & sec);
+            return Duration(static_cast<int32_t>(sec), static_cast<int32_t>(fraction * 1e9));
+        }
+
+        inline Duration make_duration(int32_t sec, int32_t nsec){
+            return rclcpp::Duration(sec, nsec);
+        }
+
     template<
         typename MessageT,
         typename AllocatorT = std::allocator<void>,
@@ -178,6 +191,10 @@ namespace nature {
 
     inline double seconds_from_header(const std_msgs::msg::Header & header){
       return rclcpp::Time(header.stamp).seconds();
+    }
+
+    inline rclcpp::Time time_from_seconds(double sec){
+            return rclcpp::Time(sec);
     }
 
     inline void inc_seq(const std_msgs::msg::Header & header){
@@ -243,6 +260,7 @@ namespace nature {
       rclcpp::Logger get_logger() const;
       rclcpp::Time get_stamp() const;
       double get_now_seconds() const;
+      rclcpp::Clock::SharedPtr get_clock() const;
       void spin_some();
 
     private:

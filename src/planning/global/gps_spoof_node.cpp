@@ -14,7 +14,11 @@
 //#include <tf/transform_listener.h>
 //#include "ros/ros.h"
 //#include "nav_msgs/Path.h"
-//#include "sensor_msgs/NavSatFix.h"
+#ifdef ROS_1
+#include "sensor_msgs/NavSatFix.h"
+#else
+#include "sensor_msgs/msg/nav_sat_fix.h"
+#endif
 #include "nature/node/ros_types.h"
 #include "nature/node/node_proxy.h"
 // local includes
@@ -28,7 +32,11 @@ float lat_rcvd = 0.0f;
 float lon_rcvd = 0.0f;
 float alt_rcvd = 0.0f;
 
-void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
+#ifdef ROS_1
+void NavSatCallback(sensor_msgs::NavSatFix *rcv_fix){
+#else
+void NavSatCallback(sensor_msgs::msg::NavSatFix::SharedPtr rcv_fix){
+#endif
     if (!fix_rcvd){
         lat_rcvd = rcv_fix->latitude;
         lon_rcvd = rcv_fix->longitude;
@@ -37,14 +45,20 @@ void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
   fix_rcvd = true;
 }
 
+
 int main(int argc, char **argv){
 
-    //auto n = nature::node::init_node(argc,argv,"gps_to_enu_node");
-    ros::init(argc, argv, "gps_spoof_node");
-	ros::NodeHandle n;
+    auto n = nature::node::init_node(argc,argv,"gps_to_enu_node");
+    //ros::init(argc, argv, "gps_spoof_node");
+	//ros::NodeHandle n;
 
     //auto path_pub = n->create_publisher<nature::msg::Path>("nature/enu_waypoints", 10);
-    ros::Publisher navsat_pub = n.advertise<sensor_msgs::NavSatFix>("/piksi_imu/navsatfix_best_fix",10);
+    //ros::Publisher navsat_pub = n.advertise<sensor_msgs::NavSatFix>("/piksi_imu/navsatfix_best_fix",10);
+#ifdef ROS_1
+    auto navsat_pub = n->create_publisher<sensor_msgs::NavSatFix>("nature/enu_waypoints", 10);
+#else
+    auto navsat_pub = n->create_publisher<sensor_msgs::msg::NavSatFix>("nature/enu_waypoints", 10);
+#endif
 
     /*ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
 
@@ -84,8 +98,8 @@ int main(int argc, char **argv){
 
     //tf::TransformListener listener;
 */
-    //nature::node::Rate loop_rate(10);
-    ros::Rate rate(10.0);
+    nature::node::Rate loop_rate(10);
+    //ros::Rate rate(10.0);
 
     int count = 0;
     //float utm_north = 0.0f;
@@ -104,8 +118,8 @@ int main(int argc, char **argv){
         //ros::Duration(0.1).sleep();
     }*/
 
-    //while(nature::node::ok()){
-    while (ros::ok()){
+    while(nature::node::ok()){
+    //while (ros::ok()){
 
         /*if (!tf_rcvd){
             try {
@@ -151,7 +165,12 @@ int main(int argc, char **argv){
             }
 
             //nature::msg::Path ros_path;*/
+            //sensor_msgs::NavSatFix fix;
+#ifdef ROS_1
             sensor_msgs::NavSatFix fix;
+#else
+            sensor_msgs::msg::NavSatFix fix;
+#endif
             fix.latitude = 33.47045;
             fix.longitude = -88.78649;
             fix.altitude = 86.0;
@@ -170,8 +189,8 @@ int main(int argc, char **argv){
                 ros_path.poses.push_back(pose);
             } 
 */
-            fix.header.stamp =  ros::Time::now(); // n->get_stamp();
-            fix.header.seq = count;
+            fix.header.stamp =   n->get_stamp();
+            //fix.header.seq = count;
             //nature::node::set_seq(ros_path.header, count);
 
             //for (int i = 0; i < ros_path.poses.size(); i++){
@@ -183,9 +202,9 @@ int main(int argc, char **argv){
             count++;
         //}
 
-        rate.sleep();
-		ros::spinOnce();
-        //n->spin_some();
-        //loop_rate.sleep();
+        //rate.sleep();
+		//ros::spinOnce();
+        n->spin_some();
+        loop_rate.sleep();
     }
 }

@@ -5,19 +5,19 @@
  * 
  * \author Chris Goodin
  *
- * \contact dwc2@cavs.msstate.edu
+ * \contact cgoodin@cavs.msstate.edu
  * 
  * \date 1/21/2022
  */
 
 // ros includes
-//#include <tf/transform_listener.h>
-//#include "ros/ros.h"
-//#include "nav_msgs/Path.h"
-//#include "nav_msgs/Odometry.h"
-//#include "sensor_msgs/NavSatFix.h"
-//#include "geometry_msgs/PoseStamped.h"
-//#include "geometry_msgs/TransformStamped.h"
+#ifdef ROS_1
+#include "geometry_msgs/TransformStamped.h"
+#else
+#include "geometry_msgs/msg/transform_stamped.h"
+#endif
+#include "tf2_ros/transform_listener.h"
+#include "tf2_ros/buffer.h"
 //#include "tf2_ros/transform_listener.h"
 //#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "nature/node/ros_types.h"
@@ -28,57 +28,68 @@
 // c++ includes
 #include <fstream>
 
-bool fix_rcvd = false;
-float lat_rcvd = 0.0f;
-float lon_rcvd = 0.0f;
-float alt_rcvd = 0.0f;
-nav_msgs::Odometry current_odom;
+
+
+//bool fix_rcvd = false;
+//float lat_rcvd = 0.0f;
+//float lon_rcvd = 0.0f;
+//float alt_rcvd = 0.0f;
+nature::msg::Odometry current_odom;
 bool odom_rcvd = false;
 
-void NavSatCallback(const sensor_msgs::NavSatFix::ConstPtr& rcv_fix){
-    if (!fix_rcvd){
-        lat_rcvd = rcv_fix->latitude;
-        lon_rcvd = rcv_fix->longitude;
-        alt_rcvd = rcv_fix->altitude;
-    }
-  fix_rcvd = true;
-}
+//void NavSatCallback(nature::msg::NavSatFixPtr rcv_fix){
+//    if (!fix_rcvd){
+//        lat_rcvd = rcv_fix->latitude;
+//        lon_rcvd = rcv_fix->longitude;
+//        alt_rcvd = rcv_fix->altitude;
+//    }
+//  fix_rcvd = true;
+//}
 
-void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_odom){
+void OdometryCallback(nature::msg::OdometryPtr rcv_odom){
     current_odom = *rcv_odom;
     odom_rcvd = true;
 }
 
 int main(int argc, char **argv){
 
-    //auto n = nature::node::init_node(argc,argv,"gps_to_enu_node");
-    ros::init(argc, argv, "gps_to_enu_node");
-	ros::NodeHandle n;
+    auto n = nature::node::init_node(argc,argv,"gps_to_enu_node");
+    //ros::init(argc, argv, "gps_to_enu_node");
+	//ros::NodeHandle n;
 
-    //auto path_pub = n->create_publisher<nature::msg::Path>("nature/enu_waypoints", 10);
-    ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/nature/enu_waypoints",10);
+    auto path_pub = n->create_publisher<nature::msg::Path>("nature/enu_waypoints", 10);
+    //ros::Publisher path_pub = n.advertise<nav_msgs::Path>("/nature/enu_waypoints",10);
 
     //ros::Subscriber navsat_sub = n.subscribe("/piksi_imu/navsatfix_best_fix", 10, NavSatCallback);
 
-    ros::Subscriber odometry_sub = n.subscribe("/nature/odometry", 10, OdometryCallback);
+    //ros::Subscriber odometry_sub = n.subscribe("/nature/odometry", 10, OdometryCallback);
+    auto odometry_sub = n->create_subscription<nature::msg::Odometry>("nature/odometry",10,OdometryCallback);
+
 
     // tf2 transform utm->odom needed
-    tf2_ros::Buffer tfBuffer;
+    tf2_ros::Buffer tfBuffer (n->get_clock());
     tf2_ros::TransformListener tfListener(tfBuffer);
+    //auto tfBuffer = std::make_unique<tf2_ros::Buffer>(n->get_clock());
+    //auto tfListener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
+
 
     std::vector<double> gps_waypoints_lat, gps_waypoints_lon;
 
-    if (n.hasParam("gps_waypoints_lon")){
-		n.getParam("gps_waypoints_lon", gps_waypoints_lon);
-	}
-    if (n.hasParam("gps_waypoints_lat")){
-		n.getParam("gps_waypoints_lat", gps_waypoints_lat);
-	}
+    //if (n.hasParam("gps_waypoints_lon")){
+	//	n.getParam("gps_waypoints_lon", gps_waypoints_lon);
+	//}
+    n->get_parameter("~gps_waypoints_lon", gps_waypoints_lon, std::vector<double>(0.0));
+    
+    //if (n.hasParam("gps_waypoints_lat")){
+	//	n.getParam("gps_waypoints_lat", gps_waypoints_lat);
+	//}
+    n->get_parameter("~gps_waypoints_lat", gps_waypoints_lat, std::vector<double>(0.0));
 
     float waypoint_spacing = 10.0f; // meters
-    if (ros::param::has("~waypoint_spacing")){
-		ros::param::get("~waypoint_spacing", waypoint_spacing);
-	}
+    //if (ros::param::has("~waypoint_spacing")){
+	//	ros::param::get("~waypoint_spacing", waypoint_spacing);
+	//}
+    n->get_parameter("~waypoint_spacing", waypoint_spacing, 10.0f);
 
     if (gps_waypoints_lat.size()!=gps_waypoints_lon.size()){
         std::cerr<<"ERROR! IN THE GPS TO ENU WP FILE, THE NUMBER OF LAT AND LON ENTRIES WAS NOT THE SAME. EXITING."<<std::endl;
@@ -104,22 +115,24 @@ int main(int argc, char **argv){
         std::cerr<<"ERROR: NO WAYPOINTS WERE GIVEN TO THE GPS TO ENU NODE. EXITING."<<std::endl;
         exit(1);
     }
-    ros::Rate rate(10.0);
+    
+    nature::node::Rate r(10.0f); // Hz
 
 
     int count = 0;
     float utm_north = 0.0f;
     float utm_east = 0.0f;
     //nature::msg::PoseStamped first_pose, second_pose;
-    nav_msgs::Path ros_path;
+    nature::msg::Path ros_path;
     ros_path.header.frame_id = "odom";
     ros_path.poses.clear();
-    while (ros::ok()){
+    while (nature::node::ok()){
 
         // skip until transform available
 
-     	if (!tfBuffer.canTransform("odom","utm",ros::Time::now(),ros::Duration(30))){
-     		ROS_WARN("No utm->odom transform!");
+     	if (!tfBuffer.canTransform("odom","utm",n->get_stamp(),nature::node::make_duration(30))){
+     		//ROS_WARN("No utm->odom transform!");
+            std::cout<<"No utm->odom transform!"<<std::endl;
      		continue;
      	}
 
@@ -129,21 +142,27 @@ int main(int argc, char **argv){
                 // log waypoints to file
                 std::ofstream fout;
                 fout.open("gps_convert_log.txt");
-                geometry_msgs::TransformStamped transform = tfBuffer.lookupTransform("odom","utm",ros::Time(0));
+                //geometry_msgs::msg::TransformStamped 
+                auto transform = tfBuffer.lookupTransform("odom","utm",nature::node::time_from_seconds(0));
                 fout<<"UTM Origin: (" << transform.transform.translation.x <<", "<< transform.transform.translation.y <<")"<<std::endl;
                 fout<<"Waypoints: "<<std::endl;
                 // waypoints are in UTM currently, need to be in odom for next step
                 for (auto& utm_wp : path ){
                     // pack into ROS Pose msg
-                    geometry_msgs::PoseStamped utm_pose, odom_pose;
+                    nature::msg::PoseStamped utm_pose, odom_pose;
                     // metadata so TF can transform correctly
                     utm_pose.header.frame_id = "utm";
-                    utm_pose.header.stamp = ros::Time::now();
+                    utm_pose.header.stamp = n->get_stamp();
                     utm_pose.pose.position.x = utm_wp[0]; // UTM
                     utm_pose.pose.position.y = utm_wp[1]; // UTM
                     utm_pose.pose.position.z = 0; // assume 2D waypoints for now
                     // apply transform
-                    tfBuffer.transform(utm_pose, odom_pose, "odom", ros::Duration(60)); // 1 minute timeout to apply the transform
+#ifdef ROS_1
+                    tfBuffer.transform(utm_pose, odom_pose, "odom", nature::node::make_duration(60)); // 1 minute timeout to apply the transform
+#else
+                    // ctg note: I'm not sure how to implement this in ROS2 at the moment
+                    //tfBuffer.transform(utm_pose, odom_pose, "odom", nature::node::make_duration(60));               
+#endif
                     // this is a repulsive hack, but it minimizes code changes for now
                     utm_wp[0] = odom_pose.pose.position.x;
                     utm_wp[1] = odom_pose.pose.position.y;
@@ -271,17 +290,17 @@ int main(int argc, char **argv){
 
             */
 
-            ros_path.header.stamp =  ros::Time::now();
-            ros_path.header.seq = count;
+            ros_path.header.stamp =  n->get_stamp(); //ros::Time::now();
+            //ros_path.header.seq = count;
 
             for (int i = 0; i < ros_path.poses.size(); i++){
                 ros_path.poses[i].header = ros_path.header;
             }
-            path_pub.publish(ros_path);
+            path_pub->publish(ros_path);
             count++;
         }
 
-        rate.sleep();
-		ros::spinOnce();
+    n->spin_some();
+    r.sleep();
     }
 }

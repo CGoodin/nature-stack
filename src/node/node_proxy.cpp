@@ -49,6 +49,10 @@ void NodeProxy::spin_some() {
       return node_->get_clock()->now();
     }
 
+    rclcpp::Clock::SharedPtr NodeProxy::get_clock() const {
+      return node_->get_clock();
+    }
+
     double NodeProxy::get_now_seconds() const {
       return get_stamp().seconds();
     }

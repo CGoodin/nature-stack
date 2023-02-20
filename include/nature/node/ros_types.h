@@ -27,6 +27,7 @@
 #include "visualization_msgs/MarkerArray.h"
 
 #include "tf/LinearMath/Transform.h"
+#include "geometry_msgs/TransformStamped.h"
 
 #include "std_msgs/Float64.h"
 #include "std_msgs/Int32.h"
@@ -113,6 +114,7 @@ namespace nature {
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.h"
 
 #include "nav_msgs/msg/occupancy_grid.hpp"
 #include "nav_msgs/msg/path.hpp"
@@ -129,6 +131,7 @@ namespace nature {
 
 namespace nature {
   namespace msg {
+
     using PointCloud = sensor_msgs::msg::PointCloud;
     using PointCloudPtr = sensor_msgs::msg::PointCloud::SharedPtr;
 
@@ -161,6 +164,9 @@ namespace nature {
 
     using PointStamped = geometry_msgs::msg::PointStamped;
     using PointStampedPtr = const geometry_msgs::msg::PointStamped::SharedPtr;
+
+    //using TransformStamped = geometry_msgs::msg::TransformStamped;
+    //using TransformStampedPtr = const geometry_msgs::msg::TransformStamped::SharedPtr;
 
     using OccupancyGrid = nav_msgs::msg::OccupancyGrid;
     using OccupancyGridPtr = nav_msgs::msg::OccupancyGrid::SharedPtr;
