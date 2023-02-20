@@ -12,9 +12,11 @@
 
 // ros includes
 //#include <tf/transform_listener.h>
-#include "ros/ros.h"
+//#include "ros/ros.h"
 //#include "nav_msgs/Path.h"
-#include "sensor_msgs/NavSatFix.h"
+//#include "sensor_msgs/NavSatFix.h"
+#include "nature/node/ros_types.h"
+#include "nature/node/node_proxy.h"
 // local includes
 #include "nature/nature_utils.h"
 #include "nature/planning/global/coord_conversions/coord_conversions.h"

@@ -12,16 +12,16 @@
 
 // ros includes
 //#include <tf/transform_listener.h>
-#include "ros/ros.h"
-#include "nav_msgs/Path.h"
-#include "nav_msgs/Odometry.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "geometry_msgs/TransformStamped.h"
-#include "tf2_ros/transform_listener.h"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
-//#include "nature/node/ros_types.h"
-//#include "nature/node/node_proxy.h"
+//#include "ros/ros.h"
+//#include "nav_msgs/Path.h"
+//#include "nav_msgs/Odometry.h"
+//#include "sensor_msgs/NavSatFix.h"
+//#include "geometry_msgs/PoseStamped.h"
+//#include "geometry_msgs/TransformStamped.h"
+//#include "tf2_ros/transform_listener.h"
+//#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#include "nature/node/ros_types.h"
+#include "nature/node/node_proxy.h"
 // local includes
 #include "nature/nature_utils.h"
 #include "nature/planning/global/coord_conversions/coord_conversions.h"
