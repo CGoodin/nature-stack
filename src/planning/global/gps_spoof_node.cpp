@@ -198,7 +198,7 @@ int main(int argc, char **argv){
             //}
 
             //path_pub->publish(ros_path);
-            navsat_pub.publish(fix);
+            navsat_pub->publish(fix);
             count++;
         //}
 

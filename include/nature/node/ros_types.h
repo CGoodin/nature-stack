@@ -4,7 +4,7 @@
 
 #ifndef NATURE_ROS_TYPES_H
 #define NATURE_ROS_TYPES_H
-
+#define ROS_1
 #ifdef ROS_1
 
 #include <geometry_msgs/Quaternion.h>

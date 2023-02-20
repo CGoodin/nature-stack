@@ -67,8 +67,13 @@ int main(int argc, char **argv){
 
 
     // tf2 transform utm->odom needed
+#ifdef ROS_1
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
+#else
     tf2_ros::Buffer tfBuffer (n->get_clock());
     tf2_ros::TransformListener tfListener(tfBuffer);
+#endif
     //auto tfBuffer = std::make_unique<tf2_ros::Buffer>(n->get_clock());
     //auto tfListener = std::make_shared<tf2_ros::TransformListener>(*tfBuffer);
 
@@ -149,7 +154,11 @@ int main(int argc, char **argv){
                 // waypoints are in UTM currently, need to be in odom for next step
                 for (auto& utm_wp : path ){
                     // pack into ROS Pose msg
-                    nature::msg::PoseStamped utm_pose, odom_pose;
+#ifdef ROS_1
+                    geometry_msgs::PoseStamped utm_pose, odom_pose;
+#else
+                    geometry_msgs::msg::PoseStamped utm_pose, odom_pose;
+#endif
                     // metadata so TF can transform correctly
                     utm_pose.header.frame_id = "utm";
                     utm_pose.header.stamp = n->get_stamp();
@@ -195,7 +204,11 @@ int main(int argc, char **argv){
                     float normt = sqrtf(tx*tx + ty*ty);
 
                     // add waypoint                    
-                    nature::msg::PoseStamped pose;
+#ifdef ROS_1
+                    geometry_msgs::PoseStamped pose;
+#else
+                    geometry_msgs::msg::PoseStamped pose;
+#endif
                     pose.pose.position.x = x;
                     pose.pose.position.y = y;
                     pose.pose.position.z = 0.0f;
@@ -219,7 +232,12 @@ int main(int argc, char **argv){
                     }
                     num_loops++;
                 }
-                nature::msg::PoseStamped pose;
+                //nature::msg::PoseStamped pose;
+#ifdef ROS_1
+                geometry_msgs::PoseStamped pose;
+#else
+                geometry_msgs::msg::PoseStamped pose;
+#endif
                 pose.pose.position.x = path.back()[0];
                 pose.pose.position.y = path.back()[1];
                 pose.pose.position.z = 0.0f;
