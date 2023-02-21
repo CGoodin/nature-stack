@@ -48,7 +48,7 @@ def generate_launch_description():
 
     launch_description = LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='False'),
-        DeclareLaunchArgument('auto_launch_rviz', default_value='True', description="Automatically launch rviz display window"),
+        DeclareLaunchArgument('auto_launch_rviz', default_value='False', description="Automatically launch rviz display window"),
         DeclareLaunchArgument('display_type', default_value='rviz', description="Type of display method to use. Values = [rviz, image]"),
         DeclareLaunchArgument('waypoints_file', default_value=os.path.join(get_package_share_directory('nature'), 'config', 'no_waypoints.yaml'), description="Path to waypoint file to use"),
         DeclareLaunchArgument('robot_description', description="URDF robot description contents"),

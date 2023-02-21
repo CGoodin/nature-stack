@@ -10,3 +10,5 @@ cmake-build-debug
 .idea
 *__pycache__*
 *mavs_config.txt*
+CMakeLists.txt
+package.xml

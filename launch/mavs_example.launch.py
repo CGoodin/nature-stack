@@ -56,7 +56,7 @@ def generate_launch_description():
             {'Initial_Y_Position': 0.0},
             {'Initial_Heading': 0.0},
             {'debug_camera': True},
-            {'use_human_driver': True},
+            {'use_human_driver': False},
             env_params
         ],
         remappings=[
