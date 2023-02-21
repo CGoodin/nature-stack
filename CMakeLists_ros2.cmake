@@ -63,6 +63,7 @@ ament_target_dependencies(nature_gps_to_enu_node ${dependencies})
 
 add_executable(nature_gps_spoof_node
   src/planning/global/gps_spoof_node.cpp
+  src/node/node_proxy.cpp
 )
 ament_target_dependencies(nature_gps_spoof_node ${dependencies})
 

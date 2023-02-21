@@ -152,8 +152,8 @@ int main(int argc, char **argv){
                 fout.close();
             }
 
-            //nature::msg::Path ros_path;
-            nav_msgs::Path ros_path;
+            nature::msg::Path ros_path;
+            //nav_msgs::Path ros_path;
             ros_path.header.frame_id = "odom";
             ros_path.poses.clear();
             for (int32_t i = 0; i < path.size(); i++){
@@ -168,8 +168,8 @@ int main(int argc, char **argv){
                 ros_path.poses.push_back(pose);
             } 
 
-            ros_path.header.stamp =  ros::Time::now(); // n->get_stamp();
-            ros_path.header.seq = count;
+            ros_path.header.stamp = n->get_stamp();
+            //ros_path.header.seq = count;
             //nature::node::set_seq(ros_path.header, count);
 
             for (int i = 0; i < ros_path.poses.size(); i++){

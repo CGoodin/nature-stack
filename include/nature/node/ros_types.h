@@ -112,6 +112,7 @@ namespace nature {
 #include "sensor_msgs/msg/joint_state.hpp"
 #include "sensor_msgs/msg/image.hpp"
 #include "sensor_msgs/point_cloud_conversion.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/point32.hpp"
@@ -141,6 +142,9 @@ namespace nature {
 
     using PointCloud2 = sensor_msgs::msg::PointCloud2;
     using PointCloud2Ptr = sensor_msgs::msg::PointCloud2::SharedPtr;
+
+    using NavSatFix = sensor_msgs::msg::NavSatFix;
+    using NavSatFixPtr = sensor_msgs::msg::NavSatFix::SharedPtr;
 
     using PointField = sensor_msgs::msg::PointField;
     using PointFieldPtr = sensor_msgs::msg::PointField::SharedPtr;
