@@ -86,7 +86,7 @@ def generate_launch_description():
         DeclareLaunchArgument('w_r', default_value='0.2', description="Local planner - w_r rho (minimize rho offset) weighting factor"),
         DeclareLaunchArgument('w_t', default_value='0.0', description="Local planner - w_t segmentation cost weight"),
         DeclareLaunchArgument('use_global_path', default_value='True', description="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints"),
-        DeclareLaunchArgument('use_blend', default_value='True', description="Local planner - Whether or not to apply blending with adjacent candidate paths during planning"),
+        DeclareLaunchArgument('use_blend', default_value='False', description="Local planner - Whether or not to apply blending with adjacent candidate paths during planning"),
         DeclareLaunchArgument('cost_vis', default_value='final', description="Local planner - What type of cost to display on candidate paths: none | final | components | all"),
         DeclareLaunchArgument('cost_vis_text_size', default_value='2.0', description="Local planner - Cost vis text size"),
         DeclareLaunchArgument('ignore_coll_before_dist', default_value='0.0', description="Local planner - Distance before which collisions are ignored in local planner candidate paths."),
