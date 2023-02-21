@@ -10,6 +10,7 @@ if($ENV{ROS_DISTRO} STREQUAL "noetic")
     std_msgs
     tf
     message_generation
+    #tf2_ros
   )
 else()
   find_package(catkin REQUIRED COMPONENTS
@@ -18,6 +19,7 @@ else()
     std_msgs
     tf
     message_generation
+    #tf2_ros
   )
 endif()
 
@@ -67,7 +69,6 @@ add_executable(nature_gps_to_enu_node
 )
 target_link_libraries(nature_gps_to_enu_node
   ${catkin_LIBRARIES}
-  X11
 )
 
 add_executable(nature_gps_spoof_node
@@ -88,10 +89,11 @@ target_link_libraries(nature_perception_node
 )
 
 add_executable(nature_control_node
-  src/control/nature_control_node.cpp
+src/node/node_proxy.cpp  
+src/control/nature_control_node.cpp
   src/control/pure_pursuit_controller.cpp
   src/control/pid_controller.cpp
-  src/node/node_proxy.cpp
+  
   src/control/tinyfiledialogs.c
 )
 

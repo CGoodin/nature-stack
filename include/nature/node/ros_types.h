@@ -12,6 +12,7 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/JointState.h"
 #include "sensor_msgs/point_cloud_conversion.h"
+#include "sensor_msgs/NavSatFix.h"
 
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Point32.h"
@@ -40,6 +41,9 @@ namespace nature {
 
         using PointCloud2 = sensor_msgs::PointCloud2;
         using PointCloud2Ptr = const sensor_msgs::PointCloud2::ConstPtr &;
+
+        using NavSatFix = sensor_msgs::NavSatFix;
+        using NavSatFixPtr = const sensor_msgs::NavSatFix::ConstPtr &;
 
         using PointField = sensor_msgs::PointField;
         using PointFieldPtr = const sensor_msgs::PointField::ConstPtr &;
