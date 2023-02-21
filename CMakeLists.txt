@@ -58,17 +58,17 @@ target_link_libraries(nature_path_manager_node
   ${catkin_LIBRARIES}
 )
 
-# add_executable(nature_gps_to_enu_node
-#   src/planning/global/gps_to_enu_node.cpp
-#   src/node/node_proxy.cpp
-#   src/planning/global/coord_conversions/coord_conversions.cpp
-#   src/planning/global/coord_conversions/ellipsoid.cpp
-#   src/planning/global/coord_conversions/matrix.cpp
-# )
-# target_link_libraries(nature_gps_to_enu_node
-#   ${catkin_LIBRARIES}
-#   X11
-# )
+add_executable(nature_gps_to_enu_node
+  src/planning/global/gps_to_enu_node.cpp
+  src/node/node_proxy.cpp
+  src/planning/global/coord_conversions/coord_conversions.cpp
+  src/planning/global/coord_conversions/ellipsoid.cpp
+  src/planning/global/coord_conversions/matrix.cpp
+)
+target_link_libraries(nature_gps_to_enu_node
+  ${catkin_LIBRARIES}
+  X11
+)
 
 add_executable(nature_gps_spoof_node
   src/planning/global/gps_spoof_node.cpp
@@ -186,7 +186,7 @@ nature_local_planner_node
 nature_pf_planner_node
 nature_global_path_node
 nature_sim_test_node
-#nature_gps_to_enu_node
+nature_gps_to_enu_node
 nature_gps_spoof_node
 nature_path_manager_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

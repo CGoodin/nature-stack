@@ -29,22 +29,9 @@
 #include <fstream>
 
 
-
-//bool fix_rcvd = false;
-//float lat_rcvd = 0.0f;
-//float lon_rcvd = 0.0f;
-//float alt_rcvd = 0.0f;
 nature::msg::Odometry current_odom;
 bool odom_rcvd = false;
 
-//void NavSatCallback(nature::msg::NavSatFixPtr rcv_fix){
-//    if (!fix_rcvd){
-//        lat_rcvd = rcv_fix->latitude;
-//        lon_rcvd = rcv_fix->longitude;
-//        alt_rcvd = rcv_fix->altitude;
-//    }
-//  fix_rcvd = true;
-//}
 
 void OdometryCallback(nature::msg::OdometryPtr rcv_odom){
     current_odom = *rcv_odom;
@@ -131,6 +118,8 @@ int main(int argc, char **argv){
     nature::msg::Path ros_path;
     ros_path.header.frame_id = "odom";
     ros_path.poses.clear();
+
+    
     while (nature::node::ok()){
 
         // skip until transform available
@@ -152,7 +141,10 @@ int main(int argc, char **argv){
                 fout<<"UTM Origin: (" << transform.transform.translation.x <<", "<< transform.transform.translation.y <<")"<<std::endl;
                 fout<<"Waypoints: "<<std::endl;
                 // waypoints are in UTM currently, need to be in odom for next step
+
+                
                 for (auto& utm_wp : path ){
+                    
                     // pack into ROS Pose msg
 #ifdef ROS_1
                     geometry_msgs::PoseStamped utm_pose, odom_pose;
@@ -167,11 +159,13 @@ int main(int argc, char **argv){
                     utm_pose.pose.position.z = 0; // assume 2D waypoints for now
                     // apply transform
 #ifdef ROS_1
-                    tfBuffer.transform(utm_pose, odom_pose, "odom", nature::node::make_duration(60)); // 1 minute timeout to apply the transform
+                    // ctg note, can't get this working on ROS1 either
+                    //tfBuffer.transform(utm_pose, odom_pose, "odom", nature::node::make_duration(60)); // 1 minute timeout to apply the transform
 #else
                     // ctg note: I'm not sure how to implement this in ROS2 at the moment
                     //tfBuffer.transform(utm_pose, odom_pose, "odom", nature::node::make_duration(60));               
 #endif
+
                     // this is a repulsive hack, but it minimizes code changes for now
                     utm_wp[0] = odom_pose.pose.position.x;
                     utm_wp[1] = odom_pose.pose.position.y;
@@ -231,8 +225,10 @@ int main(int argc, char **argv){
                         finished = true;
                     }
                     num_loops++;
+                    
                 }
                 //nature::msg::PoseStamped pose;
+                
 #ifdef ROS_1
                 geometry_msgs::PoseStamped pose;
 #else
@@ -246,67 +242,9 @@ int main(int argc, char **argv){
                 pose.pose.orientation.y = 0.0f;
                 pose.pose.orientation.z = 0.0f;
                 ros_path.poses.push_back(pose);
-            }
-/*
-            if (count==0){
-                // first time only 
-                nature::coordinate_system::LLA gps_origin;
-                gps_origin.latitude = lat_rcvd;
-                gps_origin.longitude = lon_rcvd;
-                gps_origin.altitude = alt_rcvd; // approximate elevation for Starkville, MS
-                nature::coordinate_system::UTM utm_origin = converter.LLA2UTM(gps_origin);
-                utm_east = utm_origin.x;
-                utm_north = utm_origin.y;
-                std::ofstream fout;
-                fout.open("gps_convert_log.txt");
-                fout<<"UTM Origin: ("<<utm_east<<", "<<utm_north<<")"<<std::endl;
-                fout<<"Waypoints: "<<std::endl;
-                for (int32_t i = 0; i < path.size(); i++){
-                    fout<<"("<<path[i][0] - utm_east<<", "<< path[i][1] - utm_north<<")"<<std::endl;
-                }
-                fout.close();
 
-                // make the first waypoint be the initial pose
-                float to_veh_x = current_odom.pose.pose.position.x - (path[0][0] - utm_east);
-                float to_veh_y = current_odom.pose.pose.position.y - (path[0][1] - utm_north); 
-                float tvm = sqrtf(to_veh_x*to_veh_x  + to_veh_y*to_veh_y);
-                float tvx = to_veh_x/tvm;
-                float tvy = to_veh_y/tvm;
-                first_pose.pose.position.x = current_odom.pose.pose.position.x + tvx*3.0f;
-                first_pose.pose.position.y = current_odom.pose.pose.position.y + tvy*3.0f;
-                first_pose.pose.position.z = 0.0f;
-                first_pose.pose.orientation.w = 1.0f;
-                first_pose.pose.orientation.x = 0.0f;
-                first_pose.pose.orientation.y = 0.0f;
-                first_pose.pose.orientation.z = 0.0f;
-                second_pose = first_pose;
-                second_pose.pose.position.x = current_odom.pose.pose.position.x - tvx*5.0f;
-                second_pose.pose.position.y = current_odom.pose.pose.position.y - tvy*5.0f;
-            }
-
-            nav_msgs::Path ros_path;
-            ros_path.header.frame_id = "odom";
-            ros_path.poses.clear();
-            
-            if (path.size()==1){
-                ros_path.poses.push_back(first_pose);
-                ros_path.poses.push_back(second_pose);
-            }
-
-            for (int32_t i = 0; i < path.size(); i++){
-                nature::msg::PoseStamped pose;
-                pose.header.stamp = ros::Time::now();
-                pose.pose.position.x = path[i][0] - utm_east;
-                pose.pose.position.y = path[i][1] - utm_north;
-                pose.pose.position.z = 0.0f;
-                pose.pose.orientation.w = 1.0f;
-                pose.pose.orientation.x = 0.0f;
-                pose.pose.orientation.y = 0.0f;
-                pose.pose.orientation.z = 0.0f;
-                ros_path.poses.push_back(pose);
-            } 
-
-            */
+                
+            } // if count==0
 
             ros_path.header.stamp =  n->get_stamp(); //ros::Time::now();
             //ros_path.header.seq = count;
@@ -316,9 +254,13 @@ int main(int argc, char **argv){
             }
             path_pub->publish(ros_path);
             count++;
-        }
 
-    n->spin_some();
-    r.sleep();
+            
+        } // if odom received
+
+        n->spin_some();
+        r.sleep();
     }
+
+    
 }
