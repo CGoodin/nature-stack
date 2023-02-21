@@ -10,6 +10,7 @@ if($ENV{ROS_DISTRO} STREQUAL "noetic")
     std_msgs
     tf
     message_generation
+    #tf2_ros
   )
 else()
   find_package(catkin REQUIRED COMPONENTS
@@ -18,6 +19,7 @@ else()
     std_msgs
     tf
     message_generation
+    #tf2_ros
   )
 endif()
 
@@ -58,17 +60,16 @@ target_link_libraries(nature_path_manager_node
   ${catkin_LIBRARIES}
 )
 
-# add_executable(nature_gps_to_enu_node
-#   src/planning/global/gps_to_enu_node.cpp
-#   src/node/node_proxy.cpp
-#   src/planning/global/coord_conversions/coord_conversions.cpp
-#   src/planning/global/coord_conversions/ellipsoid.cpp
-#   src/planning/global/coord_conversions/matrix.cpp
-# )
-# target_link_libraries(nature_gps_to_enu_node
-#   ${catkin_LIBRARIES}
-#   X11
-# )
+add_executable(nature_gps_to_enu_node
+  src/planning/global/gps_to_enu_node.cpp
+  src/node/node_proxy.cpp
+  src/planning/global/coord_conversions/coord_conversions.cpp
+  src/planning/global/coord_conversions/ellipsoid.cpp
+  src/planning/global/coord_conversions/matrix.cpp
+)
+target_link_libraries(nature_gps_to_enu_node
+  ${catkin_LIBRARIES}
+)
 
 add_executable(nature_gps_spoof_node
   src/planning/global/gps_spoof_node.cpp
@@ -88,10 +89,11 @@ target_link_libraries(nature_perception_node
 )
 
 add_executable(nature_control_node
-  src/control/nature_control_node.cpp
+src/node/node_proxy.cpp  
+src/control/nature_control_node.cpp
   src/control/pure_pursuit_controller.cpp
   src/control/pid_controller.cpp
-  src/node/node_proxy.cpp
+  
   src/control/tinyfiledialogs.c
 )
 
@@ -186,7 +188,7 @@ nature_local_planner_node
 nature_pf_planner_node
 nature_global_path_node
 nature_sim_test_node
-#nature_gps_to_enu_node
+nature_gps_to_enu_node
 nature_gps_spoof_node
 nature_path_manager_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
