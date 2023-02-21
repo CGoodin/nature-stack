@@ -8,3 +8,5 @@
 
 cmake-build-debug
 .idea
+*__pycache__*
+*mavs_config.txt*
