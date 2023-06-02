@@ -901,20 +901,28 @@ bool VoxelGrid::LineBoxIntersect(glm::vec2 origin, glm::vec2 endpoint, glm::ivec
 	return false;
 }
 
-nav_msgs::OccupancyGrid VoxelGrid::GetTraversabilityAsOccupancyGrid() {
+nav_msgs::OccupancyGrid VoxelGrid::GetTraversabilityAsOccupancyGrid(bool row_major) {
 	nav_msgs::OccupancyGrid grid;
 	grid.data.resize(dim_.x*dim_.y, 0);
 	int n = 0;
-#ifdef USE_ROS
-	for (int j = 0; j < dim_.y; j++) {
-		for (int i = 0; i < dim_.x; i++) {
-#else
-	for (int i = 0; i < dim_.x; i++) {
+	if (row_major){
 		for (int j = 0; j < dim_.y; j++) {
-#endif
-			float trav = vehicle_.GetTraversability(roughness_[i][j], slope_[i][j], impermeability_[i][j], rci_[i][j]);
-			grid.data[n] = (int)(100.0f*(1.0f - trav));
-			n++;
+			for (int i = 0; i < dim_.x; i++) {
+
+				float trav = vehicle_.GetTraversability(roughness_[i][j], slope_[i][j], impermeability_[i][j], rci_[i][j]);
+				grid.data[n] = (int)(100.0f*(1.0f - trav));
+				n++;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < dim_.x; i++) {
+			for (int j = 0; j < dim_.y; j++) {
+
+				float trav = vehicle_.GetTraversability(roughness_[i][j], slope_[i][j], impermeability_[i][j], rci_[i][j]);
+				grid.data[n] = (int)(100.0f*(1.0f - trav));
+				n++;
+			}
 		}
 	}
 	grid.info.height = dim_.y;

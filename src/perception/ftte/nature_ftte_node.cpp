@@ -91,16 +91,11 @@ int main(int argc, char *argv[]) {
 	// subscribe to odometry and point cloud message
 	ros::Subscriber pc_sub = n.subscribe("nature/points",10,PointCloudCallback);
 	ros::Subscriber odom_sub = n.subscribe("nature/odometry",10, OdometryCallback);
-	//ros::Subscriber pose_sub = n.subscribe("/pose",10, PoseCallback);
 	ros::Publisher grid_pub = n.advertise<nav_msgs::OccupancyGrid>("nature/occupancy_grid", 10);
-
-	//auto pc_sub = n->create_subscription<nature::msg::PointCloud2>("nature/points",2,PointCloudCallback);
-    //auto odom_sub = n->create_subscription<nature::msg::Odometry>("nature/odometry",10, OdometryCallback);
-    //auto grid_pub = n->create_publisher<nature::msg::OccupancyGrid>("nature/occupancy_grid", 1);
+	ros::Publisher grid_pub_vis = n.advertise<nav_msgs::OccupancyGrid>("nature/occupancy_grid_vis", 10);
 
 	if (ros::param::has("~use_registered_points")){
     	ros::param::get("~use_registered_points",use_registered_points);
-		//if (use_registered_points)odom_rcvd = true;
 	}
 
 	if (ros::param::has("~use_loam")){
@@ -112,6 +107,7 @@ int main(int argc, char *argv[]) {
 	float map_res = 1.0f; 
 	bool use_planes = false;
 	bool show_timing = false;
+	bool fixed_map = true;
 	if (ros::param::has("~map_res")){
     	ros::param::get("~map_res",map_res);
   	}	
@@ -126,6 +122,9 @@ int main(int argc, char *argv[]) {
 	}
 	if (ros::param::has("~show_timing")){
     	ros::param::get("~show_timing",show_timing);
+	}
+	if (ros::param::has("~fixed_map")){
+    	ros::param::get("~fixed_map",fixed_map);
 	}
 	float vehicle_mass = 34251.0f;
 	float vehicle_bumper_height = 0.41f;
@@ -261,7 +260,7 @@ int main(int argc, char *argv[]) {
 				grid.Initialize(llc,urc,map_res);
 				grid.SetVehicle(vehicle);
 			}
-			else{
+			else if (!fixed_map){
 				glm::vec3 llc(current_position.x-0.5f*map_width, current_position.y-0.5*map_length, current_position.z-5.0);
 				glm::vec3 urc(current_position.x+0.5f*map_width, current_position.y+0.5f*map_length, current_position.z+10.0);
 				grid.Move(llc, urc);
@@ -296,9 +295,14 @@ int main(int argc, char *argv[]) {
 				grid.PlotTraversability();
 				if (save_plots) grid.SaveTraversabilityPlot(file_prefix+"_trav.bmp");
 			}
-			nav_msgs::OccupancyGrid occ_grid = grid.GetTraversabilityAsOccupancyGrid();
+			nav_msgs::OccupancyGrid occ_grid = grid.GetTraversabilityAsOccupancyGrid(false);
 			occ_grid.header = current_pose.header;
 			grid_pub.publish(occ_grid);
+
+			nav_msgs::OccupancyGrid occ_grid_vis = grid.GetTraversabilityAsOccupancyGrid(true);
+			occ_grid_vis.header = current_pose.header;
+			grid_pub_vis.publish(occ_grid_vis);
+
 			points_rcvd = false;
 			frame_count++;
 			elapsed_time = ros::Time::now().toSec() - t0;

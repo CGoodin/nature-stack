@@ -55,7 +55,7 @@ public:
 
 	void SaveSlicePlot(std::string fname);
 
-	nav_msgs::OccupancyGrid GetTraversabilityAsOccupancyGrid();
+	nav_msgs::OccupancyGrid GetTraversabilityAsOccupancyGrid(bool row_major);
 	
 	void WriteStats(std::string fname);
 
