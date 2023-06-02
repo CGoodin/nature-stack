@@ -88,6 +88,26 @@ target_link_libraries(nature_perception_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(nature_ftte_node 
+src/perception/ftte/nature_ftte_node.cpp 
+src/perception/ftte/voxel_grid.cpp
+src/perception/ftte/vehicle.cpp
+src/perception/ftte/matrix.cpp
+src/perception/ftte/moreland.cpp
+src/node/node_proxy.cpp
+)
+target_link_libraries(nature_ftte_node
+  ${catkin_LIBRARIES} X11 gomp
+)
+
+add_executable(nature_map_publisher_node 
+src/perception/nature_map_publisher_node.cpp 
+src/node/node_proxy.cpp
+)
+target_link_libraries(nature_map_publisher_node
+  ${catkin_LIBRARIES}
+)
+
 add_executable(nature_control_node
 src/node/node_proxy.cpp  
 src/control/nature_control_node.cpp
@@ -184,14 +204,8 @@ catkin_package(INCLUDE_DIRS include
 
 install(TARGETS
 nature_perception_node
-<<<<<<< HEAD:CMakeLists_ros1.cmake
-<<<<<<< HEAD:CMakeLists_ros1.cmake
-=======
-=======
->>>>>>> 64be8ed319118978f887da487406884580c0d37f:CMakeLists.txt
 nature_ftte_node
 nature_map_publisher_node
->>>>>>> Added initial implementation of ftte, building but not tested:CMakeLists.txt
 nature_control_node
 nature_local_planner_node
 nature_pf_planner_node
