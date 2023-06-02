@@ -88,9 +88,11 @@ target_link_libraries(nature_perception_node
   ${catkin_LIBRARIES}
 )
 
+
 add_executable(nature_control_node
 src/node/node_proxy.cpp  
 src/control/nature_control_node.cpp
+
   src/control/pure_pursuit_controller.cpp
   src/control/pid_controller.cpp
   
@@ -183,6 +185,11 @@ catkin_package(INCLUDE_DIRS include
 
 install(TARGETS
 nature_perception_node
+<<<<<<< HEAD:CMakeLists_ros1.cmake
+=======
+nature_ftte_node
+nature_map_publisher_node
+>>>>>>> Added initial implementation of ftte, building but not tested:CMakeLists.txt
 nature_control_node
 nature_local_planner_node
 nature_pf_planner_node
