@@ -76,11 +76,11 @@ void OdometryCallback(const nav_msgs::Odometry::ConstPtr& rcv_odom){
 	current_position = glm::vec3(current_pose.pose.pose.position.x, current_pose.pose.pose.position.y, current_pose.pose.pose.position.z);
 }
 
-void PoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& rcv_pose){
-	current_pose.pose = rcv_pose->pose;
-	odom_rcvd = true;
-	current_position = glm::vec3(current_pose.pose.pose.position.x, current_pose.pose.pose.position.y, current_pose.pose.pose.position.z);
-}
+//void PoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& rcv_pose){
+//	current_pose.pose = rcv_pose->pose;
+//	odom_rcvd = true;
+//	current_position = glm::vec3(current_pose.pose.pose.position.x, current_pose.pose.pose.position.y, current_pose.pose.pose.position.z);
+//}
 
 int main(int argc, char *argv[]) {
 
@@ -89,10 +89,14 @@ int main(int argc, char *argv[]) {
 	ros::NodeHandle n;
 
 	// subscribe to odometry and point cloud message
-	ros::Subscriber pc_sub = n.subscribe("/points",10,PointCloudCallback);
-	ros::Subscriber odom_sub = n.subscribe("/odom",10, OdometryCallback);
-	ros::Subscriber pose_sub = n.subscribe("/pose",10, PoseCallback);
-	ros::Publisher grid_pub = n.advertise<nav_msgs::OccupancyGrid>("occupancy_grid", 10);
+	ros::Subscriber pc_sub = n.subscribe("nature/points",10,PointCloudCallback);
+	ros::Subscriber odom_sub = n.subscribe("nature/odometry",10, OdometryCallback);
+	//ros::Subscriber pose_sub = n.subscribe("/pose",10, PoseCallback);
+	ros::Publisher grid_pub = n.advertise<nav_msgs::OccupancyGrid>("nature/occupancy_grid", 10);
+
+	//auto pc_sub = n->create_subscription<nature::msg::PointCloud2>("nature/points",2,PointCloudCallback);
+    //auto odom_sub = n->create_subscription<nature::msg::Odometry>("nature/odometry",10, OdometryCallback);
+    //auto grid_pub = n->create_publisher<nature::msg::OccupancyGrid>("nature/occupancy_grid", 1);
 
 	if (ros::param::has("~use_registered_points")){
     	ros::param::get("~use_registered_points",use_registered_points);
