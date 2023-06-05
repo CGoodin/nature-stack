@@ -13,6 +13,7 @@
   <remap from="nature/odometry" to="/lvi_sam/lidar/mapping/odometry" />
 
   <param name = "use_registered_points" value = "true"/>
+  <param name = "fixed_map" value = "false"/>
   <param name = "use_loam" value = "false"/>
   <param name = "map_res" value = "0.25"/>
   <param name = "map_width" value = "50.0"/>
@@ -36,7 +37,7 @@
   <param name = "roughness_exponent" value = "1.0"/>
 
   <param name = "use_planes" value = "true"/>
-  <param name = "show_timing" value = "false"/>
+  <param name = "show_timing" value = "true"/>
   <param name = "show_traversability" value = "false"/>
   <param name = "show_confidence" value = "false"/>
   <param name = "show_ground" value = "false"/>

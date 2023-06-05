@@ -393,7 +393,7 @@ void VoxelGrid::WriteStats(std::string fname) {
 	fout.close();
 }
 
-void VoxelGrid::PlotConfidence() {
+cimg_library::CImg<float> VoxelGrid::DrawConfidence() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -406,6 +406,28 @@ void VoxelGrid::PlotConfidence() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;	
+	//if (conf_disp_.width() == 0 || conf_disp_.height() == 0) {
+	//	conf_disp_.assign(img, "Confidence");
+	//}
+	//else {
+	//	conf_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotConfidence() {
+	cimg_library::CImg<float> img = DrawConfidence();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(cells_[i][j].confidence, 1.0f, 0.0f);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (conf_disp_.width() == 0 || conf_disp_.height() == 0) {
 		conf_disp_.assign(img, "Confidence");
 	}
@@ -415,7 +437,7 @@ void VoxelGrid::PlotConfidence() {
 }
 
 void VoxelGrid::SaveConfidencePlot(std::string fname) {
-	cimg_library::CImg<float> img(conf_disp_);
+	cimg_library::CImg<float> img = DrawConfidence(); //(conf_disp_);
 	img.mirror('y');
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
@@ -431,7 +453,7 @@ void VoxelGrid::AddVehiclePathToImage(cimg_library::CImg<float> &img){
 	}
 }
 
-void VoxelGrid::PlotGround() {
+cimg_library::CImg<float> VoxelGrid::DrawGround() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -444,6 +466,28 @@ void VoxelGrid::PlotGround() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;	
+//if (ground_disp_.width() == 0 || ground_disp_.height() == 0) {
+	//	ground_disp_.assign(img, "Ground");
+	//}
+	//else {
+	//	ground_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotGround() {
+	cimg_library::CImg<float> img = DrawGround();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(ground_[i][j], min_ground_, max_ground_);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (ground_disp_.width() == 0 || ground_disp_.height() == 0) {
 		ground_disp_.assign(img, "Ground");
 	}
@@ -453,7 +497,7 @@ void VoxelGrid::PlotGround() {
 }
 
 void VoxelGrid::SaveGroundPlot(std::string fname) {
-	cimg_library::CImg<float> img(ground_disp_);
+	cimg_library::CImg<float> img = DrawGround(); //(ground_disp_);
 	img.mirror('y');
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
@@ -601,7 +645,7 @@ void VoxelGrid::CalculateRoughness() {
 	}
 }
 
-void VoxelGrid::PlotSlope() {
+cimg_library::CImg<float>VoxelGrid::DrawSlope() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -614,6 +658,28 @@ void VoxelGrid::PlotSlope() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;
+	//if (slope_disp_.width() == 0 || slope_disp_.height() == 0) {
+	//	slope_disp_.assign(img, "Slope");
+	//}
+	//else {
+	//	slope_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotSlope() {
+	cimg_library::CImg<float> img = DrawSlope();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(vehicle_.GetBeta() * slope_[i][j], 0.0f, 1.0);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (slope_disp_.width() == 0 || slope_disp_.height() == 0) {
 		slope_disp_.assign(img, "Slope");
 	}
@@ -622,7 +688,7 @@ void VoxelGrid::PlotSlope() {
 	}
 }
 
-void VoxelGrid::PlotTraversability() {
+cimg_library::CImg<float> VoxelGrid::DrawTraversability() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -635,6 +701,28 @@ void VoxelGrid::PlotTraversability() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;
+	//if (trav_disp_.width() == 0 || trav_disp_.height() == 0) {
+	//	trav_disp_.assign(img, "Traversability");
+	//}
+	//else {
+	//	trav_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotTraversability() {
+	cimg_library::CImg<float> img = DrawTraversability();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(GetTraversabilityAtCell(i, j), 1.0f, 0.0);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (trav_disp_.width() == 0 || trav_disp_.height() == 0) {
 		trav_disp_.assign(img, "Traversability");
 	}
@@ -654,8 +742,7 @@ void VoxelGrid::PlotTravAndImage(cimg_library::CImg<float> image, std::string pr
 	combined.save(fname.c_str());
 }
 
-
-void VoxelGrid::PlotVegDensity() {
+cimg_library::CImg<float> VoxelGrid::DrawVegDensity() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -668,6 +755,28 @@ void VoxelGrid::PlotVegDensity() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;
+	//if (veg_disp_.width() == 0 || veg_disp_.height() == 0) {
+	//	veg_disp_.assign(img, "Veg Density");
+	//}
+	//else {
+	//	veg_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotVegDensity() {
+	cimg_library::CImg<float> img = DrawVegDensity();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(impermeability_[i][j], 0.0f, 1.0f);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (veg_disp_.width() == 0 || veg_disp_.height() == 0) {
 		veg_disp_.assign(img, "Veg Density");
 	}
@@ -676,7 +785,7 @@ void VoxelGrid::PlotVegDensity() {
 	}
 }
 
-void VoxelGrid::PlotRoughness() {
+cimg_library::CImg<float> VoxelGrid::DrawRoughness() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -689,6 +798,28 @@ void VoxelGrid::PlotRoughness() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;
+	//if (rough_disp_.width() == 0 || rough_disp_.height() == 0) {
+	//	rough_disp_.assign(img, "Roughness");
+	//}
+	//else {
+	//	rough_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotRoughness() {
+	cimg_library::CImg<float> img = DrawRoughness();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(vehicle_.GetGamma(roughness_[i][j]), 0.0f, 1.0f);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (rough_disp_.width() == 0 || rough_disp_.height() == 0) {
 		rough_disp_.assign(img, "Roughness");
 	}
@@ -698,30 +829,30 @@ void VoxelGrid::PlotRoughness() {
 }
 
 void VoxelGrid::SaveSlopePlot(std::string fname) {
-	cimg_library::CImg<float> img(slope_disp_);
+	cimg_library::CImg<float> img = DrawSlope(); //(slope_disp_);
 	img.mirror('y');
 	img.save(fname.c_str());
 }
 
 void VoxelGrid::SaveTraversabilityPlot(std::string fname) {
-	cimg_library::CImg<float> img(trav_disp_);
+	cimg_library::CImg<float> img = DrawTraversability(); //(trav_disp_);
 	img.mirror('y');
 	img.save(fname.c_str());
 }
 
 void VoxelGrid::SaveRoughPlot(std::string fname) {
-	cimg_library::CImg<float> img(rough_disp_);
+	cimg_library::CImg<float> img = DrawRoughness(); //(rough_disp_);
 	img.mirror('y');
 	img.save(fname.c_str());
 }
 
 void VoxelGrid::SaveVegDensityPlot(std::string fname) {
-	cimg_library::CImg<float> img(veg_disp_);
+	cimg_library::CImg<float> img = DrawVegDensity(); //(veg_disp_);
 	img.mirror('y');
 	img.save(fname.c_str());
 }
 
-void VoxelGrid::PlotRci() {
+cimg_library::CImg<float> VoxelGrid::DrawRci() {
 	cimg_library::CImg<float> img;
 	img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
 	img = 0.0f;
@@ -734,6 +865,28 @@ void VoxelGrid::PlotRci() {
 	AddVehiclePathToImage(img);
 	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
 	img.resize(new_width,512);
+	return img;
+	//if (rci_disp_.width() == 0 || rci_disp_.height() == 0) {
+	//	rci_disp_.assign(img, "RCI");
+	//}
+	//else {
+//		rci_disp_ = img;
+	//}
+}
+
+void VoxelGrid::PlotRci() {
+	cimg_library::CImg<float> img = DrawRci();
+	/*img.assign(dim_.x, dim_.y, 1, 3, 0.0f);
+	img = 0.0f;
+	for (int i = 0; i < dim_.x; i++) {
+		for (int j = 0; j < dim_.y; j++) {
+			glm::vec3 color = MorelandGreen(vehicle_.GetEta() / rci_[i][j], 0.0f, 1.0f);
+			img.draw_point(i, j, (float *)&color);
+		}
+	}
+	AddVehiclePathToImage(img);
+	int new_width = (int)(512.0f*(1.0f*img.width())/(1.0f*img.height()));
+	img.resize(new_width,512);*/
 	if (rci_disp_.width() == 0 || rci_disp_.height() == 0) {
 		rci_disp_.assign(img, "RCI");
 	}
@@ -743,7 +896,7 @@ void VoxelGrid::PlotRci() {
 }
 
 void VoxelGrid::SaveRciPlot(std::string fname) {
-	cimg_library::CImg<float> img(rci_disp_);
+	cimg_library::CImg<float> img = DrawRci(); //(rci_disp_);
 	img.mirror('y');
 	img.save(fname.c_str());
 }

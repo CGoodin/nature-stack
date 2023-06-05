@@ -64,15 +64,17 @@ public:
 	void CalculateSlope();
 	void CalculateRoughness();
 
+	
+
 	void PlotSlope();
 	void PlotVegDensity();
 	void PlotRoughness();
 	void PlotTraversability();
 	void PlotConfidence();
+	void PlotRci();
 
 	void PlotTravAndImage(cimg_library::CImg<float> image, std::string prefix);
 
-	void PlotRci();
 	void SaveRciPlot(std::string fname);
 	void SaveConfidencePlot(std::string fname);
 	void SaveVegDensityPlot(std::string fname);
@@ -166,6 +168,14 @@ protected:
 	float default_traversability_;
 
 	// plotting displays
+	cimg_library::CImg<float> DrawSlope();
+	cimg_library::CImg<float> DrawGround();
+	cimg_library::CImg<float> DrawVegDensity();
+	cimg_library::CImg<float> DrawRoughness();
+	cimg_library::CImg<float> DrawTraversability();
+	cimg_library::CImg<float> DrawConfidence();
+	cimg_library::CImg<float> DrawRci();
+
 	cimg_library::CImgDisplay ground_disp_;
 	cimg_library::CImgDisplay slice_disp_;
 	cimg_library::CImgDisplay slope_disp_;

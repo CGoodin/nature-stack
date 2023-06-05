@@ -271,29 +271,38 @@ int main(int argc, char *argv[]) {
 
 			// Plot results
 			std::string file_prefix = ToString(frame_count, 5);
+			
 			if (show_confidence){
 				grid.PlotConfidence();
-				if (save_plots) grid.SaveConfidencePlot(file_prefix+"_conf.bmp");
+				//if (save_plots) grid.SaveConfidencePlot(file_prefix+"_conf.bmp");
 			}
 			if (show_ground) {
 				grid.PlotGround();
-				if (save_plots) grid.SaveGroundPlot(file_prefix+"_ground.bmp");
+				//if (save_plots) grid.SaveGroundPlot(file_prefix+"_ground.bmp");
 			}
 			if (show_roughness){
 				grid.PlotRoughness();
-				if (save_plots) grid.SaveRoughPlot(file_prefix+"_rough.bmp");
+				//if (save_plots) grid.SaveRoughPlot(file_prefix+"_rough.bmp");
 			}
 			if (show_veg) {
 				grid.PlotVegDensity();
-				if (save_plots) grid.SaveVegDensityPlot(file_prefix+"_veg.bmp");
+				//if (save_plots) grid.SaveVegDensityPlot(file_prefix+"_veg.bmp");
 			}
 			if (show_slope) {
 				grid.PlotSlope();
-				if (save_plots) grid.SaveSlopePlot(file_prefix+"_slope.bmp");
+				//if (save_plots) grid.SaveSlopePlot(file_prefix+"_slope.bmp");
 			}
 			if (show_traversability) {
 				grid.PlotTraversability();
-				if (save_plots) grid.SaveTraversabilityPlot(file_prefix+"_trav.bmp");
+				//if (save_plots) grid.SaveTraversabilityPlot(file_prefix+"_trav.bmp");
+			}
+			if (save_plots){
+				grid.SaveConfidencePlot(file_prefix+"_conf.bmp");
+				grid.SaveGroundPlot(file_prefix+"_ground.bmp");
+				grid.SaveRoughPlot(file_prefix+"_rough.bmp");
+				grid.SaveVegDensityPlot(file_prefix+"_veg.bmp");
+				grid.SaveSlopePlot(file_prefix+"_slope.bmp");
+				grid.SaveTraversabilityPlot(file_prefix+"_trav.bmp");
 			}
 			nav_msgs::OccupancyGrid occ_grid = grid.GetTraversabilityAsOccupancyGrid(false);
 			occ_grid.header = current_pose.header;
