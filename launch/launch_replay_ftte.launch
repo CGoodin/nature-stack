@@ -1,0 +1,99 @@
+<launch>
+
+
+<arg name="scanPeriod" default="0.1" />
+<arg name="rviz" default="true" />
+
+
+<!-- <node pkg="rosbag" type="play" name="mrzr_replay" output="screen" args="clock /home/cgoodin/MRZR_Data/6_1_23_nature_test/powerline_loam_only.bag" required="true" /> -->
+
+<node pkg="rosbag" type="play" name="mrzr_replay" output="screen" args="--clock /home/cgoodin/MRZR_Data/6_1_23_nature_test/return_drive_2023-06-01-17-09-39.bag" required="true" />
+
+<!-- revised params -->
+<node name="nature_ftte_node" pkg="nature" type="nature_ftte_node" output="screen" required="true" >
+  
+  <remap from="nature/points" to="/lvi_sam/lidar/mapping/cloud_registered"/> 
+  <remap from="nature/odometry" to="/lvi_sam/lidar/mapping/odometry" />
+
+  <param name = "use_registered_points" value = "true"/>
+  <param name = "fixed_map" value = "false"/>
+  <param name = "use_loam" value = "false"/>
+  <param name = "map_res" value = "0.33"/>
+  <param name = "map_width" value = "50.16"/>
+  <param name = "map_length" value = "50.16"/>
+
+  <param name = "vehicle_mass" value = "34251.0"/>
+  <param name = "vehicle_bumper_height" value = "0.41"/>
+  <param name = "vehicle_tire_radius" value = "0.4"/>
+  <param name = "vehicle_vci1" value = "25.0"/>
+  <param name = "vehicle_max_slope" value = "0.55"/>
+  <param name = "vehicle_roof_height" value = "3.5"/>
+
+  <param name = "default_traversability" value = "0.7"/>
+  <param name = "slope_coeff" value = "0.1"/>
+  <param name = "slope_exponent" value = "0.5"/>
+  <param name = "soil_coeff" value = "0.0"/>
+  <param name = "soil_exponent" value = "1.0"/>
+  <param name = "veg_coeff" value = "4.0"/>
+  <param name = "veg_exponent" value = "1.5"/>
+  <param name = "roughness_coeff" value = "0.0"/>
+  <param name = "roughness_exponent" value = "1.0"/>
+
+  <param name = "use_planes" value = "true"/>
+  <param name = "show_timing" value = "true"/>
+  <param name = "show_traversability" value = "false"/>
+  <param name = "show_confidence" value = "false"/>
+  <param name = "show_ground" value = "false"/>
+  <param name = "show_roughness" value = "false"/>
+  <param name = "show_veg" value = "false"/>
+  <param name = "show_slope" value = "false"/>
+
+  <param name = "save_plots" value = "true"/>
+  <param name = "max_time" value = "1000.0"/>
+</node>
+
+<!-- these are the original params, were to cautious wrt slope
+<node name="nature_ftte_node" pkg="nature" type="nature_ftte_node" output="screen" required="true" >
+  
+  <remap from="nature/points" to="/lvi_sam/lidar/mapping/cloud_registered"/> 
+  <remap from="nature/odometry" to="/lvi_sam/lidar/mapping/odometry" />
+
+  <param name = "use_registered_points" value = "true"/>
+  <param name = "fixed_map" value = "false"/>
+  <param name = "use_loam" value = "false"/>
+  <param name = "map_res" value = "0.25"/>
+  <param name = "map_width" value = "50.0"/>
+  <param name = "map_length" value = "50.0"/>
+
+  <param name = "vehicle_mass" value = "34251.0"/>
+  <param name = "vehicle_bumper_height" value = "0.41"/>
+  <param name = "vehicle_tire_radius" value = "0.4"/>
+  <param name = "vehicle_vci1" value = "25.0"/>
+  <param name = "vehicle_max_slope" value = "0.55"/>
+  <param name = "vehicle_roof_height" value = "3.5"/>
+
+  <param name = "default_traversability" value = "0.7"/>
+  <param name = "slope_coeff" value = "0.25"/>
+  <param name = "slope_exponent" value = "2.0"/>
+  <param name = "soil_coeff" value = "0.0"/>
+  <param name = "soil_exponent" value = "1.0"/>
+  <param name = "veg_coeff" value = "1.0"/>
+  <param name = "veg_exponent" value = "1.0"/>
+  <param name = "roughness_coeff" value = "1.0"/>
+  <param name = "roughness_exponent" value = "1.0"/>
+
+  <param name = "use_planes" value = "true"/>
+  <param name = "show_timing" value = "true"/>
+  <param name = "show_traversability" value = "false"/>
+  <param name = "show_confidence" value = "false"/>
+  <param name = "show_ground" value = "false"/>
+  <param name = "show_roughness" value = "false"/>
+  <param name = "show_veg" value = "false"/>
+  <param name = "show_slope" value = "false"/>
+
+  <param name = "save_plots" value = "true"/>
+  <param name = "max_time" value = "1000.0"/>
+</node>
+-->
+</launch>
+

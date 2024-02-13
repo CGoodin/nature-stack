@@ -1,0 +1,146 @@
+<launch>
+
+  <param name="/use_sim_time" value="false"/> 
+  <arg name="display" default="rviz"/>
+  <arg name="auto_launch_rviz" default="true"/>
+
+  <rosparam file="$(find nature)/config/waypoints.yaml" />
+
+  <param name="robot_description" command="cat $(find nature)/config/example_bot.urdf" />
+
+
+  <group if="$(eval env('ROS_DISTRO') =='noetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='kinetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
+  <node pkg="tf"  name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
+  <node name="state_publisher" pkg="nature" type="nature_bot_state_publisher_node" />
+
+  <!-- Lidar perception algorithms  
+  <node name="perception_node" pkg="nature" type="nature_perception_node" required="true" output="screen">
+    <param name="use_elevation" value="false" />
+    <param name="slope_threshold" value="1.0" />
+    <param name="grid_height" value="120.0" />
+    <param name="grid_width" value="120.0" />
+    <param name="stitch_lidar_points" value="true"/>
+    <param name="filter_highest_lidar" value="false"/>
+    <param name="time_register_window" value="0.015" />
+    <param name="grid_llx" value="-60.0" />
+    <param name="grid_lly" value="-60.0" />
+    <param name="grid_dilate_x" value="0.5" />
+    <param name="grid_dilate_y" value="0.5" />
+    <param name="grid_res" value="0.5" />
+    <param name="overhead_clearance" value="7.0" />
+    <param name="warmup_time" value="5.0" />
+    <param name="use_registered" value="true" />
+    <param name="display" value="$(arg display)" />
+  </node>-->
+
+<node name="nature_ftte_node" pkg="nature" type="nature_ftte_node" output="screen" required="true" >
+  <!--<remap from="points" to="velodyne_points"/> 
+  <remap from="points" to="os1_cloud_node/points"/> 
+  <remap from="odom" to="/vectornav/Odom"/> 
+  <remap from="odom" to="laser_odom_to_init"/> 
+  
+  <remap from="points" to="os_cloud_node/points"/> 
+  <remap from="odom" to="odometry/filtered"/>
+  -->
+
+  <param name = "use_registered_points" value = "true"/>
+  <param name = "use_loam" value = "false"/>
+  <param name = "map_res" value = "0.5"/>
+  <param name = "map_width" value = "100.0"/>
+  <param name = "map_length" value = "100.0"/>
+  <param name = "fixed_map" value = "false"/>
+
+  <param name = "vehicle_mass" value = "34251.0"/>
+  <param name = "vehicle_bumper_height" value = "0.41"/>
+  <param name = "vehicle_tire_radius" value = "0.4"/>
+  <param name = "vehicle_vci1" value = "25.0"/>
+  <param name = "vehicle_max_slope" value = "0.55"/>
+  <param name = "vehicle_roof_height" value = "3.5"/>
+
+  <param name = "default_traversability" value = "0.6"/>
+  <param name = "slope_coeff" value = "0.0"/>
+  <param name = "slope_exponent" value = "2.0"/>
+  <param name = "soil_coeff" value = "0.0"/>
+  <param name = "soil_exponent" value = "1.0"/>
+  <param name = "veg_coeff" value = "1.0"/>
+  <param name = "veg_exponent" value = "1.0"/>
+  <param name = "roughness_coeff" value = "1.0"/>
+  <param name = "roughness_exponent" value = "1.0"/>
+
+  <param name = "use_planes" value = "false"/>
+  <param name = "show_timing" value = "false"/>
+  <param name = "show_traversability" value = "false"/>
+  <param name = "show_confidence" value = "false"/>
+  <param name = "show_ground" value = "false"/>
+  <param name = "show_roughness" value = "false"/>
+  <param name = "show_veg" value = "false"/>
+  <param name = "show_slope" value = "false"/>
+</node>
+
+
+
+
+  <node name="vehicle_control_node" pkg="nature" type="nature_control_node" required="true" output="screen" >
+    <param name="vehicle_wheelbase" value="2.72" />
+    <param name="vehicle_max_steer_angle_degrees" value="35.0" />
+    <param name="steering_coefficient" value="4.5" />
+    <param name="throttle_coefficient" value="1.0" />
+    <param name="vehicle_speed" value="5.0" />
+    <param name="throttle_kp" value="0.1129" />
+    <param name="throttle_ki" value="0.0" />
+    <param name="throttle_kd" value="0.0" />
+    <param name="use_feed_forward" value="false" />
+    <param name="ff_a0" value="0.0402" />
+    <param name="ff_a1" value="0.0814" />
+    <param name="ff_a2" value="-0.0023" />
+    <param name="max_desired_lateral_g" value="0.25" />
+    <param name="time_to_max_brake" value="4.0" />
+    <param name="time_to_max_throttle" value="3.0" />
+  </node>
+
+<!--
+  <node name="nature_path_manager_node" pkg="nature" type="nature_path_manager_node" required="true" output="screen">
+    <param name="wait_period" value="30.0" />
+  </node>
+  -->
+
+  <node name="global_path_node" pkg="nature" type="nature_global_path_node" required="true" output="screen" >
+    <param name="goal_dist" value="8.0" />
+    <param name="global_lookahead" value="75.0" />
+    <param name="shutdown_behavior" value="2" />
+    <param name="display" value="$(arg display)" />
+  </node>
+
+  <node name="pf_planner_node" pkg="nature" type="nature_pf_planner_node" output="screen" required="true" >
+    <param name="use_global_path" value="false" />
+    <param name="rate" value="10.0" />
+    <param name="obstacle_cost_thresh" value="0" /> <!-- threshold for making something an obstacle (0-100), primarily for use with segmentation grid -->
+    <param name="kp" value="10.0" /> <!-- attractive potential coeff -->
+    <param name="eta" value="1.0" /> <!-- repulsive potential coeff -->
+    <param name="cutoff_dist" value="40.0" /> <!-- obstacles farther than this are ignored -->
+    <param name="inner_cutoff_dist" value="1.5" /> <!-- obstacles closer than this are ignored -->
+  </node>
+
+  <include file="$(find mavs_ros)/launch/mavs_sim.launch">
+    <arg name="cmd_vel_topic_arg" default="nature/cmd_vel" />
+    <arg name="point_cloud_topic_arg" default="nature/points" />
+    <arg name="odometry_topic_arg" default="nature/odometry" />
+  </include>
+
+  <group if="$(eval arg('display') == 'rviz' and arg('auto_launch_rviz'))">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nature)/rviz/nature.rviz" />
+  </group>
+
+</launch>
