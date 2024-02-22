@@ -4,6 +4,7 @@
 
   <!-- General  -->
   <arg name="display_type" default="rviz" doc="Type of visualization to use rviz | none"/>
+  <arg name="rviz_file" default="nature.rviz" doc="Which rviz file to use"/>  
   <arg name="auto_launch_rviz" default="true" doc="Open rviz automatically on launch. Only applies if display_type = rviz"/>
   <arg name="waypoints_file" doc="Waypoints file containing locations to navigate to."/>
   <arg name="robot_description_file" doc="URDF robot description file to use"/>
@@ -155,7 +156,7 @@
 
   <!-- rosrun rviz rviz -d $(rospack find nature)/rviz/nature.rviz -->
   <group if="$(eval arg('display_type') == 'rviz' and arg('auto_launch_rviz'))">
-    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nature)/rviz/nature.rviz" />
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nature)/rviz/$(arg rviz_file)" />
   </group>
 
   <!-- Uncomment this section to use the MAVS simlator.
