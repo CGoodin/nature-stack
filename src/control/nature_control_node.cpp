@@ -196,7 +196,7 @@ int main(int argc, char *argv[]){
     else{
       vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
     }
-    
+  
     controller.SetVehicleState(state);
     controller.SetVehicleSpeed(vel);
 
@@ -210,13 +210,14 @@ int main(int argc, char *argv[]){
       dc.linear.y = -1.0f;
     }
     else if (current_run_state==0){    // active running state
-      double max_curvature = GetMaxCurvature(control_msg);
-      double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
+      //double max_curvature = GetMaxCurvature(control_msg);
+      //double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
       float desired_velocity = vehicle_speed;
-      if (lateral_g_force>max_desired_lateral_g){
-        desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
-        if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
-      }
+      //if (lateral_g_force>max_desired_lateral_g){
+       // desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
+       // if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
+      //}
+      
       controller.SetDesiredSpeed(desired_velocity);
       //controller.SetDesiredSpeed(vehicle_speed);
       dc = controller.GetDcFromTraj(control_msg, goal);
