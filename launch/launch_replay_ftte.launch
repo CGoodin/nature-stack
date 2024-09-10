@@ -7,7 +7,7 @@
 
 <!-- <node pkg="rosbag" type="play" name="mrzr_replay" output="screen" args="clock /home/cgoodin/MRZR_Data/6_1_23_nature_test/powerline_loam_only.bag" required="true" /> -->
 
-<node pkg="rosbag" type="play" name="mrzr_replay" output="screen" args="--clock /home/cgoodin/MRZR_Data/6_1_23_nature_test/return_drive_2023-06-01-17-09-39.bag" required="true" />
+<node pkg="rosbag" type="play" name="mrzr_replay" output="screen" args="--clock /home/cgoodin/mrzr_data/uncharacterized_runs/ROSBAG_GROUP4/veg_override/trajectory/powerline27_loam_trajectory.bag" required="true" />
 
 <!-- revised params -->
 <node name="nature_ftte_node" pkg="nature" type="nature_ftte_node" output="screen" required="true" >
@@ -18,9 +18,9 @@
   <param name = "use_registered_points" value = "true"/>
   <param name = "fixed_map" value = "false"/>
   <param name = "use_loam" value = "false"/>
-  <param name = "map_res" value = "0.33"/>
-  <param name = "map_width" value = "50.16"/>
-  <param name = "map_length" value = "50.16"/>
+  <param name = "map_res" value = "0.2"/>
+  <param name = "map_width" value = "25.0"/>
+  <param name = "map_length" value = "25.0"/>
 
   <param name = "vehicle_mass" value = "34251.0"/>
   <param name = "vehicle_bumper_height" value = "0.41"/>
@@ -48,7 +48,7 @@
   <param name = "show_veg" value = "false"/>
   <param name = "show_slope" value = "false"/>
 
-  <param name = "save_plots" value = "true"/>
+  <param name = "save_plots" value = "false"/>
   <param name = "max_time" value = "1000.0"/>
 </node>
 

@@ -1,0 +1,205 @@
+<launch>
+
+  <param name="/use_sim_time" value="false"/>
+
+  <rosparam file="$(find nature)/config/waypoints_proving_ground_enu.yaml" />
+
+  <!-- General  -->
+  <arg name="display_type" default="none" doc="Type of visualization to use rviz | none"/>
+  <arg name="auto_launch_rviz" default="false" doc="Open rviz automatically on launch. Only applies if display_type = rviz"/>
+  <arg name="waypoints_file" doc="Waypoints file containing locations to navigate to."/>
+  <arg name="robot_description_file" doc="URDF robot description file to use"/>
+
+  <!-- Elevation Grid  -->
+  <arg name="use_elevation" default="false" doc="Elevation grid - To use elevation or slope value when making occupancy grid based on heightmap."/>
+  <arg name="slope_threshold" default="0.5" doc="Elevation grid - Threshold within which next waypoint selected."/>
+  <arg name="grid_height" default="500.0" doc="Elevation grid - Grid height."/>
+  <arg name="grid_width" default="500.0" doc="Elevation grid - Grid width."/>
+  <arg name="grid_llx" default="-250.0" doc="Elevation grid - X coordinate grid bottom left anchor point."/>
+  <arg name="grid_lly" default="-250.0" doc="Elevation grid - Y coordinate grid bottom left anchor point."/>
+  <arg name="grid_res" default="0.5" doc="Elevation grid - Grid resolution in meters."/>
+  <arg name="grid_dilate" default="false" doc="Elevation grid - Apply dilation in occupancy grid."/>
+  <arg name="grid_dilate_x" default="2.0" doc="Elevation grid - Amount of dilation in x direction."/>
+  <arg name="grid_dilate_y" default="2.0" doc="Elevation grid - Amount of dilation in y direction."/>
+  <arg name="grid_dilate_proportion" default="0.8" doc="Elevation grid - Proportion of original grid cell to dilate with."/>
+  <arg name="cull_lidar" default="true" doc="Elevation - Cull lidar points flag based on distance from odometry."/>
+  <arg name="cull_lidar_dist" default="60.0" doc="Elevation grid - Distance used to cull lidar points"/>
+  <arg name="use_registered" default="false" doc="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."/>
+  <arg name="stitch_lidar_points" default="false" doc="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."/>
+  <arg name="filter_highest_lidar" default="false" doc="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."/>
+  <arg name="persistent_obstacles" default="false" doc="Elevation grid - If true, obstacles will persist in the map once they are created. New updates from the point cloud will not be considered with the obstacle, whether point cloud stitching is turned on or not"/>
+  <arg name="blanking_distance" default="1.5" doc="Perception node - ignore points closer than this distance"/>
+
+  <!-- Global Planner  -->
+  <arg name="goal_dist" default="5.0" doc="Global planner - Lookahead threshold within which next waypoint selected."/>
+
+  <!-- Local Planner  -->
+  <arg name="num_paths" default="31" doc="Local planner - Number of candidate paths to be generated."/>
+  <arg name="path_look_ahead" default="30.0" doc="Local planner - Planning horizon."/>
+  <arg name="vehicle_width" default="3.0" doc="Local planner - Vehicle width. Used during blending phase when re-weighting each path cost by adjacent paths."/>
+  <arg name="max_steer_angle" default="0.5" doc="Local planner - Maximum steer angle in radians. Used to compute rho_max during local planning."/>
+  <arg name="dilation_factor" default="1" doc="Local planner - Dilation in number of grid cells to apply in local planner only."/>
+  <arg name="w_c" default="0.1" doc="Local planner - w_c conformability (minimize curvature) weighting factor"/>
+  <arg name="w_s" default="0.3" doc="Local planner - w_s static safety (avoid collisions) weighting factor"/>
+  <arg name="w_d" default="0.0" doc="Local planner - w_d dynamic safety weighting factor"/>
+  <arg name="w_r" default="0.3" doc="Local planner - w_r rho (minimize rho offset) weighting factor"/>
+  <arg name="w_t" default="0.0" doc="Local planner - w_t segmentation cost weight"/>
+  <arg name="use_global_path" default="false" doc="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints."/>
+  <arg name="use_blend" default="true" doc="Local planner - Whether to do blending of path costs based on vehicle width to adjacent paths."/>
+  <arg name="cost_vis" default="final" doc="Local planner - What type of cost to display on candidate paths: none | final | components | all"/>
+  <arg name="cost_vis_text_size" default="2.0" doc="Cost vis text size"/>
+  <arg name="ignore_coll_before_dist" default="0.0" doc="Local planner - Distance before which collisions are ignored in local planner candidate paths."/>
+  <arg name="use_mpc" default="false" doc="Local planner - Use MPC local planner instead of road centerline constrained splines."/>
+  <arg name="keep_good_path" default="false" doc="If true, continue to use the last good path until it goes bad or you get halfway down it."/>
+  <!--<remap from="/nature/odometry" to="/odometry/filtered"/> -->
+
+  <!--
+  <node name="mrzr_speed_republish_node" pkg="mrzr_speed_tuning" type="mrzr_speed_republish_node" required="true" output="screen" >
+  republish the mrak speed message as a float64 
+  </node>
+  -->
+
+  <!-- Pure Pursuit Control  -->
+  <arg name="vehicle_wheelbase" default="2.72" doc="Pure pursuit controller - vehicle_wheelbase."/>
+  <arg name="vehicle_max_steer_angle_degrees" default="30.0" doc="Pure pursuit controller - max steer angle in degrees."/>
+  <arg name="steering_coefficient" default="4.5" doc="Pure pursuit controller - steering coefficient."/>
+  <arg name="vehicle_speed" default="5.0" doc="Pure pursuit controller - vehicle_speed m/s."/>
+  <arg name="throttle_coefficient" default="1.0" doc="Pure pursuit controller - scale factor for the commanded steering. l.t. 1.0 will make the acceleration less agressive, g.t. 1.0 will make it more agressive" />
+  <arg name="throttle_kp" default="0.1129" doc="Proportional coeff for the PID speed controller" />
+  <arg name="throttle_ki" default="0.0" doc="Integral coeff for the PID speed controller" />
+  <arg name="throttle_kd" default="0.0" doc="Derivative coeff for the PID speed controller" />
+  <arg name="request_approval" default="true" doc="If true, the planner will request user input to continue the experiment after the first path is planned."/>
+  <arg name="time_to_max_brake" default="4.0" doc="Time in seconds to go from 0 to maximum braking" />
+  <arg name="time_to_max_throttle" default="3.0" doc="Time in seconds to go from 0 to maximum throttle" />
+  <arg name="time_to_max_steering" default="3.0" doc="Time in seconds to go from 0 to maximum steering" />
+  <arg name="use_feed_forward" default="true" doc="Set to true to use the feed-forward model in the PID throttle control" />
+  <arg name="ff_a0" default="0.2856" doc="0th order coeff in the feed-forward model" />
+  <arg name="ff_a1" default="0.0321" doc="1st order coeff in the feed-forward model"/>
+  <arg name="ff_a2" default="0.0" doc="2nd order coeff in the feed-forward model"/>
+  <arg name="max_desired_lateral_g" default="2.5" doc="Controller will limit the speed to try to keep the lateral g-forces under this amount. In fractional units of 9.806 m/s^2" />
+
+  <rosparam file="$(arg waypoints_file)" />
+  <param name="robot_description" command="cat $(arg robot_description_file)" />
+
+  <group if="$(eval env('ROS_DISTRO') =='noetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='melodic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='lunar')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+  <group if="$(eval env('ROS_DISTRO') =='kinetic')"> 
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="state_publisher" />
+  </group>
+
+  <node pkg="tf" name="static_transform_publisher" type="static_transform_publisher" args="0 0 0 0 0 0 1 map odom 10" />
+  <node name="state_publisher" pkg="nature" type="nature_bot_state_publisher_node" />
+
+  <!-- Lidar perception algorithms  -->
+  <node name="perception_node" pkg="nature" type="nature_perception_node" required="true" output="screen">
+    <param name="use_elevation" value="$(arg use_elevation)" />
+    <param name="slope_threshold" value="$(arg slope_threshold)" />
+    <param name="grid_height" value="$(arg grid_height)" />
+    <param name="grid_width" value="$(arg grid_width)" />
+    <param name="grid_llx" value="$(arg grid_llx)" />
+    <param name="grid_lly" value="$(arg grid_lly)" />
+    <param name="grid_res" value="$(arg grid_res)" />
+    <param name="overhead_clearance" value="7.0" />
+    <param name="grid_dilate" value="$(arg grid_dilate)" />
+    <param name="grid_dilate_x" value="$(arg grid_dilate_x)" />
+    <param name="grid_dilate_y" value="$(arg grid_dilate_y)" />
+    <param name="grid_dilate_proportion" value="$(arg grid_dilate_proportion)" />
+    <param name="cull_lidar" value="$(arg cull_lidar)" />
+    <param name="cull_lidar_dist" value="$(arg cull_lidar_dist)" />
+    <param name="warmup_time" value="5.0" />
+    <param name="use_registered" value="$(arg use_registered)"/>
+    <param name="persistent_obstacles" value="$(arg persistent_obstacles)"/>
+    <param name="display" value="$(arg display_type)" />
+    <param name="stitch_lidar_points" value="$(arg stitch_lidar_points)"/>
+    <param name="filter_highest_lidar" value="$(arg filter_highest_lidar)"/>
+    <param name="blanking_distance" value="$(arg blanking_distance)"/>
+    <!--<remap from="/nature/odometry" to="/odometry/filtered"/>
+    <remap from="/nature/points" to="/os_cloud_node/points"/>-->
+  </node>
+
+  <node name="vehicle_control_node" pkg="nature" type="nature_control_node" required="true" output="screen" >
+    <param name="vehicle_wheelbase" value="$(arg vehicle_wheelbase)" />
+    <param name="vehicle_max_steer_angle_degrees" value="$(arg vehicle_max_steer_angle_degrees)" />
+    <param name="steering_coefficient" value="$(arg steering_coefficient)" />
+    <param name="vehicle_speed" value="$(arg vehicle_speed)" />
+    <param name="display" value="$(arg display_type)" />
+    <param name="throttle_coefficient" value="$(arg throttle_coefficient)" />
+    <param name="request_approval" value="$(arg request_approval)" />
+    <param name="throttle_kp" value="$(arg throttle_kp)" />
+    <param name="throttle_ki" value="$(arg throttle_ki)" />
+    <param name="throttle_kd" value="$(arg throttle_kd)" />
+    <param name="ff_a0" value="$(arg ff_a0)" />
+    <param name="ff_a1" value="$(arg ff_a1)" />
+    <param name="ff_a2" value="$(arg ff_a2)" />
+    <param name="time_to_max_brake" value="$(arg time_to_max_brake)" />
+    <param name="time_to_max_steering" value="$(arg time_to_max_steering)" />
+    <param name="time_to_max_throttle" value="$(arg time_to_max_throttle)" />
+    <param name="max_desired_lateral_g" value="$(arg max_desired_lateral_g)" />
+    <!--<remap from="/nature/odometry" to="/odometry/filtered"/> -->
+  </node>
+
+  <!-- -->
+  <node name="global_path_node" pkg="nature" type="nature_global_path_node" required="false" output="screen" >
+    <param name="goal_dist" value="$(arg goal_dist)" />
+    <param name="global_lookahead" value="75.0" />
+    <param name="shutdown_behavior" value="2" />
+    <param name="display" value="$(arg display_type)" />
+    <!--<remap from="/nature/odometry" to="/odometry/filtered"/> -->
+    <remap from="/nature/new_waypoints" to="/nature/enu_waypoints"/>
+  </node>
+  
+
+   <!-- Lat-lon convert algorithm  -->
+  <node name="nature_gps_to_enu_node" pkg="nature" type="nature_gps_to_enu_node" required="true" output="screen">
+    <param name="waypoint_spacing" value="35.0" />
+  </node>
+
+  <node name="local_planner_node" pkg="nature" type="nature_local_planner_node" output="screen" required="true" if="$(eval not arg('use_mpc'))" >
+    <param name="path_look_ahead" value="$(arg path_look_ahead)" />
+    <param name="vehicle_width" value="$(arg vehicle_width)" />
+    <param name="num_paths" value="$(arg num_paths)" />
+    <param name="max_steer_angle" value="$(arg max_steer_angle)" />
+    <param name="output_path_step" value="0.5" />
+    <param name="path_integration_step" value="0.35" />
+    <param name="dilation_factor" value="$(arg dilation_factor)" />
+    <param name="w_c" value="$(arg w_c)" />
+    <param name="w_s" value="$(arg w_s)" />
+    <param name="w_d" value="$(arg w_d)" />
+    <param name="w_r" value="$(arg w_r)" />
+    <param name="w_t" value="$(arg w_t)" />
+    <param name="rate" value="50.0" />
+    <param name="trim_path" value="false" />
+    <param name="use_global_path" value="$(arg use_global_path)" />
+    <param name="use_blend" value="$(arg use_blend)" />
+    <param name="keep_good_path" value="$(arg keep_good_path)" />
+    <param name="cost_vis" value="$(arg cost_vis)" />
+    <param name="cost_vis_text_size" value="$(arg cost_vis_text_size)" />
+    <param name="ignore_coll_before_dist" value="$(arg ignore_coll_before_dist)" />
+    <param name="display" value="$(arg display_type)" />
+    <!--<remap from="/nature/odometry" to="/odometry/filtered"/> -->
+  </node>
+
+  <!-- rosrun rviz rviz -d $(rospack find nature)/rviz/nature.rviz -->
+  <group if="$(eval arg('display_type') == 'rviz' and arg('auto_launch_rviz'))">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find nature)/rviz/nature.rviz" />
+  </group>
+
+  <!-- Uncomment this section to use the MAVS simlator.
+       Must have MAVS built and installed and the 
+       mavs_ros catkin package built. -->
+  
+  <include file="$(find mavs_ros)/launch/mavs_sim_proving_ground.launch">
+    <arg name="cmd_vel_topic_arg" default="nature/cmd_vel" />
+    <arg name="point_cloud_topic_arg" default="nature/points" />
+    <arg name="odometry_topic_arg" default="nature/odometry" />
+  </include>
+ 
+
+</launch>

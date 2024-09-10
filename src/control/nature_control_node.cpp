@@ -179,7 +179,7 @@ int main(int argc, char *argv[]){
   float current_brake_value = 0.0f;
   float current_throttle_value = 0.0f;
   float current_steering_value = 0.0f;
-  bool user_approved = false;
+  //bool user_approved = false;
   nature::node::Rate r(rate);
   nature::utils::vec2 goal;
 
@@ -281,7 +281,7 @@ int main(int argc, char *argv[]){
       next_waypoint_pub->publish(next_waypoint_msg);
     }
 
-    // ask the user if the path looks good and they would like to continue
+    /*// ask the user if the path looks good and they would like to continue
     if (!user_approved && current_run_state==0 && path_rcvd && request_approval){
       std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
 		  bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
@@ -291,7 +291,7 @@ int main(int argc, char *argv[]){
       else{
         break;
       }
-    }
+    }*/
 
 
     n->spin_some();

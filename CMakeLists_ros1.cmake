@@ -214,6 +214,7 @@ nature_sim_test_node
 nature_gps_to_enu_node
 nature_gps_spoof_node
 nature_path_manager_node
+nature_bot_state_publisher_node
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
