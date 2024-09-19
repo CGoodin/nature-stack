@@ -12,13 +12,24 @@ To run the NATURE stack with ROS-2, you must clone the repo then check out the "
 ## Installation
 Clone the repo into your catkin_ws/src directory with the following command.
 ```bash
-$git clone https://github.com/CGoodin/nature-stack.git
+$git clone https://github.com/CGoodin/nature-stack.git nature
 ```
-From the top level catkin_ws directory, type
+
+NATURE can work with ROS or ROS-2, see instructions below.
+
+### ROS-1 Installation
+First, copy the installation files for ROS-1 to the correct name.
+```bash
+$cp CMakeLists_ros1.cmake CmakeLists.txt
+$cp package_ros1.xml package.xml
+```
+
+Next, from the top level catkin_ws directory, type
 ```bash
 $catkin_make install
-
-# Or to build only this package: 
+```
+Or to build only the nature package: 
+```bash
 $catkin_make --only-pkg-with-deps nature
 ```
 
@@ -35,6 +46,37 @@ source ~/catkin_ws/devel/setup.bash
 To test the installation, type
 ```bash
 $roslaunch nature example.launch
+```
+
+### ROS-2 Installation
+First, copy the installation files for ROS-1 to the correct name.
+```bash
+$cp CMakeLists_ros2.cmake CmakeLists.txt
+$cp package_ros2.xml package.xml
+```
+
+Next, from the top level catkin_ws directory, type
+```bash
+$colcon build --symlink-install
+```
+Or to build only the nature package:
+```bash
+$colcon build --packages-select nature --symlink install
+```
+
+__If user-defined workspace with default install spaces:__ Make sure that ```setup.bash``` has been sourced in either the workspace's ```devel``` or ```install``` folder depending on if ```catkin_make``` or ```catkin_make install``` has been used respectively. Though typically this command is added to ```~/.bashrc``` so that it is called on opening a command prompt instead of being issued manually.  
+
+```bash 
+# Can be placed in ~/.bashrc also so does not need to be issued manually
+source ~/<path_to_colcon_workspace>/[install|devel]/setup.bash
+
+# Example on my computer (when built with catkin_make): 
+source ~/ros2_ws/install/setup.bash
+```
+
+To test the installation, type
+```bash
+$ros2 launch nature example.launch.py
 ```
 
 ##  Troubleshooting
