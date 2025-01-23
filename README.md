@@ -6,9 +6,6 @@ For more information about the modules and their capabilities and options, check
 ## Requirements
 Ubuntu 16.04 with [ROS-Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) and a functioning [catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace) are required to build and run this code. 
 
-
-To run the NATURE stack with ROS-2, you must clone the repo then check out the "ros2" branch.
-
 ## Installation
 Clone the repo into your catkin_ws/src directory with the following command.
 ```bash
