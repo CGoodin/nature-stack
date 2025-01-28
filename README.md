@@ -17,7 +17,7 @@ NATURE can work with ROS or ROS-2, see instructions below.
 ### ROS-1 Installation
 First, copy the installation files for ROS-1 to the correct name.
 ```bash
-$cp CMakeLists_ros1.cmake CmakeLists.txt
+$cp CMakeLists_ros1.cmake CMakeLists.txt
 $cp package_ros1.xml package.xml
 ```
 
@@ -48,7 +48,7 @@ $roslaunch nature example.launch
 ### ROS-2 Installation
 First, copy the installation files for ROS-1 to the correct name.
 ```bash
-$cp CMakeLists_ros2.cmake CmakeLists.txt
+$cp CMakeLists_ros2.cmake CMakeLists.txt
 $cp package_ros2.xml package.xml
 ```
 
