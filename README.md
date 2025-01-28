@@ -58,7 +58,7 @@ $colcon build --symlink-install
 ```
 Or to build only the nature package:
 ```bash
-$colcon build --packages-select nature --symlink install
+$colcon build --packages-select nature --symlink-install
 ```
 
 __If user-defined workspace with default install spaces:__ Make sure that ```setup.bash``` has been sourced in either the workspace's ```devel``` or ```install``` folder depending on if ```catkin_make``` or ```catkin_make install``` has been used respectively. Though typically this command is added to ```~/.bashrc``` so that it is called on opening a command prompt instead of being issued manually.  
