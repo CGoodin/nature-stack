@@ -196,7 +196,7 @@ uint8_t ElevationGrid::GetGridCellValue(const Cell & cell) const{
 
 nature::msg::OccupancyGrid ElevationGrid::GetGrid(bool row_major, bool is_segmentation){
   nature::msg::OccupancyGrid grid;
-  grid.header.frame_id = "mapzz";
+  grid.header.frame_id = "map";
   grid.info.resolution = res_;
   grid.info.width = nx_;
   grid.info.height = ny_;
