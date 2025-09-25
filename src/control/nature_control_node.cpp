@@ -220,7 +220,8 @@ int main(int argc, char *argv[]){
       
       controller.SetDesiredSpeed(desired_velocity);
       //controller.SetDesiredSpeed(vehicle_speed);
-      dc = controller.GetDcFromTraj(control_msg, goal);
+      dc = controller.GetDcFromTraj(control_msg, goal);\
+      std::cout<<control_msg.poses.size()<<" "<<goal.x<<" "<<goal.y<<" "<<desired_velocity<<" "<<dc.linear.x<<" "<<dc.linear.y<<" "<<dc.angular.z<<std::endl;
     }
     else if (current_run_state==-1 || current_run_state==1){
       // bring to a smooth stop and wait / idle
