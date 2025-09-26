@@ -106,8 +106,8 @@ int main(int argc, char *argv[])
   {
     //nav_msgs::Path loaded_waypoints;
     current_waypoints.poses.clear();
-    //current_waypoints.header.frame_id = "odom";
-    current_waypoints.header.frame_id = "map";
+    current_waypoints.header.frame_id = "odom";
+    //current_waypoints.header.frame_id = "map";
     for (int32_t i=0;i<num_waypoints;i++){
       nature::msg::PoseStamped pose;
       pose.pose.position.x = static_cast<float>(waypoints_x_list[i]);
@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
       std::vector<std::vector<float>> path = astar_planner.PlanPath(&current_grid, &segmentation_grid, goal, pos);
 
       nature::msg::Path ros_path;
-      //ros_path.header.frame_id = "odom";
-      ros_path.header.frame_id = "map";
+      ros_path.header.frame_id = "odom";
+      //ros_path.header.frame_id = "map";
       ros_path.poses.clear();
       for (int32_t i = 0; i < path.size(); i++){
         nature::msg::PoseStamped pose;

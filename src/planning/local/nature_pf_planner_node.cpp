@@ -101,7 +101,7 @@ int main(int argc, char *argv[]){
       if (new_seg_grid_rcvd) planner.SetSegGrid(segmentation_grid);
       nature::msg::Path local_path = planner.Plan(grid, odom);
 
-      local_path.header.frame_id = "map";
+      local_path.header.frame_id = "odom";
       local_path.header.stamp = n->get_stamp();
       nature::node::set_seq(local_path.header, loop_count);
       path_pub->publish(local_path);
