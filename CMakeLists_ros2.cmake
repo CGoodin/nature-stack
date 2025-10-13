@@ -112,6 +112,15 @@ add_executable(nature_pf_planner_node
 ament_target_dependencies(nature_pf_planner_node ${dependencies})
 target_link_libraries(nature_pf_planner_node ${link_libs} )
 
+add_executable(nature_dwa_planner_node 
+  src/planning/local/nature_dwa_planner_node.cpp 
+  src/planning/local/dwa_planner.cpp
+  src/node/node_proxy.cpp
+  src/visualization/image_visualizer.cpp
+)
+ament_target_dependencies(nature_dwa_planner_node ${dependencies})
+target_link_libraries(nature_dwa_planner_node ${link_libs} )
+
 add_executable(nature_global_path_node 
   src/planning/global/nature_global_path_node.cpp 
   src/planning/global/astar.cpp
@@ -267,6 +276,7 @@ nature_map_publisher_node
 nature_control_node
 nature_local_planner_node
 nature_pf_planner_node
+nature_dwa_planner_node
 nature_global_path_node
 nature_sim_test_node
 #nature_gps_to_enu_node
