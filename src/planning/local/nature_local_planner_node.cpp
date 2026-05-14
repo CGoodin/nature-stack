@@ -221,6 +221,7 @@ int main(int argc, char *argv[]){
                     nature::msg::PoseStamped pose;
                     pose.pose.position.x = point.x;
                     pose.pose.position.y = point.y;
+                    pose.header.frame_id = "odom";
                     local_path.poses.push_back(pose);
                     s0 += output_path_step;
                 }
@@ -231,12 +232,14 @@ int main(int argc, char *argv[]){
                     nature::msg::PoseStamped pose;
                     pose.pose.position.x = path_points[i].x;
                     pose.pose.position.y = path_points[i].y;
+                    pose.header.frame_id = "odom";
                     local_path.poses.push_back(pose);
                 }
             } else {
                 // fallback: hold position
                 nature::msg::PoseStamped pose;
                 pose.pose = odom.pose.pose;
+                pose.header.frame_id = "odom";
                 local_path.poses.push_back(pose);
             }
 
