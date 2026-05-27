@@ -25,9 +25,18 @@ double mrzr_speedometer = 0.0;
 bool speedometer_rcvd = false;
 double mrzr_steering = 0.0;
 bool path_rcvd = false;
+double current_heading = 0.0;
+
+double HeadingFromQuaternion(double qw, double qx, double qy, double qz) {
+    // Yaw (heading) around the Z-axis
+    double siny_cosp = 2.0 * (qw * qz + qx * qy);
+    double cosy_cosp = 1.0 - 2.0 * (qy * qy + qz * qz);
+    return std::atan2(siny_cosp, cosy_cosp);
+}
 
 void OdometryCallback(nature::msg::OdometryPtr rcv_state) {
 	state = *rcv_state; 
+    current_heading = HeadingFromQuaternion(state.pose.pose.orientation.w, state.pose.pose.orientation.x, state.pose.pose.orientation.y, state.pose.pose.orientation.z);
 }
 
 void SpeedCallback(nature::msg::Float64Ptr rcv_speed) {
@@ -194,7 +203,10 @@ int main(int argc, char *argv[]){
       current_steering_value = mrzr_steering;
     }
     else{
-      vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
+        double look_to_x = cos(current_heading);
+        double look_to_y = sin(current_heading);
+        vel = state.twist.twist.linear.x * look_to_x + state.twist.twist.linear.y * look_to_y;
+      //vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
     }
   
     controller.SetVehicleState(state);
@@ -205,9 +217,10 @@ int main(int argc, char *argv[]){
       controller.SetDesiredSpeed(0.0f);
       if (vel<0.5f)time_to_quit = true;
       dc = controller.GetDcFromTraj(control_msg, goal);
-      dc.linear.x = 0.0f;
-      dc.angular.z = 0.0f;
-      dc.linear.y = -1.0f;
+      dc.linear.y *= 2.0; // brake harder when shutting down
+      //dc.linear.x = 0.0f;
+      //dc.angular.z = 0.0f;
+      //dc.linear.y = 0.0f;
     }
     else if (current_run_state==0){    // active running state
       //double max_curvature = GetMaxCurvature(control_msg);
@@ -231,7 +244,7 @@ int main(int argc, char *argv[]){
     else if (current_run_state==3){
       // bring to a hard stop and shut down
       dc.linear.x = 0.0f;
-      dc.linear.y = 1.0f;
+      dc.linear.y = 0.0f;
       dc.angular.z = 0.0f;
       time_to_quit = true;
     }
@@ -258,6 +271,7 @@ int main(int argc, char *argv[]){
       //}
     }
     else{
+        // make sure you don't apply throttle and brake at the same time.
       dc.linear.x = std::max(std::min(dc.linear.x, 1.0),0.0);
       if (dc.linear.x>0.0f)dc.linear.y = 0.0f;
     }
@@ -270,8 +284,13 @@ int main(int argc, char *argv[]){
 
 
     // break the loop when an end state is reached
-    if (time_to_quit)break;
-    
+    if (time_to_quit) {
+        dc.linear.x = 0.0;
+        dc.linear.y = 0.0;
+        dc.angular.z = 0.0;
+        dc_pub->publish(dc);
+        break;
+    }
     if(display_rviz){
       nature::msg::PointStamped next_waypoint_msg;
       next_waypoint_msg.point.x = goal.x;

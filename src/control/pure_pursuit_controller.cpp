@@ -183,7 +183,7 @@ nature::msg::Twist PurePursuitController::GetDcAckermann(float alpha, float look
 	//float throttle = speed_controller_.GetControlVariable(vdot, 0.01f);
 	if (throttle < 0.0f) { //braking
 		dc.linear.x = 0.0f;
-		dc.linear.y = 0.0; //std::max(-1.0f, throttle);
+		dc.linear.y = std::max(-1.0f, throttle);
 	}
 	else {
 		dc.linear.y = 0.0f;
