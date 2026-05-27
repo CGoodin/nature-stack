@@ -68,6 +68,7 @@ int main(int argc, char *argv[]){
     bool trim_path, use_global_path, use_blend;
     std::string display, cost_vis;
     bool keep_good_path;
+    bool use_global_fallback;
     n->get_parameter("~path_look_ahead", path_look_ahead, 5.0f);
     n->get_parameter("~vehicle_width", vehicle_width, 3.0f);
     n->get_parameter("~num_paths", num_paths, 31);
@@ -84,6 +85,7 @@ int main(int argc, char *argv[]){
     n->get_parameter("~ignore_coll_before_dist", ignore_coll_before_dist, 0.0f);
     n->get_parameter("~trim_path", trim_path, false);
     n->get_parameter("~use_global_path", use_global_path, false);
+    n->get_parameter("~use_global_fallback", use_global_fallback, false);
     n->get_parameter("~keep_good_path", keep_good_path, false);
     n->get_parameter("~use_blend", use_blend, true);
     n->get_parameter("~cost_vis", cost_vis, std::string("final"));
@@ -111,8 +113,8 @@ int main(int argc, char *argv[]){
     float path_age = 0.0f;
     float s_old = 0.0f;
     bool old_path_still_good = false;
-
     bool using_global_fallback = false;
+    
     int global_fallback_counter = 0;
     const int global_fallback_max = 5;  // number of loops to use global path
 
@@ -122,7 +124,7 @@ int main(int argc, char *argv[]){
         if (global_path.poses.size() > 0 && odom_rcvd && grid.data.size() > 0){
 
             std::vector<nature::utils::vec2> path_points;
-            if (use_global_path || using_global_fallback){
+            if (use_global_path || (using_global_fallback && use_global_fallback)){
                 for (int i = 0; i < global_path.poses.size(); i++){
                     nature::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
                     path_points.push_back(point);
@@ -136,7 +138,7 @@ int main(int argc, char *argv[]){
             }
 
             nature::planning::Path path;
-            if (trim_path && (use_global_path || using_global_fallback)){
+            if (trim_path && (use_global_path || (using_global_fallback && use_global_fallback))){
                 nature::utils::vec2 current_pos(odom.pose.pose.position.x, odom.pose.pose.position.y);
                 path.Init(path_points, current_pos, 1.5f * path_look_ahead);
             } else {
@@ -208,7 +210,7 @@ int main(int argc, char *argv[]){
                 plotter->AddCurves(paths);
                 plotter->Display();
             }
-
+            
             nature::msg::Path local_path;
             if (path_found){
                 float ds = output_path_step;
@@ -225,7 +227,7 @@ int main(int argc, char *argv[]){
                     local_path.poses.push_back(pose);
                     s0 += output_path_step;
                 }
-            } else if (using_global_fallback){
+            } else if ( using_global_fallback && use_global_fallback ){
                 // fallback: publish next few points from global path
                 int fallback_points = 5;
                 for (int i = 0; i < std::min(fallback_points, (int)path_points.size()); i++){

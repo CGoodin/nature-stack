@@ -208,14 +208,22 @@ int main(int argc, char *argv[]){
         vel = state.twist.twist.linear.x * look_to_x + state.twist.twist.linear.y * look_to_y;
       //vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
     }
-  
+
     controller.SetVehicleState(state);
     controller.SetVehicleSpeed(vel);
 
-    if (shutdown_condition){  // current_run_state = 2 
+    int num_path_poses = control_msg.poses.size();
+    //std::cout << "Num path poses = " << num_path_poses << std::endl;
+    if (num_path_poses <= 1) {
+        //std::cout << "No path, setting desired speed to 0" << std::endl;
+        controller.SetDesiredSpeed(0.0f);
+        dc = controller.GetDcFromTraj(control_msg, goal);
+        dc.linear.y *= 2.0; // brake harder
+    }
+    else if (shutdown_condition){  // current_run_state = 2 
       // bring to a smooth stop and shut down
       controller.SetDesiredSpeed(0.0f);
-      if (vel<0.5f)time_to_quit = true;
+      if (vel<0.1f)time_to_quit = true;
       dc = controller.GetDcFromTraj(control_msg, goal);
       dc.linear.y *= 2.0; // brake harder when shutting down
       //dc.linear.x = 0.0f;
