@@ -71,22 +71,24 @@ int main(int argc, char *argv[]){
     bool use_global_fallback;
     n->get_parameter("~path_look_ahead", path_look_ahead, 5.0f);
     n->get_parameter("~vehicle_width", vehicle_width, 3.0f);
-    n->get_parameter("~num_paths", num_paths, 31);
+    n->get_parameter("~num_paths", num_paths, 5);
     n->get_parameter("~max_steer_angle", max_steer_angle, 0.43f);
     n->get_parameter("~output_path_step", output_path_step, 0.5f);
     n->get_parameter("~path_integration_step", path_int_step, 0.25f);
     n->get_parameter("~dilation_factor", dilation_factor, 0);
-    n->get_parameter("~w_c", w_c, 0.2f);
-    n->get_parameter("~w_d", w_d, 0.2f);
-    n->get_parameter("~w_s", w_s, 0.2f);
-    n->get_parameter("~w_r", w_r, 0.4f);
-    n->get_parameter("~w_t", w_t, 0.0f);
+    n->get_parameter("~w_c", w_c, 0.05f);
+    n->get_parameter("~w_d", w_d, 0.10f);
+    n->get_parameter("~w_s", w_s, 0.60f);
+    n->get_parameter("~w_r", w_r, 0.25f);
+    n->get_parameter("~w_t", w_t, 0.00f);
     n->get_parameter("~rate", rate, 50.0f);
     n->get_parameter("~ignore_coll_before_dist", ignore_coll_before_dist, 0.0f);
     n->get_parameter("~trim_path", trim_path, false);
     n->get_parameter("~use_global_path", use_global_path, false);
+
     n->get_parameter("~use_global_fallback", use_global_fallback, false);
-    n->get_parameter("~keep_good_path", keep_good_path, false);
+    n->get_parameter("~keep_good_path", keep_good_path, true);
+
     n->get_parameter("~use_blend", use_blend, true);
     n->get_parameter("~cost_vis", cost_vis, std::string("final"));
     n->get_parameter("~cost_vis_text_size", cost_vis_text_size, 2.0f);
@@ -232,7 +234,7 @@ int main(int argc, char *argv[]){
                 int fallback_points = 5;
                 for (int i = 0; i < std::min(fallback_points, (int)path_points.size()); i++){
                     nature::msg::PoseStamped pose;
-                    pose.pose.position.x = path_points[i].x;
+                    pose.pose.position.x = path_points[i].x;   
                     pose.pose.position.y = path_points[i].y;
                     pose.header.frame_id = "odom";
                     local_path.poses.push_back(pose);
@@ -243,6 +245,7 @@ int main(int argc, char *argv[]){
                 pose.pose = odom.pose.pose;
                 pose.header.frame_id = "odom";
                 local_path.poses.push_back(pose);
+                pose.header.frame_id = "odom";
             }
 
             local_path.header.frame_id = "odom";

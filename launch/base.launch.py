@@ -1,9 +1,5 @@
 import os
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler, EmitEvent
-from launch.event_handlers import OnProcessExit
-from launch.events import Shutdown
-from launch.substitutions import LaunchConfiguration
-from launch.conditions import IfCondition
+
 import launch.conditions
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -59,17 +55,15 @@ def generate_launch_description():
 
         # Elevation Grid
         DeclareLaunchArgument('use_elevation', default_value='False', description="Elevation grid - To use elevation or slope value when making occupancy grid based on heightmap."),
-        DeclareLaunchArgument('perception_warmup_time', default_value='2.0', description="Time to wait before running the perception module"),
         DeclareLaunchArgument('slope_threshold', default_value='0.5', description="Elevation grid - Threshold within which next waypoint selected."),
-        DeclareLaunchArgument('time_register_window', default_value='0.02', description="Max time diff between odometry and point cloud header message"),
-        DeclareLaunchArgument('grid_height', default_value='200.0', description="Elevation grid - Grid height."),
-        DeclareLaunchArgument('grid_width', default_value='200.0', description="Elevation grid - Grid width."),
-        DeclareLaunchArgument('grid_llx', default_value='-100.0', description="Elevation grid - X coordinate grid bottom left anchor point."),
-        DeclareLaunchArgument('grid_lly', default_value='-100.0', description="Elevation grid - Y coordinate grid bottom left anchor point."),
+        DeclareLaunchArgument('grid_height', default_value='400.0', description="Elevation grid - Grid height."),
+        DeclareLaunchArgument('grid_width', default_value='400.0', description="Elevation grid - Grid width."),
+        DeclareLaunchArgument('grid_llx', default_value='-200.0', description="Elevation grid - X coordinate grid bottom left anchor point."),
+        DeclareLaunchArgument('grid_lly', default_value='-200.0', description="Elevation grid - Y coordinate grid bottom left anchor point."),
         DeclareLaunchArgument('grid_res', default_value='0.5', description="Elevation grid - Grid resolution in meters."),
         DeclareLaunchArgument('grid_dilate', default_value='False', description="Elevation grid - Whether or not to apply dilation."),
-        DeclareLaunchArgument('grid_dilate_x', default_value='2.0', description="Elevation grid - Amount of dilation in x."),
-        DeclareLaunchArgument('grid_dilate_y', default_value='2.0', description="Elevation grid - Amount of dilation in y."),
+        DeclareLaunchArgument('grid_dilate_x', default_value='1.0', description="Elevation grid - Amount of dilation in x."),
+        DeclareLaunchArgument('grid_dilate_y', default_value='1.0', description="Elevation grid - Amount of dilation in y."),
         DeclareLaunchArgument('grid_dilate_proportion', default_value='0.8', description="Elevation grid - Proportion of original grid cell to dilate with."),
         DeclareLaunchArgument('cull_lidar', default_value='False', description="Elevation grid - Cull lidar points flag based on distance from odometry."),
         DeclareLaunchArgument('cull_lidar_dist', default_value='90.0', description="Elevation grid - Distance used to cull lidar points"),
@@ -82,16 +76,16 @@ def generate_launch_description():
         DeclareLaunchArgument('goal_dist', default_value='5.0', description="Global planner - Lookahead threshold within which next waypoint selected."),
 
         # Local Planner
-        DeclareLaunchArgument('num_paths', default_value='21', description="Local planner - Number of candidate paths to be generated."),
-        DeclareLaunchArgument('path_look_ahead', default_value='30.0', description="Local planner - Planning horizon."),
+        DeclareLaunchArgument('num_paths', default_value='5', description="Local planner - Number of candidate paths to be generated."),
+        DeclareLaunchArgument('path_look_ahead', default_value='5.0', description="Local planner - Planning horizon."),
         DeclareLaunchArgument('vehicle_width', default_value='3.0', description="Local planner - Vehicle width."),
         DeclareLaunchArgument('max_steer_angle', default_value='0.5', description="Local planner - Maximum steer angle in radians. Used to compute rho_max during local planning."),
         DeclareLaunchArgument('dilation_factor', default_value='1', description="Local planner - Dilation to costmap to apply during local planning only."),
-        DeclareLaunchArgument('w_c', default_value='0.0', description="Local planner - w_c conformability (minimize curvature) weighting factor"),
-        DeclareLaunchArgument('w_s', default_value='0.4', description="Local planner - w_s static safety (avoid collisions) weighting factor"),
-        DeclareLaunchArgument('w_d', default_value='0.0', description="Local planner - w_d dynamic safety weighting factor"),
-        DeclareLaunchArgument('w_r', default_value='0.2', description="Local planner - w_r rho (minimize rho offset) weighting factor"),
-        DeclareLaunchArgument('w_t', default_value='0.0', description="Local planner - w_t segmentation cost weight"),
+        DeclareLaunchArgument('w_c', default_value='0.05', description="Local planner - w_c conformability (minimize curvature) weighting factor"),
+        DeclareLaunchArgument('w_s', default_value='0.1', description="Local planner - w_s static safety (avoid collisions) weighting factor"),
+        DeclareLaunchArgument('w_d', default_value='0.60', description="Local planner - w_d dynamic safety weighting factor"),
+        DeclareLaunchArgument('w_r', default_value='0.25', description="Local planner - w_r rho (minimize rho offset) weighting factor"),
+        DeclareLaunchArgument('w_t', default_value='0.00', description="Local planner - w_t segmentation cost weight"),
         DeclareLaunchArgument('use_global_path', default_value='True', description="Local planner - Whether local planner should use path output from global planner for its road centerline or use simple line connecting waypoints"),
         DeclareLaunchArgument('use_global_fallback', default_value='False', description="Local planner - If the local planner fails to find a valid path, should it just republish the global path? If False, it will publish an empty path"),
         DeclareLaunchArgument('use_blend', default_value='False', description="Local planner - Whether or not to apply blending with adjacent candidate paths during planning"),
@@ -148,7 +142,7 @@ def generate_launch_description():
                 'grid_llx': launch.substitutions.LaunchConfiguration('grid_llx'),
                 'grid_lly': launch.substitutions.LaunchConfiguration('grid_lly'),
                 'grid_res': launch.substitutions.LaunchConfiguration('grid_res'),
-                'overhead_clearance': 7.0,
+                'overhead_clearance': 1.0,
                 'grid_dilate': launch.substitutions.LaunchConfiguration('grid_dilate'),
                 'grid_dilate_x': launch.substitutions.LaunchConfiguration('grid_dilate_x'),
                 'grid_dilate_y': launch.substitutions.LaunchConfiguration('grid_dilate_y'),
@@ -156,9 +150,8 @@ def generate_launch_description():
                 'cull_lidar': launch.substitutions.LaunchConfiguration('cull_lidar'),
                 'cull_lidar_dist': launch.substitutions.LaunchConfiguration('cull_lidar_dist'),
                 'blanking_distance': launch.substitutions.LaunchConfiguration('blanking_distance'),
-                'warmup_time': launch.substitutions.LaunchConfiguration('perception_warmup_time'),
+                'warmup_time': 5.0,
                 'use_registered': launch.substitutions.LaunchConfiguration('use_registered'),
-                'time_register_window': launch.substitutions.LaunchConfiguration('time_register_window'),
                 'display': display_type,
                 'stitch_lidar_points': launch.substitutions.LaunchConfiguration('stitch_lidar_points'),
                 'filter_highest_lidar': launch.substitutions.LaunchConfiguration('filter_highest_lidar')
@@ -182,12 +175,12 @@ def generate_launch_description():
                 'max_desired_lateral_g': launch.substitutions.LaunchConfiguration('max_desired_lateral_g'),
             }],
         ),
-        
         Node(
             package='nature',
             executable='nature_global_path_node',
             name='nature_global_path_node',
             output='screen',
+            #on_exit=launch.actions.Shutdown(), #Wasn't in the original launch. If you want it to continue without exiting, then remove this line/comment it out
             parameters=[{
                 'goal_dist': launch.substitutions.LaunchConfiguration('goal_dist'),
                 'global_lookahead': 75.0,
@@ -198,7 +191,6 @@ def generate_launch_description():
                 '/is_empty_waypoints': launch.substitutions.LaunchConfiguration('is_empty_waypoints'),
             }],
         ),
-
         Node(
             package='nature',
             executable='nature_local_planner_node',
@@ -228,7 +220,6 @@ def generate_launch_description():
                 'display': display_type,
             }],
         ),
-
         Node(
             package='rviz2',
             executable='rviz2',
