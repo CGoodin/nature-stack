@@ -25,7 +25,8 @@ Copyright 2022 (C) Mississippi State University
 #include <limits>
 #include <vector>
 // ros includes
-#include "nav_msgs/OccupancyGrid.h"
+//#include "nav_msgs/OccupancyGrid.h"
+#include "nature/node/ros_types.h"
 // project includes
 #include "nature/perception/ftte/vehicle.h"
 #include "nature/perception/ftte/traverse_cell.h"
@@ -55,7 +56,7 @@ public:
 
 	void SaveSlicePlot(std::string fname);
 
-	nav_msgs::OccupancyGrid GetTraversabilityAsOccupancyGrid(bool row_major);
+	nature::msg::OccupancyGrid GetTraversabilityAsOccupancyGrid(bool row_major);
 	
 	void WriteStats(std::string fname);
 

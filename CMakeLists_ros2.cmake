@@ -25,6 +25,7 @@ else()
 set (link_libs
 ${OpenCV_LIBS}
 X11
+gomp
 )
 endif()
 
@@ -73,6 +74,16 @@ src/perception/elevation_grid.cpp
 src/node/node_proxy.cpp
 )
 ament_target_dependencies(nature_perception_node ${dependencies})
+add_executable(nature_ftte_node
+src/perception/ftte/nature_ftte_node.cpp
+src/perception/ftte/voxel_grid.cpp
+src/perception/ftte/vehicle.cpp
+src/perception/ftte/matrix.cpp
+src/perception/ftte/moreland.cpp
+src/node/node_proxy.cpp
+)
+ament_target_dependencies(nature_ftte_node ${dependencies})
+target_link_libraries(nature_ftte_node ${link_libs} )
 
 add_executable(nature_map_publisher_node 
 src/perception/nature_map_publisher_node.cpp 
@@ -263,6 +274,7 @@ install(DIRECTORY
 
 install(TARGETS
 nature_perception_node
+nature_ftte_node
 nature_map_publisher_node
 nature_control_node
 nature_local_planner_node

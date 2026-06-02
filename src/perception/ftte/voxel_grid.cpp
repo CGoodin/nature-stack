@@ -1054,8 +1054,8 @@ bool VoxelGrid::LineBoxIntersect(glm::vec2 origin, glm::vec2 endpoint, glm::ivec
 	return false;
 }
 
-nav_msgs::OccupancyGrid VoxelGrid::GetTraversabilityAsOccupancyGrid(bool row_major) {
-	nav_msgs::OccupancyGrid grid;
+nature::msg::OccupancyGrid VoxelGrid::GetTraversabilityAsOccupancyGrid(bool row_major) {
+	nature::msg::OccupancyGrid grid;
 	grid.data.resize(dim_.x*dim_.y, 0);
 	int n = 0;
 	if (row_major){
