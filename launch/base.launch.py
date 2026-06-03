@@ -69,7 +69,7 @@ def generate_launch_description():
         DeclareLaunchArgument('cull_lidar_dist', default_value='90.0', description="Elevation grid - Distance used to cull lidar points"),
         DeclareLaunchArgument('blanking_distance', default_value='2.0', description="Elevation grid - Distances less than this are ignored. Keeps points from the vehicle from being reported"),
         DeclareLaunchArgument('use_registered', default_value='True', description="Elevation grid - If true, assumes lidar points are in world coordinates. Else assumes in robot odom coordinates."),
-        DeclareLaunchArgument('stitch_lidar_points', default_value='True', description="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."),
+        DeclareLaunchArgument('stitch_lidar_points', default_value='False', description="Elevation grid - If true, lidar scans will be stitched together. Else, each point cloud 2 message will be independent and the grid will be cleared between messages."),
         DeclareLaunchArgument('filter_highest_lidar', default_value='False', description="Elevation grid - If true, the highest point in each cell will be ignored and the second highest will be used for the slope calculations. If false, the highest point will be used."),
 
         # Global Planner
@@ -183,7 +183,7 @@ def generate_launch_description():
             #on_exit=launch.actions.Shutdown(), #Wasn't in the original launch. If you want it to continue without exiting, then remove this line/comment it out
             parameters=[{
                 'goal_dist': launch.substitutions.LaunchConfiguration('goal_dist'),
-                'global_lookahead': 75.0,
+                'global_lookahead': 5.0,
                 'shutdown_behavior': 2,
                 'display': display_type,
                 '/waypoints_x': launch.substitutions.LaunchConfiguration('waypoints_x'),
