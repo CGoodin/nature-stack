@@ -9,7 +9,7 @@
  * 
  * \date 9/1/2020
  */
-
+#include <limits>
 // ros includes
 #include "nature/node/ros_types.h"
 #include "nature/node/node_proxy.h"
@@ -78,8 +78,9 @@ int main(int argc, char *argv[])
 
   std::vector<float> goal;
   goal.resize(2, 0.0f);
-
+  double timeout = std::numeric_limits<double>::max();
   n->get_parameter("~goal_dist", goal_dist, 3.0f);
+  n->get_parameter("~timeout", timeout, std::numeric_limits<double>::max());
   n->get_parameter("~display", display_type, nature::visualization::default_display);
   n->get_parameter("~global_lookahead", global_lookahead, 50.0f);
   n->get_parameter("/waypoints_x", waypoints_x_list, std::vector<double>(0));
@@ -135,8 +136,18 @@ int main(int argc, char *argv[])
   int current_waypoint = 0;
   int shutdown_count = 0;
   bool waypoints_change_once = true;
+  // calculate initial start time
+  nature::msg::PointStamped start_point_stamp;
+  start_point_stamp.header.stamp = n->get_stamp();
+  double elapsed_time = 0.0;
   //while (nature::node::ok() && !goal_reached){
-  while (nature::node::ok()){
+  while (nature::node::ok() && (elapsed_time<timeout)){
+    // add calculation of the total elapsed time 
+    nature::msg::PointStamped current_point_stamp;
+    current_point_stamp.header.stamp = n->get_stamp();
+    elapsed_time = nature::node::seconds_from_header(current_point_stamp.header) - nature::node::seconds_from_header(start_point_stamp.header);
+
+    // publish the current state
     state_pub->publish(state);
     if (waypoints_rcvd && waypoints_change_once) {
       // process a new set of waypoints

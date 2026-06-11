@@ -2,7 +2,7 @@ import os
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler, EmitEvent
 from launch.event_handlers import OnProcessExit
 from launch.events import Shutdown
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition
 import launch.conditions
 from ament_index_python.packages import get_package_share_directory
@@ -50,7 +50,38 @@ def generate_launch_description():
 
     rviz_config_path = os.path.join(get_package_share_directory('nature'), 'rviz', 'nature_ros2.rviz')
 
+    global_path_node = Node(
+        package='nature',
+        executable='nature_global_path_node',
+        name='nature_global_path_node',
+        output='screen',
+        parameters=[{
+            'use_sim_time': PythonExpression([use_sim_time]),
+            'goal_dist': LaunchConfiguration('goal_dist'),
+            'global_lookahead': 75.0,
+            'shutdown_behavior': 2,
+            'display': display_type,
+            '/waypoints_x': LaunchConfiguration('waypoints_x'),
+            '/waypoints_y': LaunchConfiguration('waypoints_y'),
+            '/is_empty_waypoints': LaunchConfiguration('is_empty_waypoints'),
+            'timeout': PythonExpression([LaunchConfiguration('timeout')]),
+        }],
+    )
+
+    # 2. Define the event handler referencing global_path_node
+    shutdown_handler = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=global_path_node,
+            on_exit=[
+                EmitEvent(event=Shutdown(reason='Required node inside base exited'))
+            ]
+        ),
+        condition=IfCondition(LaunchConfiguration('shutdown_on_node_exit'))
+    )
+
     launch_description = LaunchDescription([
+        DeclareLaunchArgument('shutdown_on_node_exit', default_value='True', description="If True, shutting down the designated node kills the job"),        
+
         DeclareLaunchArgument('use_sim_time', default_value='False'),
         DeclareLaunchArgument('auto_launch_rviz', default_value='False', description="Automatically launch rviz display window"),
         DeclareLaunchArgument('display_type', default_value='rviz', description="Type of display method to use. Values = [rviz, image]"),
@@ -80,6 +111,7 @@ def generate_launch_description():
 
         # Global Planner
         DeclareLaunchArgument('goal_dist', default_value='5.0', description="Global planner - Lookahead threshold within which next waypoint selected."),
+        DeclareLaunchArgument('timeout', default_value='3600.0', description="Max TOTAL time the global planner can run before shutting down, in seconds."),
 
         # Local Planner
         DeclareLaunchArgument('num_paths', default_value='21', description="Local planner - Number of candidate paths to be generated."),
@@ -124,23 +156,26 @@ def generate_launch_description():
             executable='robot_state_publisher',
             name='robot_state_publisher',
             output='screen',
-            parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_description}]
+            parameters=[{'use_sim_time': PythonExpression([use_sim_time]), 'robot_description': robot_description}]
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='static_transform_publisher',
-            arguments=["0", "0", "0", "0", "0", "0", "map", "odom"]),
+            arguments=["0", "0", "0", "0", "0", "0", "map", "odom"],
+            parameters=[{'use_sim_time': PythonExpression([use_sim_time])}]),
         Node(
             package='nature',
             executable='nature_bot_state_publisher_node',
-            name='state_publisher'),
+            name='state_publisher',
+            parameters=[{'use_sim_time': PythonExpression([use_sim_time])}]),
         Node(
             package='nature',
             executable='nature_perception_node',
             name='perception_node',
             output='screen',
             parameters=[{
+                'use_sim_time': PythonExpression([use_sim_time]),
                 'use_elevation': launch.substitutions.LaunchConfiguration('use_elevation'),
                 'slope_threshold': launch.substitutions.LaunchConfiguration('slope_threshold'),
                 'grid_height': launch.substitutions.LaunchConfiguration('grid_height'),
@@ -170,6 +205,7 @@ def generate_launch_description():
             name='vehicle_control_node',
             output='screen',
             parameters=[{
+                'use_sim_time': PythonExpression([use_sim_time]),
                 'vehicle_wheelbase': launch.substitutions.LaunchConfiguration('vehicle_wheelbase'),
                 'vehicle_max_steer_angle_degrees': launch.substitutions.LaunchConfiguration('vehicle_max_steer_angle_degrees'),
                 'steering_coefficient': launch.substitutions.LaunchConfiguration('steering_coefficient'),
@@ -183,21 +219,9 @@ def generate_launch_description():
             }],
         ),
         
-        Node(
-            package='nature',
-            executable='nature_global_path_node',
-            name='nature_global_path_node',
-            output='screen',
-            parameters=[{
-                'goal_dist': launch.substitutions.LaunchConfiguration('goal_dist'),
-                'global_lookahead': 75.0,
-                'shutdown_behavior': 2,
-                'display': display_type,
-                '/waypoints_x': launch.substitutions.LaunchConfiguration('waypoints_x'),
-                '/waypoints_y': launch.substitutions.LaunchConfiguration('waypoints_y'),
-                '/is_empty_waypoints': launch.substitutions.LaunchConfiguration('is_empty_waypoints'),
-            }],
-        ),
+         # 4. Inject the created node and handler variables right inside the array
+        global_path_node,
+        shutdown_handler,
 
         Node(
             package='nature',
@@ -205,6 +229,7 @@ def generate_launch_description():
             name='local_planner_node',
             output='screen',
             parameters=[{
+                'use_sim_time': PythonExpression([use_sim_time]),
                 'path_look_ahead': launch.substitutions.LaunchConfiguration('path_look_ahead'),
                 'vehicle_width': launch.substitutions.LaunchConfiguration('vehicle_width'),
                 'num_paths': launch.substitutions.LaunchConfiguration('num_paths'),
