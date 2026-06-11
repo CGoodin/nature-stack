@@ -26,6 +26,13 @@ def generate_launch_description():
         description='Vehicle speed (m/s)'
     )
     
+    bag_name = LaunchConfiguration('bag_name')
+    bag_name_arg = DeclareLaunchArgument(
+        'bag_name',
+        default_value='mavs_odoa_rosbag',
+        description='bag name for the recording'
+    )
+    
     ystart = random.uniform(-0.5, 0.5)
     headstart = math.radians(random.uniform(-5.0,5.0))    
 
@@ -205,23 +212,12 @@ def generate_launch_description():
     #    description='Set to "true" to log topics to an MCAP bag file.'
     #)
     
-    # 1. Create a timestamped unique directory name for the bag
-    #timestamp = datetime.now().strftime('%Y_%m_%d-%H_%M_%S')
-    bag_name = "mavs_odoa_rosbag" #f"mavs_davs_rosbag_{timestamp}"
-     # 2. Define launch configurations
-    bag_name_arg = DeclareLaunchArgument(
-        'bag_name',
-        default_value='mavs_odoa_rosbag',
-        description='bag name for the recording'
-    )
-    
-    # 3. Configure the mcap recorder process
-    # Replace '--all' with specific topics like ['/cmd_vel', '/odom'] if preferred
+    # Configure the mcap recorder process
     mcap_recorder = ExecuteProcess(
         cmd=[
             'ros2', 'bag', 'record',
             '-s', 'mcap', 
-            '-o', bag_name,
+            '-o', [bag_name],
             '--all'
         ],
         output='screen',
@@ -243,14 +239,14 @@ def generate_launch_description():
 
     launch_description = LaunchDescription([
         vehicle_speed_arg,
+        bag_name_arg,
         mavs_vehicle,
         mavs_lidar,
         mavs_camera,
         mavs_gps,
         base_launch,
         global_path_shutdown_handler,
-        bag_name_arg,
-        LogInfo(msg=f"Starting MCAP recording session. Saving to: {bag_name}"),
+        LogInfo(msg=["Starting MCAP recording session. Saving to: ", bag_name]),
         mcap_recorder
     ])
 
