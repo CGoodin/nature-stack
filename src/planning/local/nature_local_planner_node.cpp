@@ -25,6 +25,15 @@ bool odom_rcvd = false;
 bool new_grid_rcvd = false;
 bool new_seg_grid_rcvd = false;
 
+nature::msg::Path nav2_escape_path;
+bool escape_mode_active = false;
+
+void EscapePathCallback(nature::msg::PathPtr rcv_path){
+    nav2_escape_path = *rcv_path;
+    escape_mode_active = true;
+    std::cout << "[Local Planner] Received Nav2 Escape Path! Yielding control..." << std::endl;
+}
+
 void OdometryCallback(nature::msg::OdometryPtr rcv_odom){
     odom = *rcv_odom;
     odom_rcvd = true;
@@ -59,6 +68,7 @@ int main(int argc, char *argv[]){
     auto segmentation_grid_sub = n->create_subscription<nature::msg::OccupancyGrid>("nature/segmentation_grid", 10, SegmentationGridCallback);
     auto path_sub = n->create_subscription<nature::msg::Path>("nature/global_path", 10, PathCallback);
     auto wp_sub = n->create_subscription<nature::msg::Path>("nature/waypoints", 10, WaypointCallback);
+    auto escape_sub = n->create_subscription<nature::msg::Path>("nature/nav2_escape_path", 10, EscapePathCallback);
 
     nature::planning::Planner planner;
     // planner params
@@ -124,7 +134,47 @@ int main(int argc, char *argv[]){
         if (global_path.poses.size() > 0 && odom_rcvd && grid.data.size() > 0){
 
             std::vector<nature::utils::vec2> path_points;
-            if (use_global_path || (using_global_fallback && use_global_fallback)){
+
+            if (escape_mode_active && nav2_escape_path.poses.size() > 0) {
+                
+                // 1. Check distance to goal (Updated to 20.0 meters per your request)
+                auto final_pose = nav2_escape_path.poses.back().pose.position;
+                double dist_to_goal = sqrt(pow(final_pose.x - odom.pose.pose.position.x, 2) + 
+                                           pow(final_pose.y - odom.pose.pose.position.y, 2));
+
+                if (dist_to_goal < 20.0) { 
+                    std::cout << "[Local Planner] Escape route complete (within 20m). Resuming normal operations." << std::endl;
+                    escape_mode_active = false;
+                    nav2_escape_path.poses.clear(); 
+                    
+                    // Fall back to original waypoint logic for this frame so we don't crash
+                    for (int i = 0; i < waypoints.poses.size(); i++){
+                        nature::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
+                        path_points.push_back(point);
+                    }
+                } else {
+                    // 2. We are escaping! Feed the Nav2 path into the local Spline generator
+                    for (int i = 0; i < nav2_escape_path.poses.size(); i++){
+                        nature::utils::vec2 point(nav2_escape_path.poses[i].pose.position.x, nav2_escape_path.poses[i].pose.position.y);
+                        path_points.push_back(point);
+                    }
+                }
+            }
+            // --- STANDARD BEHAVIOR ---
+            else if (use_global_path || (using_global_fallback && use_global_fallback)){
+                for (int i = 0; i < global_path.poses.size(); i++){
+                    nature::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
+                    path_points.push_back(point);
+                }
+            }
+            else {
+                for (int i = 0; i < waypoints.poses.size(); i++){
+                    nature::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
+                    path_points.push_back(point);
+                }
+            }
+
+            /*if (use_global_path || (using_global_fallback && use_global_fallback)){
                 for (int i = 0; i < global_path.poses.size(); i++){
                     nature::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
                     path_points.push_back(point);
@@ -135,7 +185,7 @@ int main(int argc, char *argv[]){
                     nature::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
                     path_points.push_back(point);
                 }
-            }
+            }*/
 
             nature::planning::Path path;
             if (trim_path && (use_global_path || (using_global_fallback && use_global_fallback))){
