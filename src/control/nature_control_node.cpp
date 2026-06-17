@@ -11,6 +11,7 @@
  * \date 7/13/2018
  */
 #include <iostream>
+#include "std_msgs/msg/bool.hpp"
 #include "nature/node/ros_types.h"
 #include "nature/node/node_proxy.h"
 //nature includes
@@ -100,6 +101,8 @@ int main(int argc, char *argv[]){
   auto n = nature::node::init_node(argc,argv,"nature_control_node");
 
   auto dc_pub = n->create_publisher<nature::msg::Twist>("nature/cmd_vel",1);
+
+  auto stop_alert_pub = n->create_publisher<std_msgs::msg::Bool>("/nature/vehicle_stop_alert", 1);
 
   auto path_sub = n->create_subscription<nature::msg::Path>("nature/local_path",1, PathCallback);
 
@@ -192,6 +195,11 @@ int main(int argc, char *argv[]){
   nature::node::Rate r(rate);
   nature::utils::vec2 goal;
 
+  // NEW VARIABLES: Track how long we've been stopped
+  float stopped_timer = 0.0f;
+  bool stop_warning_published = false;
+  bool has_moved = false;
+
   while (nature::node::ok()){
     nature::msg::Twist dc;
     bool time_to_quit = false;
@@ -209,12 +217,97 @@ int main(int argc, char *argv[]){
       //vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
     }
 
+    if (!has_moved && std::abs(vel) > 0.5f) {
+        has_moved = true;
+    }
+
+
     controller.SetVehicleState(state);
     controller.SetVehicleSpeed(vel);
 
     int num_path_poses = control_msg.poses.size();
     //std::cout << "Num path poses = " << num_path_poses << std::endl;
+    
     if (num_path_poses <= 1) {
+        //std::cout << "No path, setting desired speed to 0" << std::endl;
+        dc.linear.x = 0.0f;
+        dc.angular.z = 0.0f;
+        /*controller.SetDesiredSpeed(0.0f);
+        dc = controller.GetDcFromTraj(control_msg, goal);
+        dc.linear.y *= 2.0; // brake harder*/
+
+        // Prevent reversing: Only apply brake IF we are actively moving forward.
+        // Once stopped (vel drops below 0.1), switch to neutral to prevent backing up.
+        if (vel > 0.1f) {
+            dc.linear.y = -1.0f;  // Hard Brake
+        } else {
+            dc.linear.y = 0.0f;   // Neutral (coasting/stopped)
+        }
+
+
+        // Timer Logic: Check if the vehicle has physically stopped
+        if (has_moved && std::abs(vel) < 0.1f) {
+            stopped_timer += dt; // Accumulate time using your existing dt step
+            
+            // If stopped for 10 seconds and warning hasn't been sent yet
+            if (stopped_timer >= 10.0f && !stop_warning_published) {
+                // Using standard ROS 2 logger. Adjust n->get_logger() if your wrapper uses a different accessor.
+                RCLCPP_WARN(n->get_logger(), "Vehicle has been stopped for 10 seconds. Publishing alert!");
+
+                //Publish the true alert
+                std_msgs::msg::Bool alert_msg;
+                alert_msg.data = true;
+                stop_alert_pub->publish(alert_msg);
+                
+                // Set flag to true so we only publish this once per stop event
+                stop_warning_published = true; 
+            }
+        } else {
+            // Vehicle is still decelerating, keep timer at 0
+            stopped_timer = 0.0f;
+        }
+    }
+    else {
+        // Reset the timer and flag as soon as we receive a valid path
+        if (stop_warning_published) {
+            // Optional: Publish 'false' to let the other node know the vehicle is moving again
+            std_msgs::msg::Bool alert_msg;
+            alert_msg.data = false;
+            stop_alert_pub->publish(alert_msg);
+        }
+
+        stopped_timer = 0.0f;
+        stop_warning_published = false;
+
+        // ... Keep your existing else-if chain here ...
+        if (shutdown_condition) {  // current_run_state = 2 
+            // bring to a smooth stop and shut down
+            controller.SetDesiredSpeed(0.0f);
+            if (vel<0.1f)time_to_quit = true;
+            dc = controller.GetDcFromTraj(control_msg, goal);
+            dc.linear.y *= 2.0; // brake harder when shutting down
+        }
+        else if (current_run_state==0) {    // active running state
+            float desired_velocity = vehicle_speed;
+            controller.SetDesiredSpeed(desired_velocity);
+            dc = controller.GetDcFromTraj(control_msg, goal);
+        }
+        else if (current_run_state==-1 || current_run_state==1) {
+            // bring to a smooth stop and wait / idle
+            controller.SetDesiredSpeed(0.0f);
+            dc = controller.GetDcFromTraj(control_msg, goal);
+            if (current_run_state==-1)dc.linear.x = 0.0f;
+        }
+        else if (current_run_state==3) {
+            // bring to a hard stop and shut down
+            dc.linear.x = 0.0f;
+            dc.linear.y = 0.0f;
+            dc.angular.z = 0.0f;
+            time_to_quit = true;
+        }
+    }
+    
+    /*if (num_path_poses <= 1) {
         //std::cout << "No path, setting desired speed to 0" << std::endl;
         controller.SetDesiredSpeed(0.0f);
         dc = controller.GetDcFromTraj(control_msg, goal);
@@ -255,7 +348,7 @@ int main(int argc, char *argv[]){
       dc.linear.y = 0.0f;
       dc.angular.z = 0.0f;
       time_to_quit = true;
-    }
+    }*/
 
     if (!skid_steered){
       // check braking and throttle

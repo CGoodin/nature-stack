@@ -222,6 +222,7 @@ int main(int argc, char *argv[]) {
 			nature::msg::OccupancyGrid grd;
       		grd = grid.GetGrid();
 			grd.header.stamp = n->get_stamp();
+			grd.header.frame_id = "odom";
 			grid_pub->publish(grd);
 
 			if(grid.has_segmentation()){

@@ -134,19 +134,22 @@ int main(int argc, char *argv[])
   int nl = 0;
   int current_waypoint = 0;
   int shutdown_count = 0;
-  bool waypoints_change_once = true;
+  //bool waypoints_change_once = true;
   //while (nature::node::ok() && !goal_reached){
   while (nature::node::ok()){
     state_pub->publish(state);
-    if (waypoints_rcvd && waypoints_change_once) {
+    if (waypoints_rcvd) {
       // process a new set of waypoints
       // TODO: find closest point along path -  we probably don't want to reverse back to start point if we're past it.
       current_waypoint = 0;
       goal[0] = current_waypoints.poses[current_waypoint].pose.position.x;
       goal[1] = current_waypoints.poses[current_waypoint].pose.position.y;
       std::cout << "New waypoints! Updated goal " << goal[0] << ", " << goal[1] << std::endl;
-      //waypoints_rcvd = false;
-      waypoints_change_once = false;
+      waypoints_rcvd = false;
+
+      shutdown_condition = false;
+
+      //waypoints_change_once = false;
       state.data = 0;  // go active
       state_pub->publish(state);
     }
@@ -156,7 +159,14 @@ int main(int argc, char *argv[])
       pos.push_back(odom.pose.pose.position.x);
       pos.push_back(odom.pose.pose.position.y);
 
-      std::vector<std::vector<float>> path = astar_planner.PlanPath(&current_grid, &segmentation_grid, goal, pos);
+      std::vector<std::vector<float>> path;
+      if (!shutdown_condition) {
+        // Only plan a path if we haven't reached the final goal yet
+        path = astar_planner.PlanPath(&current_grid, &segmentation_grid, goal, pos);
+      } else {
+        // If we reached the goal, the "path" is just staying exactly where we are
+        path.push_back(pos);
+      }
 
       nature::msg::Path ros_path;
       ros_path.header.frame_id = "odom";
@@ -221,8 +231,10 @@ int main(int argc, char *argv[])
           shutdown_condition = true;
           state.data = shutdown_behavior; // request shutdown behavior
           state_pub->publish(state);
-          shutdown_count++;
-          if (shutdown_count>10) break;
+        }
+        else {
+          state.data = 0; // still active approaching the final goal
+          state_pub->publish(state);
         }
       }
       else{     // intermediate waypoint
