@@ -1,26 +1,13 @@
-/**
- * \file nature_control_node.cpp
- *
- * ROS node to subsribe to a trajectory message and 
- * convert it to a driving command using the pure-pursuit algorithm
- * 
- * \author Chris Goodin
- *
- * \contact cgoodin@cavs.msstate.edu
- * 
- * \date 7/13/2018
- */
 #include <iostream>
 #include "std_msgs/msg/bool.hpp"
 #include "nature/node/ros_types.h"
 #include "nature/node/node_proxy.h"
-//nature includes
 #include "nature/control/pure_pursuit_controller.h"
 #include "nature/control/tinyfiledialogs.h"
 
 nature::msg::Path control_msg;
 nature::msg::Odometry state;
-int current_run_state = -1;   // startup state
+int current_run_state = -1;   
 bool shutdown_condition = false;
 double mrzr_speedometer = 0.0;
 bool speedometer_rcvd = false;
@@ -29,24 +16,23 @@ bool path_rcvd = false;
 double current_heading = 0.0;
 
 double HeadingFromQuaternion(double qw, double qx, double qy, double qz) {
-    // Yaw (heading) around the Z-axis
     double siny_cosp = 2.0 * (qw * qz + qx * qy);
     double cosy_cosp = 1.0 - 2.0 * (qy * qy + qz * qz);
     return std::atan2(siny_cosp, cosy_cosp);
 }
 
 void OdometryCallback(nature::msg::OdometryPtr rcv_state) {
-	state = *rcv_state; 
-    current_heading = HeadingFromQuaternion(state.pose.pose.orientation.w, state.pose.pose.orientation.x, state.pose.pose.orientation.y, state.pose.pose.orientation.z);
+  state = *rcv_state; 
+  current_heading = HeadingFromQuaternion(state.pose.pose.orientation.w, state.pose.pose.orientation.x, state.pose.pose.orientation.y, state.pose.pose.orientation.z);
 }
 
 void SpeedCallback(nature::msg::Float64Ptr rcv_speed) {
-	mrzr_speedometer = rcv_speed->data;
+  mrzr_speedometer = rcv_speed->data;
   speedometer_rcvd = true; 
 }
 
 void SteeringCallback(nature::msg::Float64Ptr rcv_steering) {
-	mrzr_steering = rcv_steering->data;
+  mrzr_steering = rcv_steering->data;
 }
 
 void PathCallback(nature::msg::PathPtr rcv_control){
@@ -60,75 +46,27 @@ void StateCallback(nature::msg::Int32Ptr rcv_state){
   if (current_run_state==2)shutdown_condition = true;
 }
 
-double length(nature::msg::Point a, nature::msg::Point b){
-  double dx = a.x - b.x;
-  double dy = a.y - b.y;
-  double dz = a.z - b.z;
-  return sqrt(dx*dx + dy*dy + dz*dz);
-}
-
-float TriangleArea(nature::msg::Point a, nature::msg::Point b, nature::msg::Point c) {
-	float area = (float)fabs(a.x*(b.y - c.y) + b.x*(c.y - a.y) + c.x*(a.y - b.y));
-	return area;
-}
-
-float MengerCurvature(nature::msg::Point a, nature::msg::Point b, nature::msg::Point c) {
-	float curv = 0.0f;
-	float denom = length(a, b)*length(b, c)*length(c, b);
-	if (denom == 0.0f) {
-		curv = std::numeric_limits<float>::max();
-	}
-	else {
-		float area = TriangleArea(a, b, c);
-		curv = 4.0f*area / denom;
-	}
-	return curv;
-}
-
-double GetMaxCurvature(nature::msg::Path path){
-  double max_curvature = 0.0;
-  if (path.poses.size() > 2) {
-		for (int i = 1; i < path.poses.size() - 1; i++){
-		  double curvature = MengerCurvature(path.poses[i - 1].pose.position, path.poses[i].pose.position, path.poses[i + 1].pose.position);
-      if (curvature>max_curvature)max_curvature = curvature;
-		}
-	}
-  return max_curvature;
-}
-
-
 int main(int argc, char *argv[]){
   auto n = nature::node::init_node(argc,argv,"nature_control_node");
-
   auto dc_pub = n->create_publisher<nature::msg::Twist>("nature/cmd_vel",1);
-
   auto stop_alert_pub = n->create_publisher<std_msgs::msg::Bool>("/nature/vehicle_stop_alert", 1);
-
   auto path_sub = n->create_subscription<nature::msg::Path>("nature/local_path",1, PathCallback);
-
   auto state_sub = n->create_subscription<nature::msg::Odometry>("nature/odometry",1, OdometryCallback);
-
   auto control_sub = n->create_subscription<nature::msg::Int32>("nature/state",1,StateCallback);
-
   auto speed_sub = n->create_subscription<nature::msg::Float64>("mrzr_velocity",1,SpeedCallback);
-
   auto steering_sub = n->create_subscription<nature::msg::Float64>("mrzr_steering",1,SteeringCallback);
-
 
   nature::control::PurePursuitController controller;
 
-  // added by CTG, 1/26/22
-  // The PID params are tuned with this value in mind
-  // so it's not a good idea to change it
-  float time_to_max_throttle = 3.0f; //seconds
-	// Set controller parameters
+  float time_to_max_throttle = 3.0f; 
   float ff_a0, ff_a1, ff_a2;
   bool use_feed_forward;
-	float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake, time_to_max_steering;
+  float wheelbase, steer_angle, vehicle_speed, steering_coeff, throttle_coeff, time_to_max_brake, time_to_max_steering;
   float throttle_kp, throttle_ki, throttle_kd, max_desired_lateral_g;
-	std::string display;
+  std::string display;
   bool request_approval;
-	n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
+  
+  n->get_parameter("~vehicle_wheelbase", wheelbase, 2.6f);
   n->get_parameter("~vehicle_max_steer_angle_degrees", steer_angle, 25.0f);
   n->get_parameter("~vehicle_speed", vehicle_speed, 5.0f);
   n->get_parameter("~request_approval", request_approval, false);
@@ -150,14 +88,12 @@ int main(int argc, char *argv[]){
   bool turn_off_velocity_overshoot_corrector;
   n->get_parameter("~turn_off_velocity_overshoot_corrector", turn_off_velocity_overshoot_corrector, false);
 
-  // Get the parameters for a skid steered vehicle
   bool skid_steered;
   n->get_parameter("~skid_steered", skid_steered, false);
   float skid_kl, skid_kt;
   n->get_parameter("~skid_kl", skid_kl, 1.0f);
   n->get_parameter("~skid_kt", skid_kt, 1.0f);
   
-
   if (skid_steered){
     controller.IsSkidSteered(true);
     controller.SetSkidSteerParams(skid_kl, skid_kt);
@@ -166,7 +102,7 @@ int main(int argc, char *argv[]){
     controller.SetSteeringParam(steering_coeff);
     controller.SetThrottleCoeff(throttle_coeff);
     controller.SetWheelbase(wheelbase);
-	  controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
+    controller.SetMaxSteering(steer_angle*3.14159 / 180.0);
     controller.SetSpeedControllerParams(throttle_kp, throttle_ki, throttle_kd);
   }
 
@@ -187,15 +123,15 @@ int main(int argc, char *argv[]){
   float dt = 1.0f/rate;
   float brake_step = dt/time_to_max_brake;
   float max_throttle_step = dt/time_to_max_throttle;
-  float max_steering_step = dt/time_to_max_steering;
   float current_brake_value = 0.0f;
   float current_throttle_value = 0.0f;
   float current_steering_value = 0.0f;
-  //bool user_approved = false;
+
+  bool is_uturning = false;
+  
   nature::node::Rate r(rate);
   nature::utils::vec2 goal;
 
-  // NEW VARIABLES: Track how long we've been stopped
   float stopped_timer = 0.0f;
   bool stop_warning_published = false;
   bool has_moved = false;
@@ -204,7 +140,6 @@ int main(int argc, char *argv[]){
     nature::msg::Twist dc;
     bool time_to_quit = false;
 
-    // tell the controller the current vehicle state
     float vel = 0.0f;
     if (speedometer_rcvd){
       vel = mrzr_speedometer;
@@ -214,63 +149,95 @@ int main(int argc, char *argv[]){
         double look_to_x = cos(current_heading);
         double look_to_y = sin(current_heading);
         vel = state.twist.twist.linear.x * look_to_x + state.twist.twist.linear.y * look_to_y;
-      //vel = sqrtf(state.twist.twist.linear.x*state.twist.twist.linear.x + state.twist.twist.linear.y*state.twist.twist.linear.y);
     }
 
     if (!has_moved && std::abs(vel) > 0.5f) {
         has_moved = true;
     }
 
-
     controller.SetVehicleState(state);
     controller.SetVehicleSpeed(vel);
 
     int num_path_poses = control_msg.poses.size();
-    //std::cout << "Num path poses = " << num_path_poses << std::endl;
-    
-    if (num_path_poses <= 1) {
-        //std::cout << "No path, setting desired speed to 0" << std::endl;
-        dc.linear.x = 0.0f;
-        dc.angular.z = 0.0f;
-        /*controller.SetDesiredSpeed(0.0f);
-        dc = controller.GetDcFromTraj(control_msg, goal);
-        dc.linear.y *= 2.0; // brake harder*/
 
-        // Prevent reversing: Only apply brake IF we are actively moving forward.
-        // Once stopped (vel drops below 0.1), switch to neutral to prevent backing up.
-        if (vel > 0.1f) {
-            dc.linear.y = -1.0f;  // Hard Brake
+    // 1. Check if the path is behind us (Dot Product check)
+    if (num_path_poses > 3 && !is_uturning && std::abs(vel) < 0.5f) {
+        
+        int target_idx = std::min(5, num_path_poses - 1);
+        double tx = control_msg.poses[target_idx].pose.position.x - state.pose.pose.position.x;
+        double ty = control_msg.poses[target_idx].pose.position.y - state.pose.pose.position.y;
+        
+        double hx = cos(current_heading);
+        double hy = sin(current_heading);
+        double dot_product = (tx * hx) + (ty * hy);
+        
+        // If the dot product is negative, the path is behind our front bumper!
+        if (dot_product < -0.2) { 
+            RCLCPP_WARN(n->get_logger(), "Path is behind vehicle! Bypassing splines for CCW U-Turn.");
+            is_uturning = true;
+        }
+    }
+
+    // 2. Execute the Continuous U-Turn
+    if (is_uturning) {
+        int target_idx = std::min(5, num_path_poses - 1);
+        double tx = control_msg.poses[target_idx].pose.position.x - state.pose.pose.position.x;
+        double ty = control_msg.poses[target_idx].pose.position.y - state.pose.pose.position.y;
+        double target_angle = atan2(ty, tx);
+
+        // Calculate how far we need to rotate
+        double angle_error = target_angle - current_heading;
+        while (angle_error > M_PI) angle_error -= 2.0 * M_PI;
+        while (angle_error < -M_PI) angle_error += 2.0 * M_PI;
+
+        // If we are facing the path within ~11 degrees (0.2 rads), the turn is done!
+        if (std::abs(angle_error) < 0.2) {
+            RCLCPP_INFO(n->get_logger(), "U-Turn Complete! Resuming spline following.");
+            is_uturning = false;
+            dc.linear.x = 0.0;
+            dc.linear.y = 0.0; // Tap brakes to settle the suspension
+            dc.angular.z = 0.0;
         } else {
-            dc.linear.y = 0.0f;   // Neutral (coasting/stopped)
+            // Execute Continuous CCW U-Turn
+            dc.linear.x = 0.35;  // Slow, steady forward throttle
+            dc.linear.y = 0.0;   // No brakes
+            dc.angular.z = 1.0;  // Full Left Steering (Counter-Clockwise)
         }
 
+        // IMPORTANT: We publish the hardcoded command and hit 'continue'.
+        // This completely hides the broken splines from the Pure Pursuit algorithm!
+        dc_pub->publish(dc);
+        n->spin_some();
+        r.sleep();
+        continue; 
+    }
+    
+    if (num_path_poses <= 1) {
+        dc.linear.x = 0.0f;
+        dc.angular.z = 0.0f;
 
-        // Timer Logic: Check if the vehicle has physically stopped
+        if (vel > 0.1f) {
+            dc.linear.y = -1.0f;  
+        } else {
+            dc.linear.y = 0.0f;   
+        }
+
         if (has_moved && std::abs(vel) < 0.1f) {
-            stopped_timer += dt; // Accumulate time using your existing dt step
+            stopped_timer += dt; 
             
-            // If stopped for 10 seconds and warning hasn't been sent yet
             if (stopped_timer >= 10.0f && !stop_warning_published) {
-                // Using standard ROS 2 logger. Adjust n->get_logger() if your wrapper uses a different accessor.
                 RCLCPP_WARN(n->get_logger(), "Vehicle has been stopped for 10 seconds. Publishing alert!");
-
-                //Publish the true alert
                 std_msgs::msg::Bool alert_msg;
                 alert_msg.data = true;
                 stop_alert_pub->publish(alert_msg);
-                
-                // Set flag to true so we only publish this once per stop event
                 stop_warning_published = true; 
             }
         } else {
-            // Vehicle is still decelerating, keep timer at 0
             stopped_timer = 0.0f;
         }
     }
     else {
-        // Reset the timer and flag as soon as we receive a valid path
         if (stop_warning_published) {
-            // Optional: Publish 'false' to let the other node know the vehicle is moving again
             std_msgs::msg::Bool alert_msg;
             alert_msg.data = false;
             stop_alert_pub->publish(alert_msg);
@@ -279,27 +246,23 @@ int main(int argc, char *argv[]){
         stopped_timer = 0.0f;
         stop_warning_published = false;
 
-        // ... Keep your existing else-if chain here ...
-        if (shutdown_condition) {  // current_run_state = 2 
-            // bring to a smooth stop and shut down
+        if (shutdown_condition) {  
             controller.SetDesiredSpeed(0.0f);
             if (vel<0.1f)time_to_quit = true;
             dc = controller.GetDcFromTraj(control_msg, goal);
-            dc.linear.y *= 2.0; // brake harder when shutting down
+            dc.linear.y *= 2.0; 
         }
-        else if (current_run_state==0) {    // active running state
+        else if (current_run_state==0) {    
             float desired_velocity = vehicle_speed;
             controller.SetDesiredSpeed(desired_velocity);
             dc = controller.GetDcFromTraj(control_msg, goal);
         }
         else if (current_run_state==-1 || current_run_state==1) {
-            // bring to a smooth stop and wait / idle
             controller.SetDesiredSpeed(0.0f);
             dc = controller.GetDcFromTraj(control_msg, goal);
             if (current_run_state==-1)dc.linear.x = 0.0f;
         }
         else if (current_run_state==3) {
-            // bring to a hard stop and shut down
             dc.linear.x = 0.0f;
             dc.linear.y = 0.0f;
             dc.angular.z = 0.0f;
@@ -307,84 +270,29 @@ int main(int argc, char *argv[]){
         }
     }
     
-    /*if (num_path_poses <= 1) {
-        //std::cout << "No path, setting desired speed to 0" << std::endl;
-        controller.SetDesiredSpeed(0.0f);
-        dc = controller.GetDcFromTraj(control_msg, goal);
-        dc.linear.y *= 2.0; // brake harder
-    }
-    else if (shutdown_condition){  // current_run_state = 2 
-      // bring to a smooth stop and shut down
-      controller.SetDesiredSpeed(0.0f);
-      if (vel<0.1f)time_to_quit = true;
-      dc = controller.GetDcFromTraj(control_msg, goal);
-      dc.linear.y *= 2.0; // brake harder when shutting down
-      //dc.linear.x = 0.0f;
-      //dc.angular.z = 0.0f;
-      //dc.linear.y = 0.0f;
-    }
-    else if (current_run_state==0){    // active running state
-      //double max_curvature = GetMaxCurvature(control_msg);
-      //double lateral_g_force = ((vel*vel)*max_curvature)/9.806;
-      float desired_velocity = vehicle_speed;
-      //if (lateral_g_force>max_desired_lateral_g){
-       // desired_velocity = sqrt(9.806*max_desired_lateral_g/max_curvature);
-       // if (desired_velocity>vehicle_speed)desired_velocity=vehicle_speed;
-      //}
-      
-      controller.SetDesiredSpeed(desired_velocity);
-      //controller.SetDesiredSpeed(vehicle_speed);
-      dc = controller.GetDcFromTraj(control_msg, goal);
-    }
-    else if (current_run_state==-1 || current_run_state==1){
-      // bring to a smooth stop and wait / idle
-      controller.SetDesiredSpeed(0.0f);
-      dc = controller.GetDcFromTraj(control_msg, goal);
-      if (current_run_state==-1)dc.linear.x = 0.0f;
-    }
-    else if (current_run_state==3){
-      // bring to a hard stop and shut down
-      dc.linear.x = 0.0f;
-      dc.linear.y = 0.0f;
-      dc.angular.z = 0.0f;
-      time_to_quit = true;
-    }*/
-
     if (!skid_steered){
-      // check braking and throttle
       if (dc.linear.y!=0.0){
-        // apply the ramp up to the brake
         if (current_brake_value>dc.linear.y){
           dc.linear.y = current_brake_value - brake_step;
           if (dc.linear.y<-1.0)dc.linear.y = -1.0;
           if (dc.linear.y>0.0)dc.linear.y = 0.0;
         }
-        // make sure the throttle is zero when braking
         dc.linear.x = 0.0f;
       }
-      // apply the throttle ramp up
       if (dc.linear.x-current_throttle_value > max_throttle_step){
         dc.linear.x = current_throttle_value + max_throttle_step;
       }
-      // apply the steering ramp up
-      //if (fabs(dc.angular.z-current_steering_value)>max_steering_step){
-      //  dc.angular.z = current_steering_value + max_steering_step*(dc.angular.z-current_steering_value)/fabs(dc.angular.z-current_steering_value);
-      //}
     }
     else{
-        // make sure you don't apply throttle and brake at the same time.
       dc.linear.x = std::max(std::min(dc.linear.x, 1.0),0.0);
       if (dc.linear.x>0.0f)dc.linear.y = 0.0f;
     }
 
-    // publish the driving command
     dc_pub->publish(dc);
     current_brake_value = dc.linear.y;
     current_throttle_value = dc.linear.x;
     current_steering_value = dc.angular.z; 
 
-
-    // break the loop when an end state is reached
     if (time_to_quit) {
         dc.linear.x = 0.0;
         dc.linear.y = 0.0;
@@ -401,24 +309,8 @@ int main(int argc, char *argv[]){
       next_waypoint_msg.header.stamp = n->get_stamp();
       next_waypoint_pub->publish(next_waypoint_msg);
     }
-
-    /*// ask the user if the path looks good and they would like to continue
-    if (!user_approved && current_run_state==0 && path_rcvd && request_approval){
-      std::string message_string("Do you approve the initial conditions? \n Click Yes to continue experiment.");
-		  bool approved = tinyfd_messageBox("Approve initial conditions", message_string.c_str(), "yesno", "question", 1);
-      if (approved){
-        user_approved = true;
-      }
-      else{
-        break;
-      }
-    }*/
-
-
     n->spin_some();
-
     r.sleep();
   }
-
   return 0;
 }
