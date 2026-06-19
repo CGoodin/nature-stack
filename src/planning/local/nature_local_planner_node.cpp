@@ -1,9 +1,17 @@
 #include "nature/node/ros_types.h"
 #include "nature/node/node_proxy.h"
 
+#include <std_msgs/msg/bool.hpp>
+//#include "rclcpp/rclcpp.hpp"
+
 #include "nature/planning/local/spline_planner.h"
 #include "nature/planning/local/spline_plotter.h"
 #include "nature/visualization/visualization_factory.h"
+
+// Resolve X11 macro collision with ROS 2 std_msgs::msg::Bool
+#ifdef Bool
+#undef Bool
+#endif
 
 nature::msg::Odometry odom;
 nature::msg::OccupancyGrid grid;
@@ -14,13 +22,16 @@ bool odom_rcvd = false;
 bool new_grid_rcvd = false;
 bool new_seg_grid_rcvd = false;
 
-// ESCAPE MODE VARIABLES
+// Nav2 Escape Mode Variables
 nature::msg::Path nav2_escape_path;
 bool escape_mode_active = false;
+bool next_wp_requested = false;
+//bool prev_escape_mode = false;
 
 void EscapePathCallback(nature::msg::PathPtr rcv_path){
     nav2_escape_path = *rcv_path;
     escape_mode_active = true;
+    next_wp_requested = false;
     std::cout << "[Local Planner] Received Nav2 Escape Path! Using it as the new guide..." << std::endl;
 }
 
@@ -59,6 +70,7 @@ int main(int argc, char *argv[]){
     auto wp_sub = n->create_subscription<nature::msg::Path>("nature/waypoints", 10, WaypointCallback);
     
     auto escape_sub = n->create_subscription<nature::msg::Path>("nature/nav2_escape_path", 10, EscapePathCallback);
+    auto nav2_next_wp_pub = n->create_publisher<std_msgs::msg::Bool>("/nature/request_next_nav2_wp", 10);
 
     nature::planning::Planner planner;
     float path_look_ahead, vehicle_width, max_steer_angle, output_path_step, path_int_step, rate;
@@ -125,18 +137,22 @@ int main(int argc, char *argv[]){
 
             std::vector<nature::utils::vec2> path_points;
 
-            // ==========================================================
-            // "AWAKE NATURE" - PATH INJECTION
-            // ==========================================================
+            // Inject Nav2 path into spline generation during escape mode
             if (escape_mode_active && nav2_escape_path.poses.size() > 0) {
                 auto final_pose = nav2_escape_path.poses.back().pose.position;
                 double dist_to_goal = sqrt(pow(final_pose.x - odom.pose.pose.position.x, 2) + 
                                            pow(final_pose.y - odom.pose.pose.position.y, 2));
 
-                if (dist_to_goal < 20.0) { 
-                    std::cout << "[Local Planner] Escape route complete (within 15m). Resuming normal operations." << std::endl;
-                    escape_mode_active = false;
-                    nav2_escape_path.poses.clear(); 
+                // Request next waypoint when approaching the current Nav2 goal
+                if (dist_to_goal < 30.0) { 
+                    //RCLCPP_INFO_ONCE(this->get_logger(), "[Local Planner] Escape route complete (within 30m). Resuming normal operations.");
+                    //std::cout << "[Local Planner] Escape route complete (within 30m). Resuming normal operations." << std::endl;
+                    std_msgs::msg::Bool req_msg;
+                    req_msg.data = true;
+                    //escape_mode_active = false;
+                    nav2_next_wp_pub->publish(req_msg);
+                    next_wp_requested = true;
+                    //nav2_escape_path.poses.clear(); 
                     
                     for (int i = 0; i < waypoints.poses.size(); i++){
                         nature::utils::vec2 point(waypoints.poses[i].pose.position.x, waypoints.poses[i].pose.position.y);
@@ -150,7 +166,7 @@ int main(int argc, char *argv[]){
                     }
                 }
             }
-            // --- STANDARD BEHAVIOR ---
+            // Standard Behavior: Follow global path or default waypoints
             else if (use_global_path || (using_global_fallback && use_global_fallback)){
                 for (int i = 0; i < global_path.poses.size(); i++){
                     nature::utils::vec2 point(global_path.poses[i].pose.position.x, global_path.poses[i].pose.position.y);
@@ -163,7 +179,6 @@ int main(int argc, char *argv[]){
                     path_points.push_back(point);
                 }
             }
-            // ==========================================================
 
             nature::planning::Path path;
             if (trim_path && (use_global_path || (using_global_fallback && use_global_fallback))){
@@ -186,8 +201,11 @@ int main(int argc, char *argv[]){
             nature::planning::CurveInfo ci = path.GetCurvatureAndAngle(s);
             path_age += dt;
 
+            //bool mode_just_changed = (escape_mode_active != prev_escape_mode);
+            //prev_escape_mode = escape_mode_active;
+
             float ds = s - s_old;
-            if (path_age > 1.0f || ds > 0.5f * path_look_ahead || !old_path_still_good || !keep_good_path){
+            if (path_age > 1.0f || ds > 0.5f * path_look_ahead || !old_path_still_good || !keep_good_path /*|| mode_just_changed*/){
                 planner.GeneratePaths(num_paths, s, rho_start, theta - ci.theta, s_lookahead, max_steer_angle, vehicle_width);
                 planner.SetCenterline(path);
                 path_age = 0.0f;
@@ -208,12 +226,11 @@ int main(int argc, char *argv[]){
             float lr_bounds_y = veh_left_offset_y + (veh_heading_y * -10);
             float rr_bounds_x = veh_right_offset_x + (veh_heading_x * -10);
             float rr_bounds_y = veh_right_offset_y + (veh_heading_y * -10);
-            float llx = std::min({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x}); // Typo fix implied but using given vars: lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x
+            float llx = std::min({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x}); 
             float lly = std::min({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
             float urx = std::max({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x});
             float ury = std::max({lf_bounds_y, rf_bounds_y, lr_bounds_y, rr_bounds_y});
 
-            // Using standard variables for clarity
             llx = std::min({lf_bounds_x, rf_bounds_x, lr_bounds_x, rr_bounds_x});
 
             if (new_grid_rcvd) planner.DilateGrid(grid, dilation_factor, llx, lly, urx, ury);

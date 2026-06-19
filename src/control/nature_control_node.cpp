@@ -160,7 +160,7 @@ int main(int argc, char *argv[]){
 
     int num_path_poses = control_msg.poses.size();
 
-    // 1. Check if the path is behind us (Dot Product check)
+    // Verify path orientation relative to vehicle heading
     if (num_path_poses > 3 && !is_uturning && std::abs(vel) < 0.5f) {
         
         int target_idx = std::min(5, num_path_poses - 1);
@@ -171,41 +171,39 @@ int main(int argc, char *argv[]){
         double hy = sin(current_heading);
         double dot_product = (tx * hx) + (ty * hy);
         
-        // If the dot product is negative, the path is behind our front bumper!
-        if (dot_product < -0.2) { 
+        // Initiate U-Turn sequence if local path originates behind the vehicle
+        if (dot_product < -0.1) { 
             RCLCPP_WARN(n->get_logger(), "Path is behind vehicle! Bypassing splines for CCW U-Turn.");
             is_uturning = true;
         }
     }
 
-    // 2. Execute the Continuous U-Turn
+    // Execute hardcoded CCW U-Turn maneuver
     if (is_uturning) {
         int target_idx = std::min(5, num_path_poses - 1);
         double tx = control_msg.poses[target_idx].pose.position.x - state.pose.pose.position.x;
         double ty = control_msg.poses[target_idx].pose.position.y - state.pose.pose.position.y;
         double target_angle = atan2(ty, tx);
 
-        // Calculate how far we need to rotate
+        // Calculate heading error
         double angle_error = target_angle - current_heading;
         while (angle_error > M_PI) angle_error -= 2.0 * M_PI;
         while (angle_error < -M_PI) angle_error += 2.0 * M_PI;
 
-        // If we are facing the path within ~11 degrees (0.2 rads), the turn is done!
+        // Terminate maneuver when heading is within ~11 degree tolerance!
         if (std::abs(angle_error) < 0.2) {
             RCLCPP_INFO(n->get_logger(), "U-Turn Complete! Resuming spline following.");
             is_uturning = false;
             dc.linear.x = 0.0;
-            dc.linear.y = 0.0; // Tap brakes to settle the suspension
+            dc.linear.y = 0.0; 
             dc.angular.z = 0.0;
-        } else {
-            // Execute Continuous CCW U-Turn
-            dc.linear.x = 0.35;  // Slow, steady forward throttle
-            dc.linear.y = 0.0;   // No brakes
-            dc.angular.z = 1.0;  // Full Left Steering (Counter-Clockwise)
+        } else { 
+            dc.linear.x = 0.35;  
+            dc.linear.y = 0.0;   
+            dc.angular.z = 1.0; 
         }
 
-        // IMPORTANT: We publish the hardcoded command and hit 'continue'.
-        // This completely hides the broken splines from the Pure Pursuit algorithm!
+        // Bypass standard pure pursuit evaluation during manual maneuver
         dc_pub->publish(dc);
         n->spin_some();
         r.sleep();
