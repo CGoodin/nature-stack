@@ -154,7 +154,17 @@ int main(int argc, char *argv[]) {
 	float vehicle_roof_height = 3.5f;
 
 	
+<<<<<<< HEAD
 
+=======
+	/*
+	n->get_parameter("~vehicle_mass", map_length, 34251.0f);
+	n->get_parameter("~vehicle_bumper_height", map_length, 34251.0f);
+	n->get_parameter("~vehicle_tire_radius", map_length, 34251.0f);
+	n->get_parameter("~vehicle_vci1", map_length, 34251.0f);
+	n->get_parameter("~vehicle_max_slope", map_length, 34251.0f);
+	n->get_parameter("~vehicle_roof_height", map_length, 34251.0f);*/
+>>>>>>> 5dcc1c9 (Fix FTTE param reads writing into map_length)
 	n->get_parameter("~vehicle_mass", vehicle_mass, 34251.0f);
 	n->get_parameter("~vehicle_bumper_height", vehicle_bumper_height, 0.41f);
 	n->get_parameter("~vehicle_tire_radius", vehicle_tire_radius, 0.4f);
@@ -197,7 +207,7 @@ int main(int argc, char *argv[]) {
 	bool show_confidence = false;
 	bool show_ground = false;
 	bool show_roughness = false;
-	bool show_veg = false;
+	bool show_veg = true;
 	bool show_slope = false;
 	bool save_plots = false;
 	double max_time = std::numeric_limits<double>::max();
