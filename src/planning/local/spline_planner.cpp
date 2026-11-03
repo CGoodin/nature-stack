@@ -1,6 +1,8 @@
 #include "nature/planning/local/spline_planner.h"
 #include <algorithm>
-
+#include <iostream>
+#include <limits>
+#include <cmath>
 namespace nature {
 namespace planning{
 Planner::Planner() {
@@ -144,60 +146,97 @@ void Planner::DilateGrid(nature::msg::OccupancyGrid &grid, int x, float llx, flo
 	grid.data = new_data;
 }
 
-void Planner::CalculateStaticSafetyAndSegCost(const nature::msg::OccupancyGrid & grid, const nature::msg::OccupancyGrid & grid_seg) {
-	bool has_segmentation = grid_seg.info.height>0 && grid_seg.info.width>0;
-	for (int i = 0; i < candidates_.size(); i++) {
-		float s = s_no_coll_before_;
-		float stat_safe = 0.0f;
-		float traj_seg_cost = 0.0;
-		while (s < s_max_) {
-			float rho = candidates_[i].At(s);
-			if (fabs(rho) > rho_max_)candidates_[i].SetOutOfBounds(true);
-			utils::vec2 p = path_.ToCartesian(s_start_ + s, rho);
-			int ix = (int)floor((p.x - grid.info.origin.position.x) / grid.info.resolution);
-			int iy = (int)floor((p.y - grid.info.origin.position.y) / grid.info.resolution);
-			if (ix >= 0 && ix < (int)grid.info.width && iy >= 0 && iy < (int)grid.info.height) {
-				int ndx = ix * grid.info.height + iy;
-				stat_safe += grid.data[ndx];
-				traj_seg_cost += (has_segmentation ? grid_seg.data[ndx] : 0.0f);
-			}
-			s += ds_;
-		}
-		if (stat_safe > 0) {
-			candidates_[i].SetHitsObstacle(true);
-			candidates_[i].SetStaticSafety(1.0f);
-		}
-		else {
-			candidates_[i].SetHitsObstacle(false);
-			candidates_[i].SetStaticSafety(0.0f);
-		}
-		candidates_[i].SetSegmentationCost(traj_seg_cost);
-	}
+void Planner::CalculateStaticSafetyAndSegCost(
+    const nature::msg::OccupancyGrid & grid,
+    const nature::msg::OccupancyGrid & grid_seg)
+{
+    bool has_segmentation = grid_seg.info.height > 0 && grid_seg.info.width > 0;
 
-	// now blend
-	if(use_blend_){
-		std::vector<float> fs;
-		std::vector<float> fseg;
-		fs.resize(candidates_.size(),0.0f);
-		fseg.resize(candidates_.size(),0.0f);
-		for (int i = 0; i < candidates_.size(); i++) {
-		float fcount = 0.0f;
-		for (int k = -averaging_window_size_; k <= averaging_window_size_; k++) {
-			int ndx = i + k;
-			if (ndx >= 0 && ndx < candidates_.size()) {
-			fs[i] += candidates_[ndx].GetStaticSafety();
-			fseg[i] += candidates_[ndx].GetSegmentationCost();
-			fcount += 1.0f;
-			}
-		}
-		fs[i] = fs[i] / fcount;
-		fseg[i] = fseg[i] / fcount;
-		}
-		for (int i = 0; i < candidates_.size(); i++) {
-		candidates_[i].SetStaticSafety(fs[i]);
-		candidates_[i].SetSegmentationCost(fseg[i]);
-		}
-	}
+    for (int i = 0; i < candidates_.size(); i++) {
+        float s = s_no_coll_before_;
+        float stat_safe = 0.0f;
+        float traj_seg_cost = 0.0f;
+        bool hit_obstacle = false;
+
+        candidates_[i].SetOutOfBounds(false);
+
+        while (s < s_max_) {
+            float rho = candidates_[i].At(s);
+
+            if (fabs(rho) > rho_max_) {
+                candidates_[i].SetOutOfBounds(true);
+            }
+
+            utils::vec2 p = path_.ToCartesian(s_start_ + s, rho);
+
+            int ix = (int)floor((p.x - grid.info.origin.position.x) / grid.info.resolution);
+            int iy = (int)floor((p.y - grid.info.origin.position.y) / grid.info.resolution);
+
+            if (ix >= 0 && ix < (int)grid.info.width &&
+                iy >= 0 && iy < (int)grid.info.height) {
+
+                int ndx = ix * grid.info.height + iy;
+                int cell = grid.data[ndx];
+
+                if (cell < 0) {
+                    // Unknown terrain penalty per meter.
+                    stat_safe += 50.0f * ds_;
+                } else {
+                    // Cost per meter.
+                    stat_safe += (float)cell * ds_;
+		   //stat_safe += (100.0f - (float)cell) * ds_;
+                    // Only treat very high cells as hard obstacle.
+                    if (cell >= 95) {
+                        hit_obstacle = true;
+                    }
+                }
+
+                if (has_segmentation) {
+                    traj_seg_cost += (float)grid_seg.data[ndx] * ds_;
+                }
+            } else {
+                // Outside map penalty per meter.
+                stat_safe += 100.0f * ds_;
+                hit_obstacle = true;
+            }
+
+            s += ds_;
+        }
+
+        candidates_[i].SetHitsObstacle(hit_obstacle);
+        candidates_[i].SetStaticSafety(stat_safe);
+        candidates_[i].SetSegmentationCost(traj_seg_cost);
+    }
+
+    // now blend
+    if (use_blend_) {
+        std::vector<float> fs;
+        std::vector<float> fseg;
+        fs.resize(candidates_.size(), 0.0f);
+        fseg.resize(candidates_.size(), 0.0f);
+
+        for (int i = 0; i < candidates_.size(); i++) {
+            float fcount = 0.0f;
+
+            for (int k = -averaging_window_size_; k <= averaging_window_size_; k++) {
+                int ndx = i + k;
+
+                if (ndx >= 0 && ndx < candidates_.size()) {
+                    fs[i] += candidates_[ndx].GetStaticSafety();
+                    fseg[i] += candidates_[ndx].GetSegmentationCost();
+                    fcount += 1.0f;
+                }
+            }
+
+            fs[i] = fs[i] / fcount;
+            fseg[i] = fseg[i] / fcount;
+        }
+
+        for (int i = 0; i < candidates_.size(); i++) {
+            candidates_[i].SetStaticSafety(fs[i]);
+            candidates_[i].SetSegmentationCost(fseg[i]);
+        }
+    }
 }
 
 void Planner::CalculateRhoCost() {
@@ -209,11 +248,106 @@ void Planner::CalculateRhoCost() {
 }
 
 float Planner::GetTotalCostOfCandidate(int i) {
-	float cost = w_c_ * candidates_[i].GetComfortability() + w_s_ * candidates_[i].GetStaticSafety() + w_r_ * candidates_[i].GetRhoCost() + w_d_*candidates_[i].GetDynamicSafety() * w_t_*candidates_[i].GetSegmentationCost();
-  	candidates_[i].SetCost(cost);
-	return cost;
+    float cost =
+        w_c_ * candidates_[i].GetComfortability() +
+        w_s_ * candidates_[i].GetStaticSafety() +
+        w_r_ * candidates_[i].GetRhoCost() +
+        w_d_ * candidates_[i].GetDynamicSafety() +
+        w_t_ * candidates_[i].GetSegmentationCost();
+
+    candidates_[i].SetCost(cost);
+    return cost;
 }
 
+bool Planner::CalculateCandidateCosts(
+    nature::msg::OccupancyGrid grid,
+    nature::msg::OccupancyGrid segmentation_grid,
+    nature::msg::Odometry odom)
+{
+    CalculateStaticSafetyAndSegCost(grid, segmentation_grid);
+
+    float static_sum = 0.0f;
+    for (int i = 0; i < candidates_.size(); i++) {
+        static_sum += candidates_[i].GetStaticSafety();
+    }
+
+    if (static_sum <= 1.0e-3f) {
+        if (!first_iter_) {
+            return true;
+        }
+
+        return false;
+    }
+
+    CalculateComfortability();
+    CalculateRhoCost();
+    CalculateDynamicSafety(odom);
+
+    int lowest_index = -1;
+    float lowest_cost = std::numeric_limits<float>::max();
+
+    for (int i = 0; i < candidates_.size(); i++) {
+        float cost = GetTotalCostOfCandidate(i);
+        if (cost < lowest_cost &&
+            !candidates_[i].HitsObstacle() &&
+            !candidates_[i].IsOutOfBounds()) {
+            lowest_cost = cost;
+            lowest_index = i;
+        }
+    }
+
+    if (lowest_index == -1) {
+        for (int i = 0; i < candidates_.size(); i++) {
+            float cost = GetTotalCostOfCandidate(i);
+
+            if (cost < lowest_cost && !candidates_[i].HitsObstacle()) {
+                lowest_cost = cost;
+                lowest_index = i;
+            }
+        }
+    }
+
+    // Hysteresis:
+    // If the previous candidate is still valid, only switch away from it
+    // when the new candidate is clearly better.
+    if (lowest_index != -1 && !first_iter_) {
+        int last_index = -1;
+
+        for (int i = 0; i < candidates_.size(); i++) {
+            if (fabs(candidates_[i].GetRhoCost() - last_selected_.GetRhoCost()) < 1.0e-3f) {
+                last_index = i;
+                break;
+            }
+        }
+
+        if (last_index >= 0 &&
+            !candidates_[last_index].HitsObstacle() &&
+            !candidates_[last_index].IsOutOfBounds()) {
+
+            float last_cost = GetTotalCostOfCandidate(last_index);
+
+            // Tune this. Larger = stickier path choice.
+            float switch_margin = 2.0f;
+
+            if (lowest_cost > last_cost - switch_margin) {
+
+                lowest_index = last_index;
+                lowest_cost = last_cost;
+            }
+        }
+    }
+
+    if (lowest_index == -1) {
+        return false;
+    }
+
+    candidates_[lowest_index].SetRank(1);
+    last_selected_ = candidates_[lowest_index];
+    first_iter_ = false;
+
+    return true;
+}
+/*
 bool Planner::CalculateCandidateCosts(nature::msg::OccupancyGrid grid, nature::msg::OccupancyGrid segmentation_grid, nature::msg::Odometry odom) {
 
 	CalculateStaticSafetyAndSegCost(grid, segmentation_grid);
@@ -247,7 +381,7 @@ bool Planner::CalculateCandidateCosts(nature::msg::OccupancyGrid grid, nature::m
 	last_selected_ = candidates_[lowest_index];
 	first_iter_ = false;
 	return true;
-}
+}*/
 
 utils::vec2 Planner::GetNextPoint(float s_step) {
 	utils::vec2 point(0.0f, 0.0f);
